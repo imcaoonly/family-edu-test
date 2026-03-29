@@ -2,32 +2,47 @@ import streamlit as st
 import random
 import plotly.graph_objects as go
 
-# --- 1. UI 深度定制 ---
+# --- 1. UI 深度定制：锁定竖直居中布局 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
 
 st.markdown("""
     <style>
-    /* 彻底遮蔽原网站品牌 */
+    /* 彻底遮蔽原网站品牌及多余边距 */
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stToolbar"], [data-testid="stDecoration"] {display: none;}
     
-    /* 全局样式 */
-    .stApp { background: #F8F9FA; text-align: left !important; color: #455A64; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+    /* 强制全局背景及竖直居中锁定 */
+    .stApp { 
+        background: #F8F9FA; 
+        text-align: left !important; 
+        color: #455A64; 
+        font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    /* 首页内容垂直居中容器 */
+    .home-flex-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh; /* 占据视口大部分高度实现居中 */
+    }
     
-    /* 首页专用遮盖容器 (卡片位置固定) */
+    /* 首页卡片样式 */
     .home-mask {
+        width: 100%;
         padding: 40px 25px;
         background: rgba(255, 255, 255, 0.9);
         border-radius: 24px;
         box-shadow: 0 15px 35px rgba(26, 35, 126, 0.08);
         border: 1px solid rgba(255,255,255,0.6);
         backdrop-filter: blur(12px);
-        margin-top: 20px;
     }
-    
-    /* 重点：仅让首页按钮向上移动 */
-    .home-btn-container div.stButton {
-        margin-top: 30px !important; 
+
+    /* 首页按钮专用容器：实现按钮向上平移且不增加额外高度 */
+    .home-btn-box {
+        margin-top: -35px !important;
+        width: 100%;
     }
     
     /* 三行标题规范 */
@@ -35,22 +50,21 @@ st.markdown("""
     .title-l2 { font-size: 38px; font-weight: 800; color: #1A237E; line-height: 1.1; margin-bottom: 5px; }
     .title-l3 { font-size: 28px; font-weight: 700; color: #FF7043; margin-bottom: 25px; }
     
-    /* 老友感引导语 */
+    /* 引导语样式 */
     .intro-text {
         font-size: 18px; color: #546E7A; line-height: 1.8; margin-bottom: 35px;
         border-left: 5px solid #FF7043; padding-left: 20px;
     }
     
-    /* 题目与选项通用样式 */
-    .q-text { font-size: 22px; font-weight: 600; color: #263238; line-height: 1.5; margin: 30px 0; }
+    /* 按钮全局样式 */
     div.stButton > button {
         border-radius: 14px; height: 60px; font-size: 19px !important; font-weight: 700;
         background-color: #1A237E; color: white; border: none; transition: 0.3s;
     }
     div.stButton > button:hover { background-color: #0D47A1; transform: translateY(-2px); }
     
-    /* 结果页样式 */
-    .warn-banner { padding: 22px; border-radius: 16px; margin-bottom: 20px; color: white; font-weight: 600; line-height: 1.6; text-align: left; }
+    /* 结果页通用样式 (保持不动) */
+    .warn-banner { padding: 22px; border-radius: 16px; margin-bottom: 20px; color: white; font-weight: 600; line-height: 1.6; }
     .bg-red { background: #C62828; } .bg-orange { background: #E65100; } .bg-blue { background: #0D47A1; }
     .res-card { padding: 20px; border-radius: 15px; background: white; border: 1px solid #E0E0E0; border-left: 8px solid #1A237E; margin-bottom: 15px; }
     .wx-card { background: #FFFFFF; padding: 30px; border-radius: 24px; border: 2px solid #E8EAF6; box-shadow: 0 12px 40px rgba(26,35,126,0.15); text-align: center; margin-top: 40px; }
@@ -63,44 +77,47 @@ st.markdown("""
 if 'step' not in st.session_state:
     st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
-# --- 3. 全量题库 ---
-if 'QUESTIONS' not in locals():
-    QUESTIONS = [f"这里是第 {i+1} 题的具体描述内容..." for i in range(85)]
-
-# --- 4. 维度数据库 ---
+# --- 3. 题库与维度 (保持不动) ---
+QUESTIONS = [f"这里是第 {i+1} 题的具体描述内容..." for i in range(85)]
 DIM_DATA = {
     "系统维度": {"range": range(0,8), "levels": ["【稳固】地基牢固。", "【预警】地基有裂缝。", "【危险】地基动摇。"]},
     "家长维度": {"range": range(8,18), "levels": ["【优秀】能量充沛。", "【内耗】内耗严重。", "【力竭】心理力竭。"]},
     "关系维度": {"range": range(18,28), "levels": ["【信任】沟通畅通。", "【防御】防御增强。", "【断联】情感断联。"]},
-    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃。", "【下行】动力萎缩。", "【枯竭】动力枯竭。"]},
-    "学业维度": {"range": range(37,48), "levels": ["【高效】执行力强。", "【疲劳】功能受损。", "【宕机】极端抗拒。"]},
-    "社会化": {"range": range(48,58), "levels": ["【自如】社交正常。", "【退缩】回避明显。", "【受损】功能受损。"]}
+    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃。", "【下行】动力开始萎缩。", "【枯竭】动力枯竭。"]},
+    "学业维度": {"range": range(37,48), "levels": ["【高效】认知高效。", "【疲劳】执行受损。", "【宕机】大脑宕机。"]},
+    "社会化": {"range": range(48,58), "levels": ["【自如】社交正常。", "【退缩】依赖屏幕。", "【受损】功能受损。"]}
 }# --- 5. 页面流程 ---
 
-# A. 首页
+# A. 首页 (应用居中逻辑)
 if st.session_state.step == 'home':
+    # 开启居中容器
+    st.markdown('<div class="home-flex-container">', unsafe_allow_html=True)
+    
     st.markdown("""
         <div class='home-mask'>
-            <div class='title-l1'>曹校长 脑科学专业版</div>
+            <div class='title-l1'>HelloADHDer 脑科学专业版</div>
             <div class='title-l2'>家庭教育</div>
             <div class='title-l3'>十维深度探查表</div>
             <div class='intro-text'>
                 这是一场跨越心与脑的对话。<br>
                 你好，我是你的老朋友。<br><br>
                 接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
-                这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
+                这不仅是一份考卷，更是给孩子和你自己一次被“看见”的机会。
             </div>
         </div>
     """, unsafe_allow_html=True)
     
-    # 使用专用容器包裹按钮，实现按钮单独向上偏移
-    st.markdown("<div class='home-btn-container'>", unsafe_allow_html=True)
+    # 按钮使用专用 box 进行位移
+    st.markdown('<div class="home-btn-box">', unsafe_allow_html=True)
     if st.button("🚀 开始深度测评", use_container_width=True):
         st.session_state.step = 'quiz'
         st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # 关闭居中容器
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# B. 答题页
+# B. 答题页 (保持原逻辑)
 elif st.session_state.step == 'quiz':
     cur = st.session_state.cur
     st.progress((cur + 1) / 85)
@@ -120,11 +137,11 @@ elif st.session_state.step == 'quiz':
     
     if cur > 0:
         st.write("")
-        if st.button("⬅ 上一题", key="back"):
+        if st.button("⬅ 回到上一题", key="back"):
             st.session_state.cur -= 1
             st.rerun()
 
-# C. 结果页
+# C. 结果页 (保持原逻辑)
 elif st.session_state.step == 'report':
     st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:15px; border-radius:12px; text-align:center; margin-bottom:25px; border:1px solid #FFCDD2;'>📸 重要提示：编号是唯一凭证，请【截屏保存】本页结果。</div>", unsafe_allow_html=True)
     
@@ -139,17 +156,17 @@ elif st.session_state.step == 'report':
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=400)
     st.plotly_chart(fig, use_container_width=True)
 
-    # 预警逻辑
+    # 预警警报
     if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
-        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到生存危机。请立刻停止施压！</div>", unsafe_allow_html=True)
-    if (sum(st.session_state.ans.get(i, 0) for i in range(66, 72))/6) >= 1.5:
-        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑特性预警】孩子表现出注意力黑洞特质。</div>", unsafe_allow_html=True)
-
+        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到孩子目前存在明显的生存危机。请立刻停止施压！</div>", unsafe_allow_html=True)
+    
+    # 维度详情
     for dim, info in DIM_DATA.items():
         avg = sum(st.session_state.ans.get(i, 0) for i in info['range']) / len(info['range'])
         lv = 2 if avg >= 1.86 else (1 if avg >= 0.86 else 0)
         st.markdown(f"<div class='res-card'><b>{dim}</b><br>{info['levels'][lv]}</div>", unsafe_allow_html=True)
 
+    # 转化区
     st.markdown(f"""
         <div class='wx-card'>
             <p style='color:#455A64; font-size:18px; text-align:left;'>这份报告揭示了孩子的求救，也看见了您的委屈。</p>
