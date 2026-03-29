@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import plotly.graph_objects as go
 
-# --- 1. UI 深度定制：融合品牌色与首页位移逻辑 ---
+# --- 1. UI 深度定制 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
 
 st.markdown("""
@@ -14,36 +14,31 @@ st.markdown("""
     /* 全局样式 */
     .stApp { background: #F8F9FA; text-align: left !important; color: #455A64; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
     
-    /* 首页居中与向上位移逻辑 */
-    .main-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* 竖直居中 */
-        align-items: center;
-        min-height: 90vh;        /* 视口高度 */
-        padding-bottom: 12vh;    /* 关键：通过底部留白将内容整体向上推 */
-    }
-
-    /* 首页专用遮盖容器 */
+    /* 首页专用遮盖容器：增加 transform 使其向上位移 */
     .home-mask {
-        width: 100%;
         padding: 40px 25px;
         background: rgba(255, 255, 255, 0.9);
         border-radius: 24px;
         box-shadow: 0 15px 35px rgba(26, 35, 126, 0.08);
         border: 1px solid rgba(255,255,255,0.6);
         backdrop-filter: blur(12px);
+        margin-top: 10px;
+        /* 关键修改：向上平移 60 像素，数值越大越靠上 */
+        transform: translateY(-60px); 
     }
     
-    /* 首页标题规范 */
+    /* 三行标题规范 */
     .title-l1 { font-size: 16px; color: #90A4AE; font-weight: 500; letter-spacing: 1px; margin-bottom: 8px; }
     .title-l2 { font-size: 38px; font-weight: 800; color: #1A237E; line-height: 1.1; margin-bottom: 5px; }
     .title-l3 { font-size: 28px; font-weight: 700; color: #FF7043; margin-bottom: 25px; }
     
-    /* 引导语 */
-    .intro-text { font-size: 18px; color: #546E7A; line-height: 1.8; margin-bottom: 35px; border-left: 5px solid #FF7043; padding-left: 20px; }
+    /* 老友感引导语 */
+    .intro-text {
+        font-size: 18px; color: #546E7A; line-height: 1.8; margin-bottom: 35px;
+        border-left: 5px solid #FF7043; padding-left: 20px;
+    }
     
-    /* 题目与选项样式 */
+    /* 题目与选项 */
     .q-text { font-size: 22px; font-weight: 600; color: #263238; line-height: 1.5; margin: 30px 0; }
     div.stButton > button {
         border-radius: 14px; height: 60px; font-size: 19px !important; font-weight: 700;
@@ -73,22 +68,22 @@ if 'step' not in st.session_state:
     st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
 # --- 3. 全量题库 (1-85题) ---
-QUESTIONS = [f"这里是第 {i+1} 题的具体描述内容..." for i in range(85)]
+if 'QUESTIONS' not in locals():
+    QUESTIONS = [f"这里是第 {i+1} 题的具体描述内容..." for i in range(85)]
 
-# --- 4. 维度数据库 ---
+# --- 4. 维度话术数据库 ---
 DIM_DATA = {
     "系统维度": {"range": range(0,8), "levels": ["【稳固】地基牢固，依恋关系安全。", "【预警】地基有裂缝，系统承压接近临界。", "【危险】地基动摇，孩子缺乏基本安全感。"]},
     "家长维度": {"range": range(8,18), "levels": ["【优秀】能量充沛，情绪自控力强。", "【内耗】内耗严重，管教伴随生理性无力。", "【力竭】心理力竭，已丧失有效引导能力。"]},
     "关系维度": {"range": range(18,28), "levels": ["【信任】沟通畅通，边界清晰信任高。", "【防御】防御性增强，沟通仅维持功能层面。", "【断联】情感断联，孩子有明显逃离倾向。"]},
-    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃，具备天然抗挫力。", "【下行】动力开始萎缩，出现空心化苗头。", "【枯竭】动力枯竭，自我价值感降至冰点。"]},
+    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃，具备天然抗挫力。", "【下行】动力开始萎缩，出现空心化苗头。", "【枯竭】动力枯竭，自我价值感降至点。"]},
     "学业维度": {"range": range(37,48), "levels": ["【高效】脑认知高效，任务执行力强。", "【疲劳】生理性疲劳导致执行功能受损。", "【宕机】大脑保护性关闭，对学业极端抗拒。"]},
     "社会化": {"range": range(48,58), "levels": ["【自如】规则意识强，社交半径正常。", "【退缩】依赖屏幕，现实社交回避明显。", "【受损】社会功能受损，拒绝参与现实生活。"]}
 }
 # --- 5. 页面流程 ---
 
-# A. 首页 (应用向上移动逻辑与文件2内容 [cite: 49])
+# A. 首页 (带位移微调)
 if st.session_state.step == 'home':
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown("""
         <div class='home-mask'>
             <div class='title-l1'>HelloADHDer 脑科学专业版</div>
@@ -102,13 +97,14 @@ if st.session_state.step == 'home':
             </div>
     """, unsafe_allow_html=True)
     
+    # 按钮也放在 mask 内，跟随位移
     if st.button("🚀 开始深度测评", use_container_width=True):
         st.session_state.step = 'quiz'
-        st.rerun() # [cite: 20]
+        st.rerun()
     
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# B. 答题页 (保持文件1逻辑 [cite: 21, 22])
+# B. 答题页
 elif st.session_state.step == 'quiz':
     cur = st.session_state.cur
     st.progress((cur + 1) / 85)
@@ -130,13 +126,12 @@ elif st.session_state.step == 'quiz':
         st.write("")
         if st.button("⬅ 回到上一题", key="back"):
             st.session_state.cur -= 1
-            st.rerun() # [cite: 23]
+            st.rerun()
 
-# C. 结果页 (保持文件1解析逻辑 [cite: 24, 25, 26])
+# C. 结果页
 elif st.session_state.step == 'report':
     st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:15px; border-radius:12px; text-align:center; margin-bottom:25px; border:1px solid #FFCDD2;'>📸 重要提示：编号是唯一凭证，请【截屏保存】本页结果。</div>", unsafe_allow_html=True)
     
-    # 雷达图 [cite: 24]
     scores = []
     labels = list(DIM_DATA.keys())
     for dim in labels:
@@ -148,32 +143,27 @@ elif st.session_state.step == 'report':
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=400)
     st.plotly_chart(fig, use_container_width=True)
 
-    # 7-9 维度原版报警 [cite: 54, 55, 56]
     if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
-        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到生存危机或极度情绪创伤。此时任何关于学习的督促都是“火上浇油”。请立刻停止施压，确保生命安全！</div>", unsafe_allow_html=True)
+        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到孩子目前存在明显的生存危机或极度情绪创伤。请立刻停止施压！</div>", unsafe_allow_html=True)
     
     if (sum(st.session_state.ans.get(i, 0) for i in range(66, 72))/6) >= 1.5:
         st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑特性预警】孩子表现出注意力黑洞特质。这非态度问题，需科学干预。</div>", unsafe_allow_html=True)
 
     if (sum(st.session_state.ans.get(i, 0) for i in range(72, 78))/6) >= 1.5:
-        st.markdown("<div class='warn-banner bg-blue'>⚠️ 【生理地基预警】检测到肠脑轴失调或慢性炎症迹象。大脑已切至“生存模式”，建议先调理生理节律。</div>", unsafe_allow_html=True)
+        st.markdown("<div class='warn-banner bg-blue'>⚠️ 【生理地基预警】检测到肠脑轴失调迹象，建议先调理生理节律。</div>", unsafe_allow_html=True)
 
-    # 1-6 维度解析 [cite: 25]
     for dim, info in DIM_DATA.items():
         avg = sum(st.session_state.ans.get(i, 0) for i in info['range']) / len(info['range'])
         lv = 2 if avg >= 1.86 else (1 if avg >= 0.86 else 0)
         st.markdown(f"<div class='res-card'><b>{dim}</b><br>{info['levels'][lv]}</div>", unsafe_allow_html=True)
 
-    # 微信转化 [cite: 26, 27, 28, 29, 30, 31, 32]
     st.markdown(f"""
         <div class='wx-card'>
-            <p style='color:#455A64; font-size:18px; text-align:left;'>这份报告揭示了孩子的求救，<br>也看见了您的委屈。<br>其实，您不需要独自扛着。</p>
+            <p style='color:#455A64; font-size:18px; text-align:left;'>这份报告揭示了孩子的求救，也看见了您的委屈。</p>
             <p style='text-align:left; font-weight:bold; margin-top:20px; color:#1A237E;'>添加微信您可以获得：</p>
             <div class='benefit'>1. 十个维度个性化改善方案</div>
             <div class='benefit'>2. 30 分钟 1V1 深度解析</div>
-            <div class='benefit'>3. 特惠 198 元（原价 598 元）</div>
             <div class='rid-box'>{st.session_state.rid}</div>
-            <p style='color:#546E7A; font-size:15px; margin-bottom:20px;'>添加时请备注生成的数字</p>
-            <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:20px; border-radius:15px; font-size:20px; font-weight:bold;">👉 点击添加老师，领取以上福利</a>
+            <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:20px; border-radius:15px; font-size:20px; font-weight:bold;">👉 点击添加老师，预约 1V1 解析</a>
         </div>
     """, unsafe_allow_html=True)
