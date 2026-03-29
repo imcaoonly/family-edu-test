@@ -4,28 +4,28 @@ import requests
 import json
 import plotly.graph_objects as go
 
-# --- 1. 强效视觉屏蔽：彻底杀掉右下角头像、标签和所有官方 UI ---
+# --- 1. 终极视觉屏蔽：杀掉右下角头像、created by、红色标签 ---
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden !important;}
     footer {visibility: hidden !important;}
     header {visibility: hidden !important;}
     .stDeployButton {display:none !important;}
-    /* 屏蔽右下角红色标签、头像及所有浮动小图标 */
     [data-testid="stStatusWidget"] {display:none !important;}
     .viewerBadge_container__1QSob {display: none !important;}
-    .viewerBadge_link__1S137 {display: none !important;}
-    div[class^="viewerBadge"] {display: none !important;}
+    div[class*="viewerBadge"] {display: none !important;}
     button[title="Manage app"] {display: none !important;}
     #root > div:nth-child(1) > div > div > div > div > section > div > div > div > div.viewerBadge_container__1QSob {display:none !important;}
+    /* 强力屏蔽底部浮动栏 */
+    .stApp > footer {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 基础配置 ---
+# --- 2. 基础数据配置 ---
 FEISHU_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/e0c47a6f-4e26-405c-87ff-7fc955c8c279"
-WECOM_LINK = "https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" # 你的统一获客链接
+WECOM_LINK = "https://work.weixin.qq.com/ca/cawcde91ed29d8de9f"
 
-# 维度题目范围 
+# 维度划分 (严格对应 0-78 索引)
 DIM_MAP = {
     "家庭系统": list(range(0, 8)),      # 1-8题
     "家长状态": list(range(8, 18)),     # 9-18题
@@ -35,8 +35,8 @@ DIM_MAP = {
     "社会适应": list(range(47, 57))     # 48-57题
 }
 
-# 1-79题完整题目列表 
-QUESTIONS = [
+# 1-79题 计分题库 
+QUESTIONS_SCORING = [
     "3岁前，主要抚养人频繁更换或长期中断。", "早期曾连续2周以上见不到核心抚养人。", "长辈深度参与管教，经常推翻您的决定。",
     "父母教育标准不一，经常“一宽一严”。", "幼年受委屈时极度粘人，无法离开抚养人。", "近两年经历搬家、转学或财务大变动。",
     "处理人际关系（如婆媳、夫妻矛盾）心力交瘁。", "家人虽同住但各忙各的，缺乏交心时刻。", "面对孩子问题，感到深深的无力感。",
@@ -65,19 +65,19 @@ QUESTIONS = [
     "睡觉张口呼吸、盗汗、磨牙或频繁翻身。", "睡眠充足但眼圈常年发青或水肿。"
 ]
 
-# --- 3. 初始化状态 ---
+# --- 3. 状态管理 ---
 if 'step' not in st.session_state:
     st.session_state.step = "start"
-    st.session_state.current_q = 0
+    st.session_state.q_idx = 0
     st.session_state.ans = {}
     st.session_state.rid = str(random.randint(100000, 999999))
 
 def next_q(val):
-    st.session_state.ans[st.session_state.current_q] = val
-    st.session_state.current_q += 1
+    st.session_state.ans[st.session_state.q_idx] = val
+    st.session_state.q_idx += 1
     st.rerun()
 
-# --- 4. 流程控制 ---
+# --- 4. 测评逻辑 ---
 if st.session_state.step == "start":
     st.title("🌿 家庭教育十维深度探查表")
     st.caption("(脑科学专业版)")
@@ -88,86 +88,104 @@ if st.session_state.step == "start":
         st.rerun()
 
 elif st.session_state.step == "testing":
-    cur = st.session_state.current_q
-    total_計分 = len(QUESTIONS) # 79道
+    idx = st.session_state.q_idx
     
-    if cur < total_計分:
-        st.progress((cur + 1) / 85)
-        st.subheader(f"第 {cur + 1} 题 / 共 85 题")
-        st.markdown(f"### {QUESTIONS[cur]}")
-        # 选项：0-3分 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("0 (从不)", use_container_width=True): next_q(0)
-            if st.button("2 (经常)", use_container_width=True): next_q(2)
-        with col2:
-            if st.button("1 (偶尔)", use_container_width=True): next_q(1)
-            if st.button("3 (总是)", use_container_width=True): next_q(3)
-        if cur > 0:
-            if st.button("⬅️ 返回上一题"):
-                st.session_state.current_q -= 1
-                st.rerun()
-    elif cur < 85:
-        # 处理 80-85 背景题 
-        st.subheader(f"第 {cur + 1} 题 / 共 85 题")
-        bg_qs = [
-            ("是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"]),
-            ("尝试过哪些方式？", ["心理咨询", "药物治疗", "严管", "父母课", "其他"]),
-            ("失效的原因是？", ["不落地", "不系统", "没坚持", "孩子不配合", "没陪跑"]),
-            ("最迫切的痛点？", ["关系", "厌学", "专注力", "情绪", "手机"]),
-            ("是否有勇气参与改变？", ["有", "需指导", "纠结", "只想改孩子"]),
-            ("是否预约分析解读？", ["是", "否"])
-        ]
-        q_idx = cur - 79
-        q_text, opts = bg_qs[q_idx]
-        st.markdown(f"### {q_text}")
-        selected = st.multiselect("请选择(可多选):", opts) if q_idx < 4 else st.radio("请选择:", opts)
+    # --- A阶段：1-79题 (单选跳转) ---
+    if idx < 79:
+        st.progress((idx + 1) / 85)
+        st.subheader(f"第 {idx + 1} 题 / 共 85 题")
+        st.markdown(f"### {QUESTIONS_SCORING[idx]}")
         
-        col_nav1, col_nav2 = st.columns(2)
-        with col_nav1:
-            if st.button("⬅️ 上一题"):
-                st.session_state.current_q -= 1
+        c1, c2 = st.columns(2)
+        if c1.button("0 (从不)", use_container_width=True): next_q(0)
+        if c1.button("2 (经常)", use_container_width=True): next_q(2)
+        if c2.button("1 (偶尔)", use_container_width=True): next_q(1)
+        if c2.button("3 (总是)", use_container_width=True): next_q(3)
+        
+        if idx > 0:
+            if st.button("⬅️ 返回上一题"):
+                st.session_state.q_idx -= 1
                 st.rerun()
-        with col_nav2:
-            if st.button("下一题" if cur < 84 else "✅ 完成并生成报告", use_container_width=True):
-                st.session_state.ans[cur] = selected
-                if cur < 84:
-                    st.session_state.current_q += 1
-                    st.rerun()
-                else:
-                    # 推送飞书并跳转报告
-                    msg = f"报告生成提醒\n编号:{st.session_state.rid}\n年龄:{st.session_state.age}\n状态:完成"
-                    requests.post(FEISHU_URL, json={"msg_type":"text", "content":{"text":msg}})
-                    st.session_state.step = "report"
-                    st.rerun()
+
+    # --- B阶段：80-85题 (背景及拦截) ---
+    elif idx < 85:
+        st.subheader(f"第 {idx + 1} 题 / 共 85 题")
+        bg_configs = [
+            ("是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"], "multi"),
+            ("为了解决问题，您尝试过哪些方式？", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], "multi"),
+            ("方法没有彻底生效的原因是？", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], "multi"),
+            ("目前最迫切想解决的前三个痛点是？", ["关系", "厌学", "专注力差", "情绪较大", "手机"], "multi"),
+            ("如有必要，您是否有勇气参与改变？", ["有", "有，但需指导", "比较纠结", "只想改孩子"], "single"),
+            ("是否愿预约一次专业分析解读？", ["是", "否"], "single")
+        ]
+        q_text, opts, q_type = bg_configs[idx - 79]
+        st.markdown(f"### {q_text}")
+        
+        # 答题拦截逻辑
+        user_input = None
+        if q_type == "multi":
+            user_input = st.multiselect("请选择 (必填，可多选):", opts, key=f"bg_{idx}")
+        else:
+            user_input = st.radio("请选择 (必填):", opts, index=None, key=f"bg_{idx}")
+
+        col_p, col_n = st.columns(2)
+        if col_p.button("⬅️ 上一题"):
+            st.session_state.q_idx -= 1
+            st.rerun()
+        
+        # 限制：必须有内容才能点下一题 
+        can_proceed = (user_input is not None and len(user_input) > 0) if q_type == "multi" else (user_input is not None)
+        
+        if col_n.button("✅ 提交生成报告" if idx == 84 else "下一题", use_container_width=True, disabled=not can_proceed):
+            st.session_state.ans[idx] = user_input
+            if idx < 84:
+                st.session_state.q_idx += 1
+                st.rerun()
+            else:
+                requests.post(FEISHU_URL, json={"msg_type":"text", "content":{"text":f"测评完成\n编号:{st.session_state.rid}\n年龄:{st.session_state.age}"}})
+                st.session_state.step = "report"
+                st.rerun()
 
 elif st.session_state.step == "report":
     st.title("📊 深度探查报告")
     st.success(f"报告编号：{st.session_state.rid}")
-    
-    # 1. 计算维度平均分
-    scores = {}
-    for name, idxs in DIM_MAP.items():
-        val = sum(st.session_state.ans.get(i, 0) for i in idxs) / len(idxs)
-        scores[name] = round(val, 2)
-    
-    # 2. 视觉雷达图
-    fig = go.Figure(data=go.Scatterpolar(r=list(scores.values()), theta=list(scores.keys()), fill='toself', line_color='#1B5E20'))
+
+    # 1. 维度分计算
+    dim_results = {}
+    for name, ids in DIM_MAP.items():
+        avg = sum(st.session_state.ans.get(i, 0) for i in ids) / len(ids)
+        dim_results[name] = round(avg, 2)
+
+    # 2. 雷达图
+    fig = go.Figure(data=go.Scatterpolar(r=list(dim_results.values()), theta=list(dim_results.keys()), fill='toself', line_color='#1B5E20'))
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 3])), showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
-    
-    # 3. 垂直滚动话术分析
+
+    # 3. 三段式话术
     st.markdown("---")
-    for name, score in scores.items():
+    for name, score in dim_results.items():
         st.markdown(f"#### 📍 {name}维度分析")
         if score >= 1.8:
-            st.error(f"得分：{score} (高危负荷) - 核心系统已失衡，必须立刻干预。")
+            st.error(f"得分：{score} (高危负荷) — 系统已严重失衡。孩子正在求救，底层动力近乎枯竭。")
         elif score >= 0.8:
-            st.warning(f"得分：{score} (代偿警戒) - 表面尚稳，但底层动力已严重消耗。")
+            st.warning(f"得分：{score} (代偿警戒) — 表面维持，但内部消耗极大，压力点易崩盘。")
         else:
-            st.info(f"得分：{score} (良性状态) - 基础较好，适合作为修复的突破点。")
-            
-    # 4. 198元获客转化
+            st.info(f"得分：{score} (良性稳态) — 基础健康。是后期修复与能力跃迁的强力杠杆。")
+
+    # 4. 转化排版美化
     st.markdown("---")
-    st.markdown(f"### 💡 下一步建议\n这份报告揭示了“心脑失调”的根源。添加沈老师微信，备注编号 **{st.session_state.rid}**，领取 **198元** 专家1V1面诊及个性化改善方案。")
-    st.link_button("👉 点击添加老师，预约深度解析", WECOM_LINK, use_container_width=True)
+    st.markdown(f"### 💡 **沈老师专业建议**")
+    st.markdown(f"""
+    这份报告揭示了“心脑失调”的根源。请**长按截屏保存**。
+    
+    添加沈老师微信，备注编号 **{st.session_state.rid}**，预约 **198元** 专家1V1深度面诊方案，您将获得：
+    
+    ✅ **福利一：** 30 分钟深度语音解析（精准定位行为根源）
+    
+    ✅ **福利二：** 十个维度个性化家庭改善行动路径图
+    
+    ✅ **福利三：** 脑科学测评详细电子版指导手册
+    
+    **立即点击下方，开启专业干预之路：**
+    """)
+    st.link_button("👉 点击添加老师，预约 1V1 解析", WECOM_LINK, use_container_width=True)
