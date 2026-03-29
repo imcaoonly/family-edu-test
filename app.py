@@ -14,7 +14,7 @@ st.markdown("""
     /* 全局样式 */
     .stApp { background: #F8F9FA; text-align: left !important; color: #455A64; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
     
-    /* 首页专用遮盖容器：增加 transform 使其向上位移 */
+    /* 首页专用遮盖容器 (卡片位置固定) */
     .home-mask {
         padding: 40px 25px;
         background: rgba(255, 255, 255, 0.9);
@@ -22,9 +22,12 @@ st.markdown("""
         box-shadow: 0 15px 35px rgba(26, 35, 126, 0.08);
         border: 1px solid rgba(255,255,255,0.6);
         backdrop-filter: blur(12px);
-        margin-top: 10px;
-        /* 关键修改：向上平移 60 像素，数值越大越靠上 */
-        transform: translateY(-60px); 
+        margin-top: 20px;
+    }
+    
+    /* 重点：仅让首页按钮向上移动 */
+    .home-btn-container div.stButton {
+        margin-top: -30px !important; 
     }
     
     /* 三行标题规范 */
@@ -38,25 +41,18 @@ st.markdown("""
         border-left: 5px solid #FF7043; padding-left: 20px;
     }
     
-    /* 题目与选项 */
+    /* 题目与选项通用样式 */
     .q-text { font-size: 22px; font-weight: 600; color: #263238; line-height: 1.5; margin: 30px 0; }
     div.stButton > button {
         border-radius: 14px; height: 60px; font-size: 19px !important; font-weight: 700;
         background-color: #1A237E; color: white; border: none; transition: 0.3s;
     }
     div.stButton > button:hover { background-color: #0D47A1; transform: translateY(-2px); }
-    div.stButton > button:active { transform: scale(0.97); }
     
-    /* 结果页警报 Banner */
+    /* 结果页样式 */
     .warn-banner { padding: 22px; border-radius: 16px; margin-bottom: 20px; color: white; font-weight: 600; line-height: 1.6; text-align: left; }
-    .bg-red { background: #C62828; box-shadow: 0 4px 12px rgba(198,40,40,0.3); }
-    .bg-orange { background: #E65100; box-shadow: 0 4px 12px rgba(230,81,0,0.3); }
-    .bg-blue { background: #0D47A1; box-shadow: 0 4px 12px rgba(13,71,161,0.3); }
-    
-    /* 维度解析卡片 */
+    .bg-red { background: #C62828; } .bg-orange { background: #E65100; } .bg-blue { background: #0D47A1; }
     .res-card { padding: 20px; border-radius: 15px; background: white; border: 1px solid #E0E0E0; border-left: 8px solid #1A237E; margin-bottom: 15px; }
-    
-    /* 微信转化卡片 */
     .wx-card { background: #FFFFFF; padding: 30px; border-radius: 24px; border: 2px solid #E8EAF6; box-shadow: 0 12px 40px rgba(26,35,126,0.15); text-align: center; margin-top: 40px; }
     .benefit { font-size: 17px; font-weight: 700; color: #1A237E; margin: 12px 0; text-align: left; padding-left: 15px; }
     .rid-box { font-size: 42px; font-weight: 900; color: #C62828; background: #FFF; padding: 10px 30px; border-radius: 12px; border: 3px dashed #C62828; display: inline-block; margin: 20px 0; }
@@ -67,22 +63,21 @@ st.markdown("""
 if 'step' not in st.session_state:
     st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
-# --- 3. 全量题库 (1-85题) ---
+# --- 3. 全量题库 ---
 if 'QUESTIONS' not in locals():
     QUESTIONS = [f"这里是第 {i+1} 题的具体描述内容..." for i in range(85)]
 
-# --- 4. 维度话术数据库 ---
+# --- 4. 维度数据库 ---
 DIM_DATA = {
-    "系统维度": {"range": range(0,8), "levels": ["【稳固】地基牢固，依恋关系安全。", "【预警】地基有裂缝，系统承压接近临界。", "【危险】地基动摇，孩子缺乏基本安全感。"]},
-    "家长维度": {"range": range(8,18), "levels": ["【优秀】能量充沛，情绪自控力强。", "【内耗】内耗严重，管教伴随生理性无力。", "【力竭】心理力竭，已丧失有效引导能力。"]},
-    "关系维度": {"range": range(18,28), "levels": ["【信任】沟通畅通，边界清晰信任高。", "【防御】防御性增强，沟通仅维持功能层面。", "【断联】情感断联，孩子有明显逃离倾向。"]},
-    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃，具备天然抗挫力。", "【下行】动力开始萎缩，出现空心化苗头。", "【枯竭】动力枯竭，自我价值感降至点。"]},
-    "学业维度": {"range": range(37,48), "levels": ["【高效】脑认知高效，任务执行力强。", "【疲劳】生理性疲劳导致执行功能受损。", "【宕机】大脑保护性关闭，对学业极端抗拒。"]},
-    "社会化": {"range": range(48,58), "levels": ["【自如】规则意识强，社交半径正常。", "【退缩】依赖屏幕，现实社交回避明显。", "【受损】社会功能受损，拒绝参与现实生活。"]}
-}
-# --- 5. 页面流程 ---
+    "系统维度": {"range": range(0,8), "levels": ["【稳固】地基牢固。", "【预警】地基有裂缝。", "【危险】地基动摇。"]},
+    "家长维度": {"range": range(8,18), "levels": ["【优秀】能量充沛。", "【内耗】内耗严重。", "【力竭】心理力竭。"]},
+    "关系维度": {"range": range(18,28), "levels": ["【信任】沟通畅通。", "【防御】防御增强。", "【断联】情感断联。"]},
+    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃。", "【下行】动力萎缩。", "【枯竭】动力枯竭。"]},
+    "学业维度": {"range": range(37,48), "levels": ["【高效】执行力强。", "【疲劳】功能受损。", "【宕机】极端抗拒。"]},
+    "社会化": {"range": range(48,58), "levels": ["【自如】社交正常。", "【退缩】回避明显。", "【受损】功能受损。"]}
+}# --- 5. 页面流程 ---
 
-# A. 首页 (带位移微调)
+# A. 首页
 if st.session_state.step == 'home':
     st.markdown("""
         <div class='home-mask'>
@@ -95,13 +90,14 @@ if st.session_state.step == 'home':
                 接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
                 这不仅是一份考卷，更是给孩子和你自己一次被“看见”的机会。
             </div>
+        </div>
     """, unsafe_allow_html=True)
     
-    # 按钮也放在 mask 内，跟随位移
+    # 使用专用容器包裹按钮，实现按钮单独向上偏移
+    st.markdown("<div class='home-btn-container'>", unsafe_allow_html=True)
     if st.button("🚀 开始深度测评", use_container_width=True):
         st.session_state.step = 'quiz'
         st.rerun()
-    
     st.markdown("</div>", unsafe_allow_html=True)
 
 # B. 答题页
@@ -143,14 +139,11 @@ elif st.session_state.step == 'report':
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=400)
     st.plotly_chart(fig, use_container_width=True)
 
+    # 预警逻辑
     if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
-        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到孩子目前存在明显的生存危机或极度情绪创伤。请立刻停止施压！</div>", unsafe_allow_html=True)
-    
+        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到生存危机。请立刻停止施压！</div>", unsafe_allow_html=True)
     if (sum(st.session_state.ans.get(i, 0) for i in range(66, 72))/6) >= 1.5:
-        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑特性预警】孩子表现出注意力黑洞特质。这非态度问题，需科学干预。</div>", unsafe_allow_html=True)
-
-    if (sum(st.session_state.ans.get(i, 0) for i in range(72, 78))/6) >= 1.5:
-        st.markdown("<div class='warn-banner bg-blue'>⚠️ 【生理地基预警】检测到肠脑轴失调迹象，建议先调理生理节律。</div>", unsafe_allow_html=True)
+        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑特性预警】孩子表现出注意力黑洞特质。</div>", unsafe_allow_html=True)
 
     for dim, info in DIM_DATA.items():
         avg = sum(st.session_state.ans.get(i, 0) for i in info['range']) / len(info['range'])
@@ -160,7 +153,6 @@ elif st.session_state.step == 'report':
     st.markdown(f"""
         <div class='wx-card'>
             <p style='color:#455A64; font-size:18px; text-align:left;'>这份报告揭示了孩子的求救，也看见了您的委屈。</p>
-            <p style='text-align:left; font-weight:bold; margin-top:20px; color:#1A237E;'>添加微信您可以获得：</p>
             <div class='benefit'>1. 十个维度个性化改善方案</div>
             <div class='benefit'>2. 30 分钟 1V1 深度解析</div>
             <div class='rid-box'>{st.session_state.rid}</div>
