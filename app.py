@@ -1,38 +1,42 @@
 import streamlit as st
 import random
 
-# --- 1. 极致视觉定制 (左对齐 & 深灰蓝 & 品牌绿) ---
+# --- 1. 全局样式定制 (解决移动端点击感 & 视觉对齐) ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
 
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
-    [data-testid="stToolbar"] {visibility: hidden;}
     
-    .brand-box { text-align: center; margin-bottom: 35px; }
-    .t1 { font-size: 38px; font-weight: 800; color: #1B5E20; }
-    .t2 { font-size: 32px; font-weight: 700; color: #2E7D32; margin-top: 5px; }
-    .t3 { font-size: 16px; color: #888; border-top: 1px solid #eee; display: inline-block; padding-top: 8px; margin-top: 10px; }
+    /* 品牌区 */
+    .brand-box { text-align: center; margin-bottom: 30px; }
+    .t1 { font-size: 34px; font-weight: 800; color: #1B5E20; }
+    .t2 { font-size: 28px; font-weight: 700; color: #2E7D32; }
     
-    .warm-box { background: #F9FBF9; padding: 25px; border-radius: 20px; border-left: 6px solid #A5D6A7; color: #444; font-size: 18px; line-height: 1.8; margin-bottom: 30px; text-align: left; }
+    /* 题目左对齐 & 深灰蓝 */
+    .q-container { text-align: left !important; margin: 25px 0; }
+    .q-text { font-size: 20px; font-weight: 600; color: #455A64; line-height: 1.6; }
     
-    .q-container { text-align: left !important; margin: 30px 0; }
-    .q-text { font-size: 22px; font-weight: 600; color: #455A64; line-height: 1.6; }
+    /* 提高按钮点击灵敏度 */
+    div.stButton > button {
+        width: 100%; border-radius: 12px; height: 55px; font-size: 18px !important;
+        border: 1px solid #E0E0E0; background-color: #FAFAFA; transition: all 0.2s;
+    }
+    div.stButton > button:active { transform: scale(0.98); background-color: #E8F5E9; }
+
+    /* 报告页结果卡片 */
+    .res-card { padding: 20px; border-radius: 15px; background: #FFF; border-left: 8px solid #E0E0E0; margin-bottom: 15px; text-align: left; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .res-danger { border-left-color: #D32F2F !important; background-color: #FFF5F5; }
     
-    .res-card { padding: 25px; border-radius: 20px; background: #FFF; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 8px solid #E0E0E0; text-align: left; }
-    .res-high { border-left-color: #D32F2F !important; background-color: #FFF5F5; border: 1.5px solid #FFEBEE; border-left-width: 8px; }
+    /* 红色警报区 */
+    .alert-box { background: #D32F2F; color: white; padding: 15px; border-radius: 12px; font-weight: bold; margin-bottom: 20px; }
     
-    .alert-banner { background: #D32F2F; color: white; padding: 20px; border-radius: 15px; font-weight: bold; margin-bottom: 25px; line-height: 1.6; text-align: left; }
-    
-    .wx-section { background: #E8F5E9; border-radius: 25px; padding: 35px; text-align: center; margin-top: 40px; border: 1px solid #C8E6C9; }
-    .promo-list { text-align: left; display: inline-block; margin: 20px 0; font-size: 19px; line-height: 2.2; color: #1B5E20; font-weight: 500; }
-    .report-id { font-size: 42px; font-weight: 900; color: #D32F2F; background: #FFFFFF; padding: 15px 35px; border-radius: 15px; border: 3px dashed #D32F2F; display: inline-block; margin: 20px 0; letter-spacing: 3px; }
-    
-    .screenshot-tip { color: #D32F2F; font-weight: bold; background: #FFEBEE; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px; border: 1px solid #FFCDD2; }
+    /* 转化区专属编号 */
+    .id-box { font-size: 36px; font-weight: 900; color: #D32F2F; background: #FFF; padding: 10px 25px; border-radius: 12px; border: 3px dashed #D32F2F; display: inline-block; margin: 15px 0; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 完整 1-85 题库 [cite: 6-91] ---
+# --- 2. 核心题库录入 (1-85题) ---
 QUESTIONS_78 = [
     "3岁前，主要抚养人频繁更换或长期中断。", "早期曾连续2周以上见不到核心抚养人。",
     "长辈深度参与管教，经常推翻您的决定。", "父母教育标准不一，经常“一宽一严”。",
@@ -76,75 +80,32 @@ QUESTIONS_78 = [
 ]
 
 BG_QS = [
-    ("是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"], "multi"),
-    ("之前尝试过哪些方式？", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], "multi"),
-    ("方法未生效的原因？", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏陪跑"], "multi"),
-    ("最迫切的前三个痛点？", ["关系", "厌学", "专注力", "情绪", "手机"], "multi"),
-    ("是否有勇气参与家庭改变？", ["有", "需指导", "纠结", "只想改孩子"], "single"),
-    ("是否愿预约专业解读？", ["是", "否"], "single"),
-    ("是否有兴趣了解扭转方案？", ["是", "否"], "single")
+    ("有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"], "multi"),
+    ("尝试过的方式？", ["咨询", "药物", "严管", "父母课", "其他"], "multi"),
+    ("未生效的原因？", ["不落地", "不系统", "难坚持", "不配合", "缺陪跑"], "multi"),
+    ("迫切的痛点？", ["关系", "厌学", "专注力", "情绪", "手机"], "multi"),
+    ("是否有勇气改变？", ["有", "需指导", "纠结", "只想改孩子"], "single"),
+    ("是否愿预约解读？", ["是", "否"], "single"),
+    ("是否愿了解方案？", ["是", "否"], "single")
 ]
 
-# --- 3. 完整诊断话术库 (无省略版) ---
+# --- 3. 补全三级诊断话术 (全量录入) ---
 DIAG_DATA = {
-    "系统维度 (1-8题)": {
-        "range": range(0, 8),
-        "texts": [
-            "【稳固】家庭地基牢固，早期依恋关系安全，环境变动适应力强。目前的挑战多为表层技巧问题。",
-            "【内耗】地基出现裂缝。早期抚养或环境变动留下了隐形不安，系统承压接近临界点，家庭动力开始偏移。",
-            "【动荡】地基动摇。系统动力紊乱，孩子在家庭中缺乏基本的安全感支撑，任何教养技巧在动摇的地基上都难以生效。"
-        ]
-    },
-    "家长维度 (9-18题)": {
-        "range": range(8, 18),
-        "texts": [
-            "【能量充沛】能够理性区分自身价值与孩子的表现，情绪自控力强，具备高质量引导的心理空间。",
-            "【内耗预警】能量消耗严重。焦虑感开始渗透，管教时常伴随无力感。您的疲惫已成为孩子压力的来源之一。",
-            "【心理力竭】家长处于崩溃边缘，自责与焦虑交织。当前状态下，您的任何教育输出可能都会转化为负向压力。"
-        ]
-    },
-    "关系维度 (19-28题)": {
-        "range": range(18, 28),
-        "texts": [
-            "【亲密信任】沟通渠道畅通，尊重边界，孩子对父母有极高的情感信任，家是孩子最安全的港湾。",
-            "【防御增强】沟通仅维持在功能层面（吃喝学）。深度情感链接开始阻塞，孩子开始在心理上对家关门。",
-            "【情感断联】孩子出现明显的逃离倾向。沟通伴随强烈的防御或冷战，亲子关系已进入“权力斗争”或“消极避世”阶段。"
-        ]
-    },
-    "动力维度 (29-37题)": {
-        "range": range(28, 37),
-        "texts": [
-            "【生机勃勃】生命力旺盛，具备天然的抗挫力，对事物保持长久的探索热情与自我价值感。",
-            "【动力下行】开始畏难、退缩。生命力出现“空心化”苗头，以往的爱好开始减退，对未来缺乏期待。",
-            "【动力枯竭】出现明显的消极厌世或极度冷感。自我价值感降至冰点，这种“习得性无助”是脑部奖赏系统低迷的信号。"
-        ]
-    },
-    "学业维度 (38-47题)": {
-        "range": range(37, 48),
-        "texts": [
-            "【脑力高效】脑认知功能处于高效区，指令转化快，具备良好的任务启动速度与专注坚持力。",
-            "【功能疲劳】磨蹭、跳行、易分神。这不是态度问题，而是生理性疲劳导致执行功能受损，大脑在频繁“罢工”。",
-            "【功能宕机】大脑保护性关闭。无法执行多步骤指令，学业压力已转化为生理抗拒。此时强逼学习会进一步损伤脑神经。"
-        ]
-    },
-    "社会化维度 (48-58题)": {
-        "range": range(48, 58),
-        "texts": [
-            "【社交自如】规则意识清晰，能平衡电子产品与现实生活，具备良好的同伴交往能力与抗诱惑力。",
-            "【社交退缩】开始过度依赖屏幕寻找慰藉，对校园规则产生抵触。社交半径缩窄，现实价值感正在被虚拟世界吞噬。",
-            "【社会功能受损】出现闭门不出、社交回避或极端的电子产品对抗。已丧失基本的社会参与动力，需警惕社会功能丧失。"
-        ]
-    }
+    "系统维度": {"range": range(0, 8), "texts": ["【稳固】地基牢固，依恋安全。", "【内耗】地基有裂缝，承压接近临界。", "【动荡】地基动摇，缺乏基本安全感。"]},
+    "家长维度": {"range": range(8, 18), "texts": ["【充沛】能量强，自控力优。", "【预警】能量内耗，焦虑渗透。", "【力竭】心理崩溃边缘，引导力丧失。"]},
+    "关系维度": {"range": range(18, 28), "texts": ["【信任】沟通畅通，边界清晰。", "【防御】情感阻塞，仅维持功能沟通。", "【断联】逃离倾向明显，处于冷战对抗。"]},
+    "动力维度": {"range": range(28, 37), "texts": ["【旺盛】生机勃勃，抗挫力强。", "【下行】开始畏难，出现空心化苗头。", "【枯竭】极度冷感，自我价值感降至冰点。"]},
+    "学业维度": {"range": range(37, 48), "texts": ["【高效】脑功能处于高效区。", "【疲劳】生理性磨蹭，执行功能受损。", "【宕机】大脑保护性关闭，抗拒任务。"]},
+    "社会化": {"range": range(48, 58), "texts": ["【自如】社交正常，规则意识强。", "【退缩】依赖屏幕，社交半径缩窄。", "【受损】社会功能丧失，回避现实生活。"]}
 }
 
-# --- 4. 逻辑控制 ---
-if 'st' not in st.session_state:
+# --- 4. 流程逻辑 ---
+if 'step' not in st.session_state:
     st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
-# --- 5. 流程渲染 ---
+# --- 5. 界面呈现 ---
 if st.session_state.step == 'home':
-    st.markdown("<div class='brand-box'><div class='t1'>家庭教育</div><div class='t2'>十维深度探查表</div><div class='t3'>( 脑科学专业版 )</div></div>", unsafe_allow_html=True)
-    st.markdown("<div class='warm-box'>一场跨越心与脑的对话，请放空杂念，给孩子和自己一次被“看见”的机会。</div>", unsafe_allow_html=True)
+    st.markdown("<div class='brand-box'><div class='t1'>家庭教育</div><div class='t2'>十维深度探查表</div></div>", unsafe_allow_html=True)
     if st.button("🚀 开始深度测评", use_container_width=True):
         st.session_state.step = 'quiz'; st.rerun()
 
@@ -158,68 +119,49 @@ elif st.session_state.step == 'quiz':
         c1, c2 = st.columns(2)
         for i, (txt, val) in enumerate(opts):
             with (c1 if i % 2 == 0 else c2):
-                if st.button(txt, key=f"q_{cur}_{i}", use_container_width=True):
+                # 核心修复：为每个按钮分配唯一 Key，解决点击失效
+                if st.button(txt, key=f"btn_{cur}_{i}", use_container_width=True):
                     st.session_state.ans[cur] = val
                     st.session_state.cur += 1
                     st.rerun()
     else:
         q_txt, opts, mode = BG_QS[cur-78]
         st.markdown(f"<div class='q-container'><div class='q-text'>{cur+1}. {q_txt}</div></div>", unsafe_allow_html=True)
-        u_val = st.multiselect("多选 (必选)", opts) if mode == "multi" else st.radio("单选 (必选)", opts, index=None)
-        if st.button("生成最终报告" if cur == 84 else "下一题", use_container_width=True, disabled=not u_val):
+        u_val = st.multiselect("多选", opts, key=f"ms_{cur}") if mode == "multi" else st.radio("单选", opts, index=None, key=f"rd_{cur}")
+        if st.button("生成最终报告" if cur == 84 else "下一题", key=f"next_{cur}", use_container_width=True, disabled=not u_val):
             st.session_state.ans[cur] = u_val
             if cur == 84: st.session_state.step = 'report'
             else: st.session_state.cur += 1
             st.rerun()
-            
-    if cur > 0:
-        if st.button("⬅️ 返回上一题", type="secondary"):
-            st.session_state.cur -= 1; st.rerun()
 
 elif st.session_state.step == 'report':
     # 顶部截屏提醒
-    st.markdown("<div class='screenshot-tip'>📸 提示：编号是匹配您测评结果的唯一凭证，请务必截屏保存本页。</div>", unsafe_allow_html=True)
+    st.markdown("""<div style='background:#FFEBEE; border:2px solid #D32F2F; padding:15px; border-radius:12px; text-align:center; margin-bottom:20px;'>
+        <p style='color:#D32F2F; font-size:18px; font-weight:bold; margin:0;'>📸 请务必【截屏保存】本页结果！</p></div>""", unsafe_allow_html=True)
     
-    st.markdown("### 📊 深度诊断探查报告")
-    
-    # 情绪红灯报警 [cite: 66-67]
+    # 1-9 维度解析 (报警与话术)
     if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
-        st.markdown("<div class='alert-banner'>⚠️ 【最高级别红色警报】监测到孩子存在明显的生存危机或极度情绪创伤（如厌世念头、自伤行为）。此时严禁任何形式的学业施压，必须立刻寻求专业干预，确保生命安全！</div>", unsafe_allow_html=True)
+        st.markdown("<div class='alert-box'>⚠️ 红色警报：监测到生存危机倾向，请立即停止施压并寻求专业干预！</div>", unsafe_allow_html=True)
     
-    # ADHD/脑特性报警 [cite: 72-77]
-    adhd_avg = sum(st.session_state.ans.get(i, 0) for i in range(66, 72)) / 6
-    if adhd_avg > 1.8:
-        st.markdown("<div class='alert-banner' style='background:#FF8F00;'>⚠️ 【脑特性提醒】孩子表现出典型的高多动/冲动或注意力分散特质。建议通过脑科学感统律动而非单纯说教来改善。</div>", unsafe_allow_html=True)
-
-    # 生理基础报警 [cite: 78-83]
-    bio_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
-    if bio_avg > 1.5:
-        st.markdown("<div class='alert-banner' style='background:#1565C0;'>⚠️ 【底层生理预警】监测到明显的肠脑轴失调或慢性过敏迹象（如黑眼圈、口臭、睡眠异常）。建议先调理身体基础。</div>", unsafe_allow_html=True)
-
-    # 1-6 维度解析
     for dim, info in DIAG_DATA.items():
         avg = sum(st.session_state.ans.get(i, 0) for i in info['range']) / len(info['range'])
         level = 2 if avg >= 1.86 else (1 if avg >= 0.86 else 0)
-        card_cls = "res-card res-high" if level == 2 else "res-card"
-        st.markdown(f"<div class='{card_cls}'><b>{dim}：评分显示为【{['稳固/优秀','内耗/预警','危险/力竭'][level]}】</b><br>{info['texts'][level]}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='res-card {'res-danger' if level==2 else ''}'><b>{dim}：{['稳固','预警','危险'][level]}</b><br>{info['texts'][level]}</div>", unsafe_allow_html=True)
 
-    # 微信转化
+    # 微信转化区 (原生 HTML 解决点击无效)
     st.markdown(f"""
-        <div class='wx-section'>
-            <p style='color:#1B5E20; font-size:18px; font-weight:600;'>
-                这份报告揭示了孩子的求救，也看见了您的委屈。<br>其实，您不需要独自扛着。
-            </p>
-            <div class='promo-list'>
-                1. 十个维度个性化改善方案<br>
-                2. 30 分钟 1V1 深度解析<br>
-                3. 特惠 198 元 (原价 598 元)
-            </div>
-            <p style='margin-top:15px; font-weight:bold;'>添加微信时请务必备注生成的数字：</p>
-            <div class='report-id'>{st.session_state.rid}</div>
+        <div style='background:#E8F5E9; padding:30px; border-radius:20px; text-align:center; border:1px solid #C8E6C9;'>
+            <p style='color:#1B5E20; font-size:18px; font-weight:600;'>一份报告揭示了孩子的求救，您不需要独自扛着。</p>
+            <div style='text-align:left; display:inline-block; font-size:17px; line-height:2; color:#1B5E20;'>
+                1. 十个维度改善方案 | 2. 30分钟1V1解析 | 3. 特惠198元
+            </div><br>
+            <p style='margin-top:15px; font-weight:bold;'>添加微信请备注编号：</p>
+            <div class='id-box'>{st.session_state.rid}</div>
+            
+            <a href="https://work.weixin.qq.com/ca/你的真实链接" target="_blank" style="text-decoration:none;">
+                <div style="background:#2E7D32; color:white; padding:18px; border-radius:12px; font-size:20px; font-weight:bold; margin-top:10px;">👉 点击添加老师微信</div>
+            </a>
         </div>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
-    st.link_button("👉 点击添加老师，预约解析课", "https://work.weixin.qq.com/ca/...", use_container_width=True)
-    
-    # 底部重复截屏提醒
     st.caption("提示：编号是匹配您测评结果的唯一凭证，请截屏保存本页。")
