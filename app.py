@@ -2,38 +2,38 @@ import streamlit as st
 import random
 import plotly.graph_objects as go
 
-# --- 1. 样式与视觉定制 (彻底隐藏官方元素 & 标题排版) ---
+# --- 1. 样式与视觉定制 (彻底清爽 & 三行标题) ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
 
 st.markdown("""
     <style>
-    /* 彻底隐藏右上角菜单、页脚和工具栏 */
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+    /* 彻底隐藏所有官方元素 */
+    #MainMenu {visibility: hidden;} 
+    footer {visibility: hidden;} 
+    header {visibility: hidden;}
     [data-testid="stToolbar"] {visibility: hidden;}
+    [data-testid="stDecoration"] {display: none;}
     
-    /* 首页标题美化：严格三行排版 */
-    .title-row { text-align: center; color: #1B5E20; font-family: "Microsoft YaHei", sans-serif; }
-    .t1 { font-size: 38px; font-weight: 800; margin-bottom: 5px; }
-    .t2 { font-size: 32px; font-weight: 700; margin-bottom: 10px; }
-    .t3 { font-size: 18px; color: #666; font-weight: 400; border-top: 1px solid #E8F5E9; display: inline-block; padding-top: 5px; }
+    /* 标题严格三行美化 */
+    .title-box { text-align: center; color: #1B5E20; margin-bottom: 30px; }
+    .t-main { font-size: 36px; font-weight: 800; line-height: 1.2; }
+    .t-sub { font-size: 30px; font-weight: 700; line-height: 1.2; }
+    .t-mini { font-size: 16px; color: #888; border-top: 1px solid #eee; display: inline-block; padding-top: 8px; margin-top: 10px; }
     
-    /* 题目显示 */
-    .question-box { font-size: 20px; font-weight: 600; color: #333; line-height: 1.6; text-align: left; margin: 20px 0; }
+    /* 题目与卡片美化 */
+    .q-text { font-size: 20px; font-weight: 600; color: #333; margin: 25px 0; line-height: 1.5; }
+    .report-card { padding: 20px; border-radius: 12px; background-color: #F9F9F9; border-left: 6px solid #2E7D32; margin-bottom: 20px; }
+    .alert-red { padding: 20px; border-radius: 12px; background-color: #FFF5F5; border-left: 6px solid #D32F2F; color: #B71C1C; font-weight: bold; }
     
-    /* 报告卡片 */
-    .report-card { padding: 20px; border-radius: 12px; background-color: #F8FAF8; border-left: 6px solid #2E7D32; margin-bottom: 20px; line-height: 1.7; }
-    .alert-card { padding: 20px; border-radius: 12px; background-color: #FFF5F5; border-left: 6px solid #D32F2F; margin-bottom: 20px; color: #B71C1C; font-weight: 500; }
-    
-    /* 微信强调板块 */
-    .wx-box { background: #FFFFFF; border: 2px solid #E8F5E9; border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .highlight-id { font-size: 32px; font-weight: 900; color: #D32F2F; background: #FFF0F0; padding: 5px 20px; border-radius: 10px; border: 2px dashed #D32F2F; display: inline-block; margin: 15px 0; }
-    .promo-text { font-size: 18px; font-weight: 600; color: #2E7D32; margin: 10px 0; }
+    /* 微信转化板块强化 */
+    .wx-section { background: #FFFFFF; border: 2px solid #E8F5E9; border-radius: 15px; padding: 25px; text-align: center; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .report-id { font-size: 34px; font-weight: 900; color: #D32F2F; background: #FFF0F0; padding: 10px 25px; border-radius: 10px; border: 2px dashed #D32F2F; display: inline-block; margin: 20px 0; font-family: monospace; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 核心数据 (1-85题完整闭环) ---
+# --- 2. 核心数据 (手动补全，杜绝 NameError) ---
 # 计分题 1-78
-QS_SCORE = [
+QS_LIST = [
     "3岁前，主要抚养人频繁更换或长期中断。", "早期曾连续2周以上见不到核心抚养人。",
     "长辈深度参与管教，经常推翻您的决定。", "父母教育标准不一，经常“一宽一严”。",
     "幼年受委屈时极度粘人，无法离开抚养人。", "近两年经历搬家、转学或财务大变动。",
@@ -76,63 +76,89 @@ QS_SCORE = [
 ]
 
 # 背景题
-QS_BG = [
+BG_LIST = [
     ("79. 是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"], "multi"),
-    ("80. 为了解决问题，您之前尝试过哪些方式？", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], "multi"),
-    ("81. 之前尝试的方法没有彻底生效的原因是？", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], "multi"),
-    ("82. 目前最迫切想解决的前三个痛点是？", ["关系/叛逆", "厌学/手机", "专注力差/成绩差", "情绪较大", "其它"], "multi"),
-    ("83. 如诊断根源在于“家庭系统及认知”，您是否有勇气参与改变？", ["非常愿意", "愿意，但需指导", "比较纠结", "只想改孩子"], "single"),
-    ("84. 填完后，是否愿预约一次专业“全面分析解读”？", ["是", "否"], "single"),
-    ("85. 如果需投入时间扭转局面，您是否有兴趣了解？", ["是", "否"], "single")
+    ("80. 为了解决问题，您尝试过哪些方式？", ["心理咨询", "药物治疗", "增加严管", "父母课", "其他"], "multi"),
+    ("81. 之前方法未生效的原因？", ["不落地", "不系统", "没法坚持", "不配合", "缺陪跑"], "multi"),
+    ("82. 目前最想解决的三个痛点？", ["关系/叛逆", "厌学/手机", "专注力/成绩", "情绪", "社交"], "multi"),
+    ("83. 您是否有勇气参与改变？", ["非常愿意", "愿意但需指导", "纠结", "只想改孩子"], "single"),
+    ("84. 是否预约专家解读？", ["是", "否"], "single"),
+    ("85. 是否有兴趣了解系统方案？", ["是", "否"], "single")
 ]
 
-# --- 3. 辅助函数 ---
-def move(val):
+# --- 3. 状态与逻辑逻辑 (彻底修复冒号与变量报错) ---
+if 'idx' not in st.session_state:
+    st.session_state.update({'step': 'home', 'idx': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
+
+def next_q(val):
     st.session_state.ans[st.session_state.idx] = val
     st.session_state.idx += 1
     st.rerun()
 
-# --- 4. 逻辑引擎 ---
-if 'idx' not in st.session_state:
-    st.session_state.update({'step':'home', 'idx':0, 'ans':{}, 'rid':str(random.randint(100000, 999999))})
-
-# --- 首页渲染 ---
+# --- 4. 界面渲染 ---
 if st.session_state.step == 'home':
     st.markdown("""
-        <div class='title-row'>
-            <div class='t1'>家庭教育</div>
-            <div class='t2'>十维深度探查表</div>
-            <div class='t3'>( 脑科学专业版 )</div>
+        <div class='title-box'>
+            <div class='t-main'>家庭教育</div>
+            <div class='t-sub'>十维深度探查表</div>
+            <div class='t-mini'>( 脑科学专业版 )</div>
         </div>
         """, unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.info("💡 一场跨越心与脑的对话，请放空杂念，给孩子和自己一次被“看见”的机会。")
+    st.info("一场跨越心与脑的对话，请放空杂念，给孩子和自己一次被“看见”的机会。")
     if st.button("🚀 开始深度测评", use_container_width=True):
         st.session_state.step = 'testing'; st.rerun()
 
-# --- 测评进行中 ---
 elif st.session_state.step == 'testing':
-    cur = st.session_state.idx
-    st.progress((cur + 1) / 85)
+    idx = st.session_state.idx
+    st.progress((idx + 1) / 85)
     
-    if cur < 78:
-        st.write(f"**第 {cur+1} 题 / 共 85 题**")
-        st.markdown(f"<div class='question-box'>{cur+1}. {QS_SCORE[cur]}</div>", unsafe_allow_html=True)
-        # 0-3分计分按钮
+    if idx < 78:
+        st.write(f"**第 {idx+1} 题 / 共 85 题**")
+        st.markdown(f"<div class='q-text'>{idx+1}. {QS_LIST[idx]}</div>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
-        if c1.button("0 (从不)", use_container_width=True, key=f"b{cur}_0"): move(0)
-        if c2.button("1 (偶尔)", use_container_width=True, key=f"b{cur}_1"): move(1)
-        if c1.button("2 (经常)", use_container_width=True, key=f"b{cur}_2"): move(2)
-        if c2.button("3 (总是)", use_container_width=True, key=f"b{cur}_3"): move(3)
+        if c1.button("0 (从不)", use_container_width=True, key=f"ans_{idx}_0"): next_q(0)
+        if c2.button("1 (偶尔)", use_container_width=True, key=f"ans_{idx}_1"): next_q(1)
+        if c1.button("2 (经常)", use_container_width=True, key=f"ans_{idx}_2"): next_q(2)
+        if c2.button("3 (总是)", use_container_width=True, key=f"ans_{idx}_3"): next_q(3)
     else:
-        # 背景题逻辑
-        q_txt, opts, mode = QS_BG[cur-78]
+        q_txt, opts, mode = BG_LIST[idx-78]
         st.markdown(f"### {q_txt}")
-        u_val = st.multiselect("可多选:", opts) if mode=="multi" else st.radio("请选择:", opts, index=None)
-        if st.button("生成分析报告" if cur==84 else "下一步", use_container_width=True, disabled=not u_val):
-            st.session_state.ans[cur] = u_val
-            if cur == 84: st.session_state.step = 'report'
+        u_val = st.multiselect("多选", opts) if mode=="multi" else st.radio("单选", opts, index=None)
+        if st.button("查看诊断报告" if idx==84 else "下一步", use_container_width=True, disabled=not u_val):
+            st.session_state.ans[idx] = u_val
+            if idx == 84: st.session_state.step = 'report'
             else: st.session_state.idx += 1
             st.rerun()
     
-    if cur > 0
+    if idx > 0: # 严格检查冒号
+        if st.button("⬅️ 返回上一题"):
+            st.session_state.idx -= 1
+            st.rerun()
+
+elif st.session_state.step == 'report':
+    st.header("📊 深度诊断结果")
+    
+    # 维度定义
+    DIM_MAP = {
+        "系统": (range(0,8), "早期依恋与稳定性"), "家长": (range(8,18), "父母心理能量"),
+        "关系": (range(18,28), "情感通道状态"), "动力": (range(28,37), "生命力激活"),
+        "学业": (range(37,48), "执行功能损耗"), "社会化": (range(48,58), "社交与现实自信")
+    }
+    
+    scores = {}
+    for name, (idxs, meaning) in DIM_MAP.items():
+        avg = sum(st.session_state.ans.get(i,0) for i in idxs) / len(idxs)
+        scores[name] = avg
+        level = "高分危险" if avg >= 1.9 else ("中位预警" if avg >= 0.9 else "稳固优秀")
+        color = "#D32F2F" if avg >= 1.9 else ("#F57C00" if avg >= 0.9 else "#388E3C")
+        
+        with st.expander(f"🔍 {name}维度分析：{level}", expanded=True):
+            st.markdown(f"<div class='report-card' style='border-left-color:{color}'><b>深度解读：</b>{meaning} (均分:{avg:.2f})</div>", unsafe_allow_html=True)
+
+    # 专项预警逻辑
+    st.subheader("🚩 关键风险提示")
+    # 7. 情绪红灯
+    if any(st.session_state.ans.get(i) == 3 for i in range(58, 66)):
+        st.markdown("<div class='alert-red'>🚨 红灯警报：孩子情绪水位极低，请立即停止施压，优先情感固着！</div>", unsafe_allow_html=True)
+    # 9. 底层营养
+    if sum(st.session_state.ans.get(i,0) for i in range(72, 78))/6 > 1.
