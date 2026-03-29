@@ -72,7 +72,7 @@ if 'step' not in st.session_state:
 if st.session_state.step == 'home':
     st.markdown("""
         <div class='home-mask'>
-            <div class='title-l1'>HelloADHDer 脑科学专业版</div>
+            <div class='title-l1'>曹校长 脑科学专业版</div>
             <div class='title-l2'>家庭教育</div>
             <div class='title-l3'>十维深度探查表</div>
             <div class='intro-text'>
