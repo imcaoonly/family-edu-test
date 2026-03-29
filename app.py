@@ -77,9 +77,9 @@ if st.session_state.step == 'home':
             <div class='title-l3'>十维深度探查表</div>
             <div class='intro-text'>
                 这是一场跨越心与脑的对话。<br>
-                你好，我是你的老朋友。<br><br>
+                你好，我是曹校长。<br><br>
                 接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
-                这不仅是一份考卷，更是给孩子和你自己一次被“看见”的机会。
+                这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
             </div>
         </div>
     """, unsafe_allow_html=True)
