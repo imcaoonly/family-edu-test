@@ -27,7 +27,7 @@ st.markdown("""
     
     /* 重点：仅让首页按钮向上移动 */
     .home-btn-container div.stButton {
-        margin-top: -30px !important; 
+        margin-top: -60px !important; 
     }
     
     /* 三行标题规范 */
