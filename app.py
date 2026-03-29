@@ -1,42 +1,36 @@
 import streamlit as st
 import random
 import requests
-import json
 import plotly.graph_objects as go
 
-# --- 1. 终极视觉屏蔽：杀掉右下角头像、created by、红色标签 ---
+# --- 1. 视觉屏蔽与样式 ---
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden !important;}
-    footer {visibility: hidden !important;}
-    header {visibility: hidden !important;}
-    .stDeployButton {display:none !important;}
-    [data-testid="stStatusWidget"] {display:none !important;}
-    .viewerBadge_container__1QSob {display: none !important;}
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+    .stDeployButton {display:none;} [data-testid="stStatusWidget"] {display:none;}
     div[class*="viewerBadge"] {display: none !important;}
-    button[title="Manage app"] {display: none !important;}
-    #root > div:nth-child(1) > div > div > div > div > section > div > div > div > div.viewerBadge_container__1QSob {display:none !important;}
-    /* 强力屏蔽底部浮动栏 */
-    .stApp > footer {display: none !important;}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 基础数据配置 ---
+# --- 2. 基础配置 ---
 FEISHU_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/e0c47a6f-4e26-405c-87ff-7fc955c8c279"
 WECOM_LINK = "https://work.weixin.qq.com/ca/cawcde91ed29d8de9f"
 
-# 维度划分 (严格对应 0-78 索引)
-DIM_MAP = {
-    "家庭系统": list(range(0, 8)),      # 1-8题
-    "家长状态": list(range(8, 18)),     # 9-18题
-    "亲子关系": list(range(18, 28)),    # 19-28题
-    "动力状态": list(range(28, 37)),    # 29-37题
-    "学业管理": list(range(37, 47)),    # 38-47题
-    "社会适应": list(range(47, 57))     # 48-57题
+# 维度与题号精准映射 (使用 0 轴索引，题号-1)
+DIM_CONFIG = {
+    "1.家庭系统": {"ids": list(range(0, 8)), "type": "radar"},   # 1-8题
+    "2.家长状态": {"ids": list(range(8, 18)), "type": "radar"},  # 9-18题
+    "3.亲子关系": {"ids": list(range(18, 28)), "type": "radar"}, # 19-28题
+    "4.动力状态": {"ids": list(range(28, 37)), "type": "radar"}, # 29-37题
+    "5.学业管理": {"ids": list(range(37, 48)), "type": "radar"}, # 38-48题
+    "6.社会化适应": {"ids": list(range(48, 58)), "type": "radar"}, # 49-58题
+    "7.情绪状态": {"ids": list(range(58, 66)), "type": "risk"},   # 59-66题
+    "8.注意力状态": {"ids": list(range(66, 72)), "type": "risk"}, # 67-72题
+    "9.底层生理": {"ids": list(range(72, 79)), "type": "body"}    # 73-79题
 }
 
-# 1-79题 计分题库 
-QUESTIONS_SCORING = [
+# 题库全量导入 (1-79题)
+QUESTIONS = [
     "3岁前，主要抚养人频繁更换或长期中断。", "早期曾连续2周以上见不到核心抚养人。", "长辈深度参与管教，经常推翻您的决定。",
     "父母教育标准不一，经常“一宽一严”。", "幼年受委屈时极度粘人，无法离开抚养人。", "近两年经历搬家、转学或财务大变动。",
     "处理人际关系（如婆媳、夫妻矛盾）心力交瘁。", "家人虽同住但各忙各的，缺乏交心时刻。", "面对孩子问题，感到深深的无力感。",
@@ -65,127 +59,158 @@ QUESTIONS_SCORING = [
     "睡觉张口呼吸、盗汗、磨牙或频繁翻身。", "睡眠充足但眼圈常年发青或水肿。"
 ]
 
-# --- 3. 状态管理 ---
-if 'step' not in st.session_state:
-    st.session_state.step = "start"
-    st.session_state.q_idx = 0
-    st.session_state.ans = {}
-    st.session_state.rid = str(random.randint(100000, 999999))
+# --- 3. 报告话术库 (按指南全量录入) ---
+REPORT_TEXTS = {
+    "1.家庭系统": {
+        "low": "您的家庭地基非常扎实，孩子早期依恋关系很好。这意味着孩子内心的安全感底色是亮的，只要解决表层的功能问题，他好起来会比别人快得多。",
+        "mid": "您的家庭基础整体是稳定的，但内部存在一些‘微损耗’（如教育标准不一）。孩子现在像是在顺风和逆风交替的环境下航行，虽然没翻船，但走得很累。如果不统一标准，这些微损耗迟早会演变成大的结构性问题。",
+        "high": "家里的‘气压’太不稳定了。孩子现在就像在地震带上盖房子，他把所有的能量都用来‘维稳’了，根本没有余力去搞学习。"
+    },
+    "2.家长状态": {
+        "low": "您的心理建设做得很好。您是孩子最稳的后盾。现在的困局不是您无能，而是您手里缺一把精准的‘手术刀’。",
+        "mid": "您正处于‘育儿倦怠’的边缘。您依然在坚持，但这种坚持带有一种强迫性的自我牺牲感。现在的您就像亮起黄灯的仪表盘，提醒您该停下来修整认知模式了，否则下一步就是彻底的无力感。",
+        "high": "您现在的油箱已经干了。您在用透支自己的方式陪跑，这种焦灼感会通过镜像神经元直接传染给孩子，咱们得先帮您把油加满。"
+    },
+    "3.亲子关系": {
+        "low": "最宝贵的是，孩子还愿意跟您说真心话。只要情感管道通着，任何技术手段都能 100% 发挥作用。",
+        "mid": "你们之间没有大冲突，但缺乏‘深链接’。孩子正在慢慢关上心门，如果您不主动更换沟通频率，他会习惯性地在心理上与您隔离。",
+        "high": "你们之间现在是‘信号屏蔽’状态。您说的每一句‘为他好’，在他听来都是攻击。不先疏通情感，所有的教育都是无效功。"
+    },
+    "4.动力状态": {
+        "low": "孩子骨子里是有胜负欲和生命力的。他现在的颓废只是‘暂时的死机’，只要重装系统，他自己就能跑起来。",
+        "mid": "孩子的生命力处于‘待机状态’。他想好但缺乏持续推力。这种状态最容易在初高中阶段因为压力剧增而彻底熄火。",
+        "high": "孩子已经进入了‘节能模式’，对外界失去了探索欲。这是典型的生命力萎缩，我们要通过底层激活，让他重新‘活’过来。"
+    },
+    "5.学业管理": {
+        "low": "孩子的大脑硬件配置其实很高，执行功能没问题。现在的成绩波动，纯粹是情绪或态度的小感冒，很好修补。",
+        "mid": "孩子目前的学业表现是一种‘高代偿’维持。他在用双倍的意志力弥补脑启动效率不足。一旦难度超过极限，会迅速崩盘。",
+        "high": "这不是态度问题，是‘大脑CPU过载’。他写一个字消耗的能量是别人的三倍。必须用脑科学的方法帮他降载。"
+    },
+    "6.社会化适应": {
+        "low": "孩子的社会化属性很好，他渴望链接。这种对集体的归属感，是我们后期把他从手机世界拉回现实的最强抓手。",
+        "mid": "电子世界对他吸引力正在盖过现实。如果现在不干预，他会越来越倾向于在虚拟世界寻找安全感，现实社交能力将持续退化。",
+        "high": "他在现实世界里找不到成就感，只能去虚拟世界吸氧。学校对他来说不是学习的地方，而是‘刑场’。"
+    }
+}
+
+# --- 4. 状态管理 ---
+if 'idx' not in st.session_state:
+    st.session_state.update({'step': "start", 'idx': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
 def next_q(val):
-    st.session_state.ans[st.session_state.q_idx] = val
-    st.session_state.q_idx += 1
+    st.session_state.ans[st.session_state.idx] = val
+    st.session_state.idx += 1
     st.rerun()
 
-# --- 4. 测评逻辑 ---
+# --- 5. 测评流程 ---
 if st.session_state.step == "start":
-    st.title("🌿 家庭教育十维深度探查表")
-    st.caption("(脑科学专业版)")
+    st.markdown("<h1 style='text-align: center;'>家庭教育十维深度探查</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: gray;'>（脑科学专业版）</p>", unsafe_allow_html=True)
     age = st.slider("孩子周岁年龄", 1, 25, 7)
     if st.button("开始深度测评", use_container_width=True):
-        st.session_state.age = age
         st.session_state.step = "testing"
         st.rerun()
 
 elif st.session_state.step == "testing":
-    idx = st.session_state.q_idx
-    
-    # --- A阶段：1-79题 (单选跳转) ---
-    if idx < 79:
-        st.progress((idx + 1) / 85)
-        st.subheader(f"第 {idx + 1} 题 / 共 85 题")
-        st.markdown(f"### {QUESTIONS_SCORING[idx]}")
-        
-        c1, c2 = st.columns(2)
-        if c1.button("0 (从不)", use_container_width=True): next_q(0)
-        if c1.button("2 (经常)", use_container_width=True): next_q(2)
-        if c2.button("1 (偶尔)", use_container_width=True): next_q(1)
-        if c2.button("3 (总是)", use_container_width=True): next_q(3)
-        
-        if idx > 0:
-            if st.button("⬅️ 返回上一题"):
-                st.session_state.q_idx -= 1
-                st.rerun()
-
-    # --- B阶段：80-85题 (背景及拦截) ---
-    elif idx < 85:
-        st.subheader(f"第 {idx + 1} 题 / 共 85 题")
-        bg_configs = [
-            ("是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"], "multi"),
-            ("为了解决问题，您尝试过哪些方式？", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], "multi"),
-            ("方法没有彻底生效的原因是？", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], "multi"),
-            ("目前最迫切想解决的前三个痛点是？", ["关系", "厌学", "专注力差", "情绪较大", "手机"], "multi"),
-            ("如有必要，您是否有勇气参与改变？", ["有", "有，但需指导", "比较纠结", "只想改孩子"], "single"),
-            ("是否愿预约一次专业分析解读？", ["是", "否"], "single")
-        ]
-        q_text, opts, q_type = bg_configs[idx - 79]
-        st.markdown(f"### {q_text}")
-        
-        # 答题拦截逻辑
-        user_input = None
-        if q_type == "multi":
-            user_input = st.multiselect("请选择 (必填，可多选):", opts, key=f"bg_{idx}")
-        else:
-            user_input = st.radio("请选择 (必填):", opts, index=None, key=f"bg_{idx}")
-
-        col_p, col_n = st.columns(2)
-        if col_p.button("⬅️ 上一题"):
-            st.session_state.q_idx -= 1
+    curr = st.session_state.idx
+    # A. 1-79题计分项
+    if curr < 79:
+        st.progress((curr + 1) / 85)
+        st.subheader(f"第 {curr + 1} 题 / 共 85 题")
+        st.markdown(f"### {QUESTIONS[curr]}")
+        cols = st.columns(2)
+        if cols[0].button("0 (从不)", use_container_width=True): next_q(0)
+        if cols[1].button("1 (偶尔)", use_container_width=True): next_q(1)
+        if cols[0].button("2 (经常)", use_container_width=True): next_q(2)
+        if cols[1].button("3 (总是)", use_container_width=True): next_q(3)
+        if curr > 0 and st.button("⬅️ 返回上一题"):
+            st.session_state.idx -= 1
             st.rerun()
+    # B. 80-85题背景信息 (拦截逻辑)
+    elif curr < 85:
+        bg_qs = [
+            ("是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"], "multi"),
+            ("尝试过哪些方式？", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], "multi"),
+            ("方法未生效的原因？", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], "multi"),
+            ("最迫切的前三个痛点？", ["关系", "厌学", "专注力差", "情绪较大", "手机"], "multi"),
+            ("是否有勇气参与改变？", ["有", "有，但需指导", "比较纠结", "只想改孩子"], "single"),
+            ("是否愿预约分析解读？", ["是", "否"], "single")
+        ]
+        q_txt, opts, q_tp = bg_qs[curr - 79]
+        st.subheader(f"背景信息 ({curr+1}/85)")
+        st.markdown(f"### {q_txt}")
+        u_in = st.multiselect("请选择 (必填):", opts) if q_tp == "multi" else st.radio("请选择 (必填):", opts, index=None)
         
-        # 限制：必须有内容才能点下一题 
-        can_proceed = (user_input is not None and len(user_input) > 0) if q_type == "multi" else (user_input is not None)
-        
-        if col_n.button("✅ 提交生成报告" if idx == 84 else "下一题", use_container_width=True, disabled=not can_proceed):
-            st.session_state.ans[idx] = user_input
-            if idx < 84:
-                st.session_state.q_idx += 1
+        btn_label = "生成报告" if curr == 84 else "下一步"
+        if st.button(btn_label, use_container_width=True, disabled=not u_in):
+            st.session_state.ans[curr] = u_in
+            if curr < 84:
+                st.session_state.idx += 1
                 st.rerun()
             else:
-                requests.post(FEISHU_URL, json={"msg_type":"text", "content":{"text":f"测评完成\n编号:{st.session_state.rid}\n年龄:{st.session_state.age}"}})
                 st.session_state.step = "report"
+                requests.post(FEISHU_URL, json={"msg_type":"text","content":{"text":f"报告已生成:{st.session_state.rid}"}})
                 st.rerun()
 
 elif st.session_state.step == "report":
-    st.title("📊 深度探查报告")
+    st.markdown("<h2 style='text-align: center;'>📊 深度探查报告</h2>", unsafe_allow_html=True)
     st.success(f"报告编号：{st.session_state.rid}")
+    
+    # 1. 计算均分
+    scores = {}
+    for dim, cfg in DIM_CONFIG.items():
+        avg = sum(st.session_state.ans.get(i, 0) for i in cfg["ids"]) / len(cfg["ids"])
+        scores[dim] = round(avg, 2)
 
-    # 1. 维度分计算
-    dim_results = {}
-    for name, ids in DIM_MAP.items():
-        avg = sum(st.session_state.ans.get(i, 0) for i in ids) / len(ids)
-        dim_results[name] = round(avg, 2)
-
-    # 2. 雷达图
-    fig = go.Figure(data=go.Scatterpolar(r=list(dim_results.values()), theta=list(dim_results.keys()), fill='toself', line_color='#1B5E20'))
+    # 2. 雷达图 (1-6维度)
+    radar_labels = list(scores.keys())[:6]
+    radar_values = list(scores.values())[:6]
+    fig = go.Figure(data=go.Scatterpolar(r=radar_values, theta=radar_labels, fill='toself', line_color='#1B5E20'))
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 3])), showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
-    # 3. 三段式话术
-    st.markdown("---")
-    for name, score in dim_results.items():
-        st.markdown(f"#### 📍 {name}维度分析")
-        if score >= 1.8:
-            st.error(f"得分：{score} (高危负荷) — 系统已严重失衡。孩子正在求救，底层动力近乎枯竭。")
-        elif score >= 0.8:
-            st.warning(f"得分：{score} (代偿警戒) — 表面维持，但内部消耗极大，压力点易崩盘。")
-        else:
-            st.info(f"得分：{score} (良性稳态) — 基础健康。是后期修复与能力跃迁的强力杠杆。")
+    # 3. 核心维度深度解析 (1-6)
+    st.divider()
+    st.markdown("### 🔍 核心维度深度归因")
+    for dim in radar_labels:
+        s = scores[dim]
+        level = "high" if s >= 1.9 else "mid" if s >= 0.9 else "low"
+        color = "#D32F2F" if level=="high" else "#FBC02D" if level=="mid" else "#388E3C"
+        st.markdown(f"#### <span style='color:{color}'>● {dim}：{s}分</span>", unsafe_allow_html=True)
+        st.write(REPORT_TEXTS[dim][level])
 
-    # 4. 转化排版美化
-    st.markdown("---")
-    st.markdown(f"### 💡 **沈老师专业建议**")
+    # 4. 专项风险警报 (7-9)
+    st.divider()
+    st.markdown("### 🧠 风险专项与底层生理")
+    # 7. 情绪警报
+    e_score = scores["7.情绪状态"]
+    has_suicide = any(st.session_state.ans.get(i) == 3 for i in range(58, 66)) # 59-66题是否有3分
+    if e_score >= 1.5 or has_suicide:
+        st.error(f"❗ 情绪风险 ({e_score}分)：这是【红灯警告】。孩子现在的沉默是他在呼救。建议暂停学业施压，优先进行情感固着。")
+    
+    # 8. 注意力预警
+    a_score = scores["8.注意力状态"]
+    if a_score >= 1.5:
+        st.warning(f"⚠️ 注意力预警 ({a_score}分)：数据高度疑似 ADHD 特质。孩子大脑天生自带“降噪功能缺陷”，需要专业的脑功能整合训练，而非一味责骂。")
+
+    # 9. 生理归因
+    b_score = scores["9.底层生理"]
+    if b_score >= 1.5:
+        st.info(f"🧬 生理基础 ({b_score}分)：孩子的部分行为受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议配合律动方案进行底层修复。")
+
+    # 5. 结尾与引导
+    st.divider()
+    st.warning("⚠️ 提示：请【长按截屏】保存此报告结果，作为后续面诊依据。")
     st.markdown(f"""
-    这份报告揭示了“心脑失调”的根源。请**长按截屏保存**。
+    ### 🌿 结语
+    这份报告揭示了孩子的求救，也看见了您的委屈。
+    其实，您不需要独自扛着。
     
-    添加沈老师微信，备注编号 **{st.session_state.rid}**，预约 **198元** 专家1V1深度面诊方案，您将获得：
+    **添加老师微信您可以获得：**
+    1. **十个维度**个性化改善方案
+    2. **30分钟** 1V1深度解析
+    3. **特惠198元**（原价598元）
     
-    ✅ **福利一：** 30 分钟深度语音解析（精准定位行为根源）
-    
-    ✅ **福利二：** 十个维度个性化家庭改善行动路径图
-    
-    ✅ **福利三：** 脑科学测评详细电子版指导手册
-    
-    **立即点击下方，开启专业干预之路：**
+    **添加时请备注生成的数字：** 👉 **{st.session_state.rid}**
     """)
-    st.link_button("👉 点击添加老师，预约 1V1 解析", WECOM_LINK, use_container_width=True)
+    st.link_button("👉 点击添加老师，预约深度诊断", WECOM_LINK, use_container_width=True)
