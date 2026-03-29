@@ -118,7 +118,11 @@ if st.session_state.step == 'home':
             <div class='t2'>家庭教育</div>
             <div class='t3'>十维深度探查表</div>
             <div style='color:#546E7A; line-height:1.7; margin:25px 0; border-left:4px solid #FF7043; padding-left:15px;'>
-                你好，我是曹校长。<br>这是一次看见孩子，也看见您自己的机会。
+                这是一场跨越心与脑的对话。<br>
+              你好，我是曹校长。<br><br>
+             接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
+             这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
+
             </div>
     """, unsafe_allow_html=True)
     if st.button("🚀 开始深度测评"):
