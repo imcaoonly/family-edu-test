@@ -2,87 +2,62 @@ import streamlit as st
 import random
 import plotly.graph_objects as go
 
-# --- 1. UI 深度适配 (解决首页晃动、0品牌露出) ---
+# --- 1. 终极 UI 适配 (解决等宽、去白条、报错) ---
 st.set_page_config(page_title="曹校长·脑科学专业版", layout="centered")
 
 st.markdown("""
     <style>
-    /* 1. 彻底消除 Streamlit 顶部原生空白 */
-    .block-container { padding-top: 1rem !important; padding-bottom: 0rem !important; }
+    /* 1. 彻底干掉顶部白条和 Streamlit 原生组件 */
+    .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stToolbar"] {visibility: hidden;}
+    /* 针对报告页顶部的白边进行压实 */
+    div[data-testid="stVerticalBlock"] > div:first-child { margin-top: -50px !important; }
 
-    /* 全局背景与字体 */
-    .stApp { background: #F8F9FA; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; text-align: left !important; }
+    /* 全局背景 */
+    .stApp { background: #F8F9FA; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
 
-    /* 首页容器：取消 fixed 锁定，防止晃动 */
+    /* 卡片容器 */
     .home-box {
-        background: white; border-radius: 24px; padding: 35px 25px;
+        background: white; border-radius: 24px; padding: 30px 20px;
         margin: 10px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        max-width: 500px;
+        max-width: 500px; width: 100%;
     }
 
-    /* 曹校长品牌标题 */
+    /* 标题样式 */
     .t1 { font-size: 16px; color: #90A4AE; font-weight: 500; }
     .t2 { font-size: 38px; font-weight: 800; color: #1A237E; line-height: 1.2; }
     .t3 { font-size: 28px; font-weight: 700; color: #FF7043; margin-top: 5px; }
 
-    /* 引导文案样 */
-    .intro-box { font-size: 18px; color: #546E7A; line-height: 1.8; margin: 25px 0; border-left: 5px solid #FF7043; padding-left: 18px; }
-
-    /* 选项按钮：加宽加厚，提升点击感 */
+    /* 按钮等宽修正：核心代码 */
     div.stButton > button {
-        border-radius: 16px; height: 65px; font-size: 18px !important; font-weight: 700;
-        background-color: #1A237E; color: white; border: none; width: 100%; transition: 0.2s;
-        margin-bottom: 10px; /* 增加按钮间距 */
+        border-radius: 16px; height: 60px; font-size: 18px !important; font-weight: 700;
+        background-color: #1A237E; color: white; border: none; 
+        width: 100% !important; /* 强制填满父容器 */
+        margin-bottom: 12px; display: block !important;
     }
-    div.stButton > button:active { transform: scale(0.98); background-color: #0D47A1; }
     
-    /* 返回按钮：统一为品牌暖橙色 (0brand) */
-    .back-wrapper { text-align: center; margin-top: 25px; }
+    /* 返回按钮样式 */
     button[kind="secondary"] { 
         color: #FF7043 !important; border: 2px solid #FF7043 !important; background: transparent !important;
-        font-weight: 600 !important; height: 45px !important; border-radius: 12px !important;
+        font-weight: 600 !important; height: 48px !important; border-radius: 12px !important;
     }
 
-    /* 题目文本 */
-    .q-title { font-size: 21px; font-weight: 600; color: #263238; line-height: 1.5; margin: 30px 0; }
+    .q-title { font-size: 20px; font-weight: 600; color: #263238; line-height: 1.5; margin: 25px 0; }
+    .em-red { color: #E53935 !important; font-weight: 800; }
+    .rid-box { font-size: 36px; font-weight: 900; color: #E53935; letter-spacing: 2px; margin: 10px 0; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 1-6 维度【原版长文案】数据库 (1:1 还原长图) ---
-DIM_DATA = {
-    "系统维度": {"range": range(0,8), "texts": [
-        "【稳固】家庭系统运行稳健，夫妻关系与亲子关系各司其职。孩子拥有安全感底色，能感受到规则的保护而非束缚。即使面对外界压力，家庭内部也能提供有效的缓冲。",
-        "【预警】系统平衡正在打破，家庭成员间开始出现隐形的控制或过度卷入。地基出现细微裂缝，孩子开始通过“问题行为”来分担家庭系统的焦虑，承压已接近临界点。",
-        "【危险】地基严重动摇。系统内部功能紊乱，可能存在长期的冷暴力、过度指责或依恋断裂。孩子缺乏基本的安全感，大脑常年处于“战或逃”生存模式，无法调动能量用于学习。"
-    ]},
-    "家长维度": {"range": range(8,18), "texts": [
-        "【优秀】能量充沛，情绪自控力强。能够识别孩子的行为动机，管教温和而坚定。",
-        "【内耗】内耗严重，管教伴随生理性无力。长期的焦虑导致家长就像亮起黄灯的仪表盘，下一步就是彻底的无力感。",
-        "【力竭】心理力竭，已丧失引导能力。对管教已丧失信心，引导功能瘫痪，在潜意识里回避与孩子的深度链接。"
-    ]},
-    "关系维度": {"range": range(18,28), "texts": [
-        "【信任】沟通畅通，边界清晰信任高。关系中不存在控制感，是孩子复原力的源头。",
-        "【防御】防御性增强，沟通仪维持功能层面。孩子正在慢慢关上心门，若不主动更换沟通频率，他会习惯性在心理隔离。",
-        "【断联】情感断联，孩子有逃离倾向。你们之间现在是“信号屏蔽”状态。不疏通情感，所有的教育都是无效功。"
-    ]},
-    "动力维度": {"range": range(28,37), "texts": [
-        "【旺盛】胜负欲强，生命力旺盛。颓废只是“暂时的死机”，重装系统就能跑起来。",
-        "【下行】待机状态，缺乏持续推力。这种“推一下动一下”的状态，最容易在初高中阶段彻底熄火。",
-        "【枯竭】动力彻底枯竭，价值感冰点。已进入“节能模式”，对外界失去探索欲。我们要通过底层激活，让他活过来。"
-    ]},
-    "学业维度": {"range": range(37,48), "texts": [
-        "【高效】脑硬件高配，执行功能没问题。现在的波动纯粹是情绪或态度的感冒。",
-        "【疲劳】高代偿维持学业，大脑已发热运行。努力很高产出低下。非常危险，压力一旦超限会迅速厌学崩盘。",
-        "【宕机】CPU 过载，宕机保护性关闭。写字姿势扭曲、头低得很近，这是大脑苦苦支撑的生理信号。"
-    ]},
-    "社会化": {"range": range(48,58), "texts": [
-        "【自如】规则意识强，渴望社交归属感。这种对集体的链接，是我们后期将他从手机拉回现实的最强抓手。",
-        "【退缩】屏幕占据生命，现实社交回避。舒适区在萎缩。若不干预，社交能力持续退化，在虚拟世界寻找安全感。",
-        "【受损】现实中找不到成就感，通过屏幕吸氧。拒绝上学或老师极度抵触。我們要重建他的現實社交自信。"
-    ]}
-}
+# --- 2. 状态管理 ---
+if 'step' not in st.session_state:
+    st.session_state.update({
+        'step': 'home', 
+        'cur': 0, 
+        'ans': {}, 
+        'rid': str(random.randint(100000, 999999))
+    })
+
 
 # --- 3. 状态管理 ---
 if 'step' not in st.session_state:
@@ -250,3 +225,104 @@ elif st.session_state.step == 'report':
             </a>
         </div>
     """, unsafe_allow_html=True)
+    # --- 4. 核心逻辑引擎 ---
+if st.session_state.step == 'home':
+    st.markdown(f"""
+        <div class='home-box'>
+            <div class='t1'>曹校长 脑科学专业版</div>
+            <div class='t2'>家庭教育</div>
+            <div class='t3'>十维深度探查表</div>
+            <div style='color:#546E7A; line-height:1.8; margin:25px 0; border-left:5px solid #FF7043; padding-left:15px;'>
+                这是一场跨越心与脑的对话。<br>你好，我是曹校长。<br><br>
+                接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
+            </div>
+    """, unsafe_allow_html=True)
+    if st.button("🚀 开始深度测评", key="main_start_btn"):
+        st.session_state.step = 'quiz'
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+elif st.session_state.step == 'quiz':
+    cur = st.session_state.cur
+    # 自定义进度条 (避开原生组件可能的样式冲突)
+    progress = int(((cur + 1) / 85) * 100)
+    st.markdown(f'<div style="width:100%; background:#EEE; height:6px; border-radius:10px;"><div style="width:{progress}%; background:#FF7043; height:6px; border-radius:10px; transition:0.3s;"></div></div>', unsafe_allow_html=True)
+    
+    st.markdown("<div class='home-box'>", unsafe_allow_html=True)
+    
+    # --- 1-78 题逻辑 ---
+    if cur < 78:
+        st.markdown(f"<div class='q-title'>{QUESTIONS_78[cur]}</div>", unsafe_allow_html=True)
+        for label, val in [("0 (从不)", 0), ("1 (偶尔)", 1), ("2 (经常)", 2), ("3 (总是)", 3)]:
+            if st.button(label, key=f"btn_{cur}_{val}"):
+                st.session_state.ans[cur] = val
+                st.session_state.cur += 1
+                st.rerun()
+                
+    # --- 79-85 背景题逻辑 (带拦截功能) ---
+    else:
+        q = BG_QS[cur-78]
+        st.markdown(f"<div class='q-title'>{q['q']}</div>", unsafe_allow_html=True)
+        
+        if q['type'] == 'multi':
+            sel = st.multiselect("请至少选择一项", q['opts'], key=f"m_sel_{cur}")
+            if st.button("确认进入下一题", key=f"next_btn_{cur}"):
+                if not sel: # 拦截空选项
+                    st.warning("⚠️ 请选择后再进入下一题哦")
+                else:
+                    st.session_state.ans[cur] = sel
+                    if cur == 84: st.session_state.step = 'report'
+                    else: st.session_state.cur += 1
+                    st.rerun()
+        else:
+            sel = st.radio("请选择一项", q['opts'], key=f"s_sel_{cur}", index=None)
+            if st.button("确认进入下一题", key=f"next_btn_{cur}"):
+                if sel is None: # 拦截空选项
+                    st.warning("⚠️ 请选择后再进入下一题哦")
+                else:
+                    st.session_state.ans[cur] = sel
+                    if cur == 84: st.session_state.step = 'report'
+                    else: st.session_state.cur += 1
+                    st.rerun()
+
+    # --- 返回按钮 (动态 Key 彻底根治报错) ---
+    if cur > 0:
+        st.write("---")
+        if st.button("⬅ 返回上一题", key=f"global_back_key_{cur}", kind="secondary"):
+            st.session_state.cur = max(0, st.session_state.cur - 1)
+            st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# --- 报告生成页面 ---
+elif st.session_state.step == 'report':
+    st.markdown("<div class='home-box'>", unsafe_allow_html=True)
+    st.markdown("<div class='t2' style='text-align:center;'>报告解析</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='text-align:center; color:#90A4AE; margin-bottom:20px;'>报告编号：{st.session_state.rid}</div>", unsafe_allow_html=True)
+
+    # ... (此处建议保留您之前的雷达图和维度解析逻辑) ...
+
+    # 最终温情转化卡片
+    st.markdown(f"""
+        <div style='border:2px solid #1A237E; padding:20px; border-radius:20px; margin-top:30px; background:#F8F9FA;'>
+            <div style='font-size:18px; color:#263238; line-height:1.6;'>
+                这份报告提示了孩子的求救，也看见了您的委屈。<br>
+                <b>其实，您不需要独自扛着。</b>
+            </div>
+            <div style='font-weight:bold; color:#1A237E; margin-top:20px;'>添加微信您可以获得：</div>
+            <div style='line-height:2.2; margin:10px 0;'>
+                1. 十个维度<span class='em-red'>个性化</span>改善方案<br>
+                2. <span class='em-red'>30 分钟 1V1</span> 深度解析<br>
+                3. 特惠 <span class='em-red'>198 元</span>（原价 598 元）
+            </div>
+            <div style='text-align:center; background:white; padding:15px; border-radius:12px; border:1px dashed #90A4AE;'>
+                <div style='font-size:12px; color:#90A4AE;'>长按复制编号添加曹校长</div>
+                <div style='font-size:32px; font-weight:900; color:#E53935;'>{st.session_state.rid}</div>
+            </div>
+            <a href="#" style="text-decoration:none;">
+                <div style="background:#1A237E; color:white; text-align:center; padding:18px; border-radius:15px; margin-top:15px; font-weight:bold; font-size:18px;">
+                    👉 预约 1V1 深度解析方案
+                </div>
+            </a>
+        </div>
+    """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
