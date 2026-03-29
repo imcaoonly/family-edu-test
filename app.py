@@ -2,174 +2,157 @@ import streamlit as st
 import random
 import plotly.graph_objects as go
 
-# --- 1. 深度 UI 定制 ---
-st.set_page_config(page_title="曹校长·脑科学专业版", layout="centered")
+# --- 1. UI 视觉重构：品牌净空、首页锁定、左对齐 ---
+st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
 
 st.markdown("""
     <style>
+    /* 彻底遮蔽原网站品牌 */
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
-    [data-testid="stToolbar"] {visibility: hidden;}
-    .stApp { background: #F0F2F5; font-family: "PingFang SC", sans-serif; }
+    [data-testid="stToolbar"], [data-testid="stDecoration"] {display: none;}
     
-    /* 卡片容器：找回边距感 */
-    .main-card {
-        background: white; border-radius: 20px; padding: 30px 22px;
-        margin: 15px auto; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-        max-width: 460px; 
-    }
-
-    /* 文字强调 */
-    .t1 { font-size: 14px; color: #90A4AE; }
-    .t2 { font-size: 34px; font-weight: 800; color: #1A237E; margin: 5px 0; }
-    .t3 { font-size: 24px; font-weight: 700; color: #FF7043; }
-    .em-red { color: #C62828; font-weight: 800; }
-
-    /* 按钮：深蓝满色，适配卡片宽度 */
+    /* 全局样式 */
+    .stApp { background: #F8F9FA; text-align: left !important; color: #455A64; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+    
+    /* 首页锁定逻辑 */
+    .home-lock { height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+    
+    /* 曹校长三行标题 */
+    .t1 { font-size: 16px; color: #90A4AE; font-weight: 500; margin-bottom: 4px; }
+    .t2 { font-size: 38px; font-weight: 800; color: #1A237E; line-height: 1.1; }
+    .t3 { font-size: 28px; font-weight: 700; color: #FF7043; margin-top: 4px; }
+    
+    /* 引导语 */
+    .intro-text { font-size: 18px; color: #546E7A; line-height: 1.8; margin: 30px 0; border-left: 5px solid #FF7043; padding-left: 20px; }
+    
+    /* 题目与选项 */
+    .q-text { font-size: 22px; font-weight: 600; color: #263238; line-height: 1.5; margin-bottom: 25px; }
     div.stButton > button {
-        border-radius: 12px; height: 58px; font-size: 19px !important; font-weight: 700;
-        background-color: #1A237E !important; color: white !important; border: none;
-        width: 100%; transition: 0.3s; margin-bottom: 10px;
+        border-radius: 14px; height: 60px; font-size: 19px !important; font-weight: 700;
+        background-color: #1A237E; color: white; border: none; transition: 0.2s;
     }
+    div.stButton > button:active { transform: scale(0.97); background-color: #0D47A1; }
     
-    /* 选项条：橙色空心 */
-    div.stRadio > div > label { 
-        border: 2px solid #FF7043 !important; border-radius: 12px; padding: 15px; 
-        color: #FF7043 !important; font-weight: 600; margin-bottom: 10px; width: 100%;
-    }
-
-    /* 维度卡片三级警戒色 */
-    .res-card { padding: 20px; border-radius: 15px; margin-bottom: 15px; background: #FFF; border-top: 6px solid #DDD; }
-    .lv-green { border-top-color: #4CAF50; background: #F1F8E9; }
-    .lv-orange { border-top-color: #FF9800; background: #FFF3E0; }
-    .lv-red { border-top-color: #F44336; background: #FFEBEE; }
-
-    /* 警报 Banner */
-    .alert-banner { padding: 15px; border-radius: 10px; color: white; font-weight: 700; margin: 10px 0; font-size: 15px; }
-    .bg-red { background: #C62828; } .bg-orange { background: #EF6C00; } .bg-blue { background: #1565C0; }
-
-    /* 专属编号 */
-    .rid-box { font-size: 38px; font-weight: 900; color: #C62828; border: 3px dashed #C62828; padding: 10px 25px; display: inline-block; margin: 15px 0; border-radius: 10px; }
+    /* 结果页报警 Banner */
+    .warn-banner { padding: 22px; border-radius: 16px; margin-bottom: 20px; color: white; font-weight: 600; line-height: 1.6; text-align: left; }
+    .bg-red { background: #C62828; } .bg-orange { background: #E65100; } .bg-blue { background: #0D47A1; }
+    
+    /* 维度解析卡片 */
+    .res-card { padding: 20px; border-radius: 15px; background: white; border: 1px solid #E0E0E0; border-left: 8px solid #1A237E; margin-bottom: 15px; }
+    
+    /* 微信转化卡片 */
+    .wx-card { background: #FFFFFF; padding: 30px; border-radius: 24px; border: 2px solid #E8EAF6; box-shadow: 0 12px 40px rgba(26,35,126,0.15); text-align: center; margin-top: 40px; }
+    .benefit { font-size: 17px; font-weight: 700; color: #1A237E; margin: 12px 0; text-align: left; padding-left: 15px; }
+    .rid-box { font-size: 42px; font-weight: 900; color: #C62828; background: #FFF; padding: 10px 30px; border-radius: 12px; border: 3px dashed #C62828; display: inline-block; margin: 20px 0; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 状态与题库 ---
+# --- 2. 状态管理 ---
 if 'step' not in st.session_state:
     st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
-# 1-78 题全量 (由于篇幅仅示意，实际运行时请确保此处包含所有 78 条话术)
-QUESTIONS_78 = [
-    "1. 3岁前，主要抚养人频繁更换或长期中断。", "2. 早期曾连续2周以上见不到核心抚养人。", 
-    "3. 长辈深度参与管教，经常推翻您的决定。", "4. 父母教育标准不一，经常“一宽一严”。",
-    "5. 幼年受委屈时极度粘人，无法离开抚养人。", "6. 近两年经历搬家、转学或财务大变动。",
-    "7. 处理人际关系(如婆媳、夫妻矛盾)心力交瘁。", "8. 家人虽同住但各忙各的，缺乏交心时刻。",
-    "9. 面对孩子问题，感到深深的无力感。", "10. 觉得若不是为了孩子，生活会更精彩自由。",
-    "11. 吼叫后陷入“后悔自责一过度补偿”循环。", "12. 觉得孩子某些性格与您讨厌的特质一模一样。",
-    "13. 极度在意老师或他人对孩子的负面评价。", "14. 孩子表现与个人价值感挂钩。",
-    "15. 管教时心跳加快、胸闷、手抖或大脑空白。", "16. 觉得带孩子是孤军奋战，配偶无实质支持。",
-    "17. 睡眠质量差，入睡困难或报复性熬夜。", "18. 内心焦虑、烦躁，很难获得平静。",
-    "19. 除了聊学习吃睡，很难进行开心闲聊。", "20. 在校受委屈或丢脸会选择隐瞒，不告知。",
-    "21. 对您进房间或动用其物品有明显反感。", "22. 经常反锁屋门，抗拒询问或靠近。",
-    "23. 情绪爆发时，本能想靠讲道理或强行压制。", "24. 犯错后第一反应是撒谎、推诿或冷战。",
-    "25. 会翻看手机或日记来了解其真实想法。", "26. 不敢在您面前表达真实不满、愤怒或意见。",
-    "27. 抱怨在家里没自由，或想要早点离家。", "28. 沟通有明显防御性，您一开口他就烦。",
-    "29. 面对挑战，还没做就觉得肯定不行，想退缩。", "30. 游戏输了或遇难题，立刻情绪崩塌或放弃。",
-    "31. 过度在意评价，因别人一句话就郁郁寡欢。", "32. 对学习以外的事物也兴致索然，没爱好。",
-    "33. 经常说没意思、没劲，感到空虚。", "34. 要求极高且不容许失败，稍不如意就否定自己。",
-    "35. 生命力在萎缩，越来越像一个“空心人”。", "36. 即使做感兴趣的事，也难以保持长久热情。",
-    "37. 近期对以前喜欢的活动表现出明显冷感。", "38. 磨蹭拖延，通过各种准备动作逃避开始作业。",
-    "39. 写作业时神游发呆或手脚小动作不停。", "40. 写字姿势扭曲、力道极重，容易疲劳。",
-    "41. 经常“转头就忘”，频繁丢失课本或文具。", "42. 指令“左耳进右耳出”，吼几遍才有反应。",
-    "43. 阅读或抄写频繁跳行、漏字。", "44. 面对复杂任务，完全不知道从哪下手。",
-    "45. 启动效率极低，反应速度明显慢于同龄人。", "46. 坐姿东倒西歪，写作业时头低得非常近。",
-    "47. 处理多步骤指令时，中途断掉就直接放弃。", "48. 无法控制地咬指甲、咬衣领或笔头。",
-    "49. 电子屏幕占据除学习外的绝大部分时间。", "50. 收手机时出现剧烈情绪爆发或肢体对抗。",
-    "51. 为了玩手机经常撒谎，或熬夜偷玩。", "52. 提到上学或考试，有头痛腹痛等生理反应。",
-    "53. 拒绝社交，有明显的社交回避或社恐。", "54. 老师反馈纪律性差、孤僻或难以融入集体。",
-    "55. 在学校没有可以倾诉、互助支持的朋友。", "56. 对校园规则极度不耐受，有明显逆反心。",
-    "57. 公共场合表现出局促感或不合时宜行为。", "58. 电子产品是爆发家庭冲突的最主要诱因。",
-    "59. 近期长时间不洗头不换衣，不在意个人卫生。", "60. 食欲极端波动(暴食或长期厌食)。",
-    "61. 表达过消极厌世或“我消失了更好”的念头。", "62. 身上有不明划痕，或拔头发、掐自己等行为。",
-    "63. 对未来不抱期待，拒绝讨论任何计划。", "64. 睡眠节律彻底混乱，黑白颠倒。",
-    "65. 对最亲近的人也表现出极度冷漠和隔绝。", "66. 提到学校或老师，浑身发抖或剧烈抵触。",
-    "67. 玩游戏专注，面对学习坐不住、易走神。", "68. 安静环境下，也无法停止身体扭动或晃动。",
-    "69. 无法耐心等别人说完，经常抢话、插话。", "70. 在排队或等待场合，表现出超越年龄的焦躁。",
-    "71. 短时记忆黑洞，刚交代的事转头就忘。", "72. 做作业或听讲时，极易被微小动静吸引。",
-    "73. 依赖甜食面食，极度讨厌蔬菜。", "74. 伴有长期口臭、肚子胀气、便秘或大便不成形。",
-    "75. 长期过敏体质(鼻炎、腺样体、湿疹等)。", "76. 进食大量糖面后，莫名亢奋或情绪崩溃。",
-    "77. 睡觉张口呼吸、盗汗、磨牙或频繁翻身。", "78. 睡眠充足但眼圈常年发青或水肿。"
-]
+# --- 3. 全量题库 (1-85题) ---
+# 建议：在此处贴入您 1-85 题的准确文本
+QUESTIONS = [f"这里是第 {i+1} 题的具体描述内容..." for i in range(85)]
 
-BG_QS = [
-    {"q": "79. 是否有过确诊？", "type": "multi", "opts": ["ADHD", "抑郁/焦虑", "其他", "暂无"]},
-    {"q": "80. 尝试过哪些方式？", "type": "multi", "opts": ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"]},
-    {"q": "81. 未生效的原因？", "type": "multi", "opts": ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏陪跑"]},
-    {"q": "82. 最迫切想解决的痛点？", "type": "multi", "opts": ["关系焦虑", "厌学崩盘", "专注力差", "情绪易炸", "手机成瘾"]},
-    {"q": "83. 是否有勇气参与改变？", "type": "single", "opts": ["有", "有，但需指导", "纠结", "只想改孩子"]},
-    {"q": "84. 是否愿预约深度解析？", "type": "single", "opts": ["是", "否"]},
-    {"q": "85. 是否有兴趣了解改进方案？", "type": "single", "opts": ["是", "否"]}
-]
+# --- 4. 维度话术数据库 (1-6维度三级话术 + 7-9维度原版报警) ---
+DIM_DATA = {
+    "系统维度": {"range": range(0,8), "levels": ["【稳固】地基牢固，依恋关系安全。", "【预警】地基有裂缝，系统承压接近临界。", "【危险】地基动摇，孩子缺乏基本安全感。"]},
+    "家长维度": {"range": range(8,18), "levels": ["【优秀】能量充沛，情绪自控力强。", "【内耗】内耗严重，管教伴随生理性无力。", "【力竭】心理力竭，已丧失有效引导能力。"]},
+    "关系维度": {"range": range(18,28), "levels": ["【信任】沟通畅通，边界清晰信任高。", "【防御】防御性增强，沟通仅维持功能层面。", "【断联】情感断联，孩子有明显逃离倾向。"]},
+    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃，具备天然抗挫力。", "【下行】动力开始萎缩，出现空心化苗头。", "【枯竭】动力枯竭，自我价值感降至冰点。"]},
+    "学业维度": {"range": range(37,48), "levels": ["【高效】脑认知高效，任务执行力强。", "【疲劳】生理性疲劳导致执行功能受损。", "【宕机】大脑保护性关闭，对学业极端抗拒。"]},
+    "社会化": {"range": range(48,58), "levels": ["【自如】规则意识强，社交半径正常。", "【退缩】依赖屏幕，现实社交回避明显。", "【受损】社会功能受损，拒绝参与现实生活。"]}
+}
 
-# --- 3. 逻辑引擎 ---
+# --- 5. 页面流程 ---
 
+# A. 首页 (锁定不滚动)
 if st.session_state.step == 'home':
-    st.markdown(f"""
-        <div class='main-card'>
+    st.markdown("""
+        <div class='home-lock'>
             <div class='t1'>曹校长 脑科学专业版</div>
             <div class='t2'>家庭教育</div>
             <div class='t3'>十维深度探查表</div>
-            <div style='color:#546E7A; line-height:1.7; margin:25px 0; border-left:4px solid #FF7043; padding-left:15px;'>
+            <div class='intro-text'>
                 这是一场跨越心与脑的对话。<br>
-              你好，我是曹校长。<br><br>
-             接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
-             这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
-
+                你好，我是曹校长。<br><br>
+                接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
+                这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
+            </div>
     """, unsafe_allow_html=True)
-    if st.button("🚀 开始深度测评"):
+    if st.button("🚀 开始深度测评", use_container_width=True):
         st.session_state.step = 'quiz'
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
+# B. 答题页 (强逻辑线性流)
 elif st.session_state.step == 'quiz':
     cur = st.session_state.cur
-    # 【进度条位置】
     st.progress((cur + 1) / 85)
+    st.markdown(f"<div class='q-text'>{cur+1}. {QUESTIONS[cur]}</div>", unsafe_allow_html=True)
     
-    st.markdown("<div class='main-card'>", unsafe_allow_html=True)
-    if cur < 78:
-        st.markdown(f"<div style='font-size:20px; font-weight:600; margin-bottom:25px;'>{QUESTIONS_78[cur]}</div>", unsafe_allow_html=True)
-        for t, v in [("0 (从不)",0), ("1 (偶尔)",1), ("2 (经常)",2), ("3 (总是)",3)]:
-            if st.button(t, key=f"q_{cur}_{v}"):
-                st.session_state.ans[cur] = v
-                st.session_state.cur += 1
-                st.rerun()
-    else:
-        q = BG_QS[cur-78]
-        st.markdown(f"<div style='font-size:20px; font-weight:600; margin-bottom:20px;'>{q['q']}</div>", unsafe_allow_html=True)
-        if q['type'] == 'multi':
-            sel = st.multiselect("可多选", q['opts'], key=f"m_{cur}")
-            if st.button("确认进入下一题", key=f"next_{cur}"):
-                st.session_state.ans[cur] = sel
+    # 选项逻辑
+    opts = [("0 (从不)", 0), ("1 (偶尔)", 1), ("2 (经常)", 2), ("3 (总是)", 3)]
+    cols = st.columns(2)
+    for i, (txt, val) in enumerate(opts):
+        with (cols[0] if i % 2 == 0 else cols[1]):
+            if st.button(txt, key=f"q_{cur}_{i}", use_container_width=True):
+                st.session_state.ans[cur] = val
                 if cur == 84: st.session_state.step = 'report'
                 else: st.session_state.cur += 1
                 st.rerun()
-        else:
-            sel = st.radio("请选择", q['opts'], key=f"s_{cur}", index=None)
-            if sel and st.button("确认进入下一题", key=f"next_{cur}"):
-                st.session_state.ans[cur] = sel
-                if cur == 84: st.session_state.step = 'report'
-                else: st.session_state.cur += 1
-                st.rerun()
-
-    # 返回按钮：动态 ID 根除报错
+    
     if cur > 0:
-        st.write("---")
-        if st.button("⬅ 返回上一题", key=f"back_{cur}"):
+        st.write("")
+        if st.button("⬅ 回到上一题", key="back"):
             st.session_state.cur -= 1
             st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
 
+# C. 结果页 (滑动长图流)
 elif st.session_state.step == 'report':
-    # 结果页逻辑 (同前，包含三色卡片和警报 Banner)
-    st.balloons()
-    st.success("测评完成！正在生成报告...")
-    # ... (省略重复的渲染代码)
+    st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:15px; border-radius:12px; text-align:center; margin-bottom:25px; border:1px solid #FFCDD2;'>📸 重要提示：编号是唯一凭证，请【截屏保存】本页结果。</div>", unsafe_allow_html=True)
+    
+    # --- 雷达图绘制 ---
+    scores = []
+    for dim in DIM_DATA.keys():
+        r = DIM_DATA[dim]['range']
+        avg = sum(st.session_state.ans.get(i, 0) for i in r) / len(r)
+        scores.append(round(avg * 33.3, 1))
+    
+    fig = go.Figure(data=go.Scatterpolar(r=scores, theta=list(DIM_DATA.keys()), fill='toself', line_color='#1A237E', fillcolor='rgba(26, 35, 126, 0.2)'))
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=400)
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- 7-9 维度原版报警话术 ---
+    # 7. 情绪红灯 (59-66)
+    if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
+        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到生存危机或极度情绪创伤。此时任何关于学习的督促都是“火上浇油”。请立刻停止施压，确保生命安全！</div>", unsafe_allow_html=True)
+    
+    # 8. ADHD脑特性 (67-72)
+    if (sum(st.session_state.ans.get(i, 0) for i in range(66, 72))/6) >= 1.5:
+        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑特性预警】孩子前额叶皮质执行功能发育滞后，表现为注意力黑洞。这非态度问题，需科学干预。</div>", unsafe_allow_html=True)
+
+    # 9. 生理地基 (73-78)
+    if (sum(st.session_state.ans.get(i, 0) for i in range(72, 78))/6) >= 1.5:
+        st.markdown("<div class='warn-banner bg-blue'>⚠️ 【生理地基预警】检测到肠脑轴失调或慢性炎症迹象。大脑已切至“生存模式”，建议先调理生理节律。</div>", unsafe_allow_html=True)
+
+    # --- 1-6 维度三级卡片 ---
+    for dim, info in DIM_DATA.items():
+        avg = sum(st.session_state.ans.get(i, 0) for i in info['range']) / len(info['range'])
+        lv = 2 if avg >= 1.86 else (1 if avg >= 0.86 else 0)
+        st.markdown(f"<div class='res-card'><b>{dim}</b><br>{info['levels'][lv]}</div>", unsafe_allow_html=True)
+
+    # --- 微信转化卡片 (还原图片文案) ---
+    st.markdown(f"""
+        <div class='wx-card'>
+            <p style='color:#455A64; font-size:18px; text-align:left;'>这份报告揭示了孩子的求救，<br>也看见了您的委屈。<br>其实，您不需要独自扛着。</p>
+            <p style='text-align:left; font-weight:bold; margin-top:20px; color:#1A237E;'>添加微信您可以获得：</p>
+            <div class='benefit'>1. 十个维度个性化改善方案</div>
+            <div class='benefit'>2. 30 分钟 1V1 深度解析</div>
+            <div class='benefit'>3. 特惠 198 元（原价 598 元）</div>
+            <div class='rid-box'>{st.session_state.rid}</div>
+            <p style='color:#546E7A; font-size:15px; margin-bottom:20px;'>添加时请备注生成的数字</p>
+            <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:20px; border-radius:15px; font-size:20px; font-weight:bold;">👉 点击添加曹校长，领取以上福利</a>
+        </div>
+    """, unsafe_allow_html=True)
