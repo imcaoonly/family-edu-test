@@ -4,18 +4,21 @@ import requests
 import json
 import plotly.graph_objects as go
 
-# --- 1. 配置与飞书 Webhook ---
-st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
+# --- 1. 隐藏自带 UI 的样式设置 ---
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            .stDeployButton {display:none;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# --- 2. 初始配置 ---
 FEISHU_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/e0c47a6f-4e26-405c-87ff-7fc955c8c279"
 
-# --- 2. 初始状态 ---
-if 'step' not in st.session_state:
-    st.session_state.step = "start"
-    st.session_state.ans = {}
-    st.session_state.rid = str(random.randint(100000, 999999))
-
-# --- 3. 题目数据库 (根据上传文档整理) ---
-# 1-79题题目 [cite: 195-272]
+# 题目数据库 (严格对应 1-79 题)
 QUESTIONS = [
     "3岁前，主要抚养人频繁更换或长期中断。", "早期曾连续2周以上见不到核心抚养人。", "长辈深度参与管教，经常推翻您的决定。",
     "父母教育标准不一，经常“一宽一严”。", "幼年受委屈时极度粘人，无法离开抚养人。", "近两年经历搬家、转学或财务大变动。",
@@ -45,44 +48,81 @@ QUESTIONS = [
     "睡觉张口呼吸、盗汗、磨牙或频繁翻身。", "睡眠充足但眼圈常年发青或水肿。"
 ]
 
-# --- 4. 页面逻辑：开始 ---
+# --- 3. 核心逻辑处理 ---
+if 'step' not in st.session_state:
+    st.session_state.step = "start"
+    st.session_state.current_q = 0
+    st.session_state.ans = {}
+    st.session_state.rid = str(random.randint(100000, 999999))
+
+# 自动下一题的辅助函数
+def next_question(val):
+    st.session_state.ans[st.session_state.current_q] = val
+    st.session_state.current_q += 1
+    st.rerun()
+
+# --- 4. 页面显示 ---
 if st.session_state.step == "start":
     st.title("🌿 家庭教育十维深度探查表(脑科学版)")
-    st.write("一场跨越心与脑的对话，请放空杂念，给孩子和自己一次被“看见”的机会。")
+    st.write("一场跨越心与脑的对话，请给孩子和自己一次被“看见”的机会。")
     age = st.slider("孩子周岁年龄", 1, 25, 7)
-    if st.button("开始测评"):
+    if st.button("开始测评", use_container_width=True):
         st.session_state.age = age
         st.session_state.step = "testing"
         st.rerun()
 
-# --- 5. 页面逻辑：答题 ---
 elif st.session_state.step == "testing":
-    # 分页显示题目减少疲劳
-    q_idx = len(st.session_state.ans)
-    if q_idx < 79:
-        st.subheader(f"第 {q_idx + 1} 题 / 共 85 题")
-        st.write(QUESTIONS[q_idx])
-        val = st.radio("请选择：", [0, 1, 2, 3], format_func=lambda x: {0:"从不", 1:"偶尔", 2:"经常", 3:"总是"}[x], horizontal=True)
-        if st.button("下一题"):
-            st.session_state.ans[q_idx + 1] = val
-            st.rerun()
-    else:
-        # 80-85题背景信息 [cite: 273-280]
-        st.subheader("最后一步：背景信息确认")
-        st.session_state.ans[80] = st.multiselect("是否有过确诊？", ["ADHD", "抑郁/焦虑", "其他", "暂无"])
-        st.session_state.ans[83] = st.multiselect("目前最迫切想解决的痛点？", ["关系", "厌学", "专注力差", "情绪较大", "手机"])
-        st.session_state.ans[84] = st.radio("是否有勇气参与改变？", ["有", "有，但需指导", "比较纠结", "只想改孩子"])
-        
-        if st.button("生成报告"):
-            # 发送飞书推送 (包含关键词“报告”)
-            msg = f"【测评报告】编号:{st.session_state.rid}\n年龄:{st.session_state.age}\n痛点:{st.session_state.ans[83]}\n决心:{st.session_state.ans[84]}"
-            requests.post(FEISHU_URL, json={"msg_type":"text", "content":{"text":msg}})
-            st.session_state.step = "report"
-            st.rerun()
+    total_qs = len(QUESTIONS)
+    current_q = st.session_state.current_q
 
-# --- 6. 页面逻辑：报告 ---
+    if current_q < total_qs:
+        st.progress(current_q / (total_qs + 1))
+        st.subheader(f"第 {current_q + 1} 题 / 共 85 题")
+        st.markdown(f"**{QUESTIONS[current_q]}**")
+        
+        # 选项：点击即自动跳转
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("0 (从不)", use_container_width=True): next_question(0)
+            if st.button("1 (偶尔)", use_container_width=True): next_question(1)
+        with col2:
+            if st.button("2 (经常)", use_container_width=True): next_question(2)
+            if st.button("3 (总是)", use_container_width=True): next_question(3)
+        
+        st.divider()
+        # 底部导航
+        nav_col1, nav_col2 = st.columns(2)
+        with nav_col1:
+            if current_q > 0:
+                if st.button("⬅️ 上一题", use_container_width=True):
+                    st.session_state.current_q -= 1
+                    st.rerun()
+    else:
+        # 80-85题背景信息部分
+        st.subheader("最后几步：背景信息")
+        q80 = st.multiselect("是否有过确诊史？", ["ADHD", "抑郁/焦虑", "其他", "暂无"])
+        q83 = st.multiselect("目前最迫切想解决的痛点？", ["关系", "厌学", "专注力差", "情绪较大", "手机"])
+        q84 = st.radio("是否有勇气参与改变？", ["有", "有，但需指导", "纠结", "只想改孩子"], horizontal=True)
+        
+        col_prev, col_submit = st.columns(2)
+        with col_prev:
+            if st.button("⬅️ 上一题", use_container_width=True):
+                st.session_state.current_q -= 1
+                st.rerun()
+        with col_submit:
+            if st.button("✅ 生成报告", use_container_width=True):
+                # 飞书推送
+                msg = f"报告通知：编号{st.session_state.rid}\n年龄:{st.session_state.age}\n痛点:{q83}\n决心:{q84}"
+                requests.post(FEISHU_URL, json={"msg_type":"text", "content":{"text":msg}})
+                st.session_state.step = "report"
+                st.rerun()
+
 elif st.session_state.step == "report":
     st.title("📊 测评报告已生成")
-    st.success(f"您的专属报告编号：{st.session_state.rid}")
-    st.write("请截图保存此页面。添加老师微信，并备注此编号，获取198元深度解析服务。")
-    # 此处可根据 ans 数据添加雷达图代码
+    st.success(f"专属报告编号：{st.session_state.rid}")
+    st.info("请长按截屏保存。添加沈老师微信获取198元深度解析方案。")
+    if st.button("重新测评"):
+        st.session_state.step = "start"
+        st.session_state.current_q = 0
+        st.session_state.ans = {}
+        st.rerun()
