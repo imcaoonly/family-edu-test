@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import pandas as pd
 import plotly.graph_objects as go
+import numpy as np
 
 # --- 1. UI 深度定制：深蓝品牌色 & 首页遮罩 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
@@ -11,181 +12,411 @@ st.markdown("""
     <style>
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stToolbar"] {visibility: hidden;}
-    
+
     .stApp { background: #F4F7F9; text-align: left !important; color: #455A64; }
-    
+
     /* 首页专用遮盖容器 (Mask) */
     .home-mask {
         padding: 40px 25px;
         background: rgba(255, 255, 255, 0.9);
-        border-radius: 24px;
-        box-shadow: 0 15px 35px rgba(26, 35, 126, 0.08);
-        border: 1px solid rgba(255,255,255,0.6);
-        backdrop-filter: blur(12px);
-        margin-top: 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        max-width: 800px;
+        margin: 0 auto;
     }
-    
-    /* 三行标题规范：左对齐 */
-    .title-l1 { font-size: 16px; color: #90A4AE; font-weight: 500; letter-spacing: 1px; margin-bottom: 8px; }
-    .title-l2 { font-size: 38px; font-weight: 800; color: #1A237E; line-height: 1.1; margin-bottom: 5px; }
-    .title-l3 { font-size: 28px; font-weight: 700; color: #FF7043; margin-bottom: 25px; }
-    
-    /* 老友感引导语 */
-    .intro-text {
-        font-size: 18px; color: #546E7A; line-height: 1.8; margin-bottom: 35px;
-        border-left: 5px solid #FF7043; padding-left: 20px;
-    }
-    
-    /* 题目样式 */
-    .q-text { font-size: 22px; font-weight: 600; color: #263238; line-height: 1.5; margin: 30px 0; }
-    
-    /* 按钮样式：深蓝底色 */
-    div.stButton > button {
-        border-radius: 14px; height: 60px; font-size: 19px !important; font-weight: 700;
-        background-color: #1A237E; color: white; border: none; transition: 0.3s;
-    }
-    div.stButton > button:hover { background-color: #0D47A1; transform: translateY(-2px); }
-    
-    /* 核心报警 Banner */
-    .warning-banner { padding: 22px; border-radius: 16px; margin-bottom: 20px; color: white; font-weight: 600; line-height: 1.6; text-align: left; }
-    .bg-red { background: #C62828; box-shadow: 0 4px 12px rgba(198,40,40,0.3); }
-    .bg-orange { background: #E65100; box-shadow: 0 4px 12px rgba(230,81,0,0.3); }
-    .bg-blue { background: #0D47A1; box-shadow: 0 4px 12px rgba(13,71,161,0.3); }
 
-    /* 转化区编号 */
-    .report-id { font-size: 42px; font-weight: 900; color: #C62828; background: #FFF; padding: 15px 35px; border-radius: 15px; border: 3px dashed #C62828; display: inline-block; margin: 20px 0; }
+    /* 标题样式 */
+    .main-title {
+        color: #1A237E;
+        font-size: 28px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .sub-title {
+        color: #546E7A;
+        font-size: 16px;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    /* 按钮样式 */
+    .stButton > button {
+        background-color: #FF7043;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .stButton > button:hover {
+        background-color: #E64A19;
+        transform: translateY(-2px);
+    }
+
+    /* 雷达图容器 */
+    .radar-container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+    /* 转化区卡片 */
+    .conversion-card {
+        background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+        border-left: 6px solid #FF7043;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 30px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    .conversion-title {
+        color: #D84315;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .conversion-title::before {
+        content: "💡";
+        margin-right: 10px;
+        font-size: 24px;
+    }
+    .conversion-content {
+        font-size: 16px;
+        line-height: 1.6;
+        color: #5D4037;
+    }
+    .conversion-item {
+        margin: 10px 0;
+        padding-left: 20px;
+        position: relative;
+    }
+    .conversion-item::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #FF7043;
+        font-weight: bold;
+    }
+    .conversion-note {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #757575;
+        font-style: italic;
+    }
+
+    /* 预警提示框 */
+    .warning-box {
+        background: #FFEBEE;
+        border: 1px solid #CDD2;
+        color: #C628FF28;
+        padding: 15px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: bold;
+    }
+
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
-# --- 2. 核心题库录入 (1-85 题全量) ---
-# 此处已预留位置，请将之前完整的 QUESTIONS_78 和 BG_QS 列表粘贴于此
-if 'QUESTIONS_78' not in locals():
-    QUESTIONS_78 = ["3岁前，主要抚养人频繁更换或长期中断。", "早期曾连续2周以上见不到核心抚养人。",
-    "长辈深度参与管教，经常推翻您的决定。", "父母教育标准不一，经常‘一宽一严’。",
-    "幼年受委屈时极度粘人，无法离开抚养人。", "近两年经历搬家、转学或财务大变动。",
-    "处理人际关系（如婆媳、夫妻矛盾）心力交瘁。", "家人虽同住但各忙各的，缺乏交心时刻。",
-    "面对孩子问题，感到深深的无力感。", "觉得若不是为了孩子，生活会更精彩自由。",
-    "吼叫后陷入‘后悔自责—过度补偿’循环。", "觉得孩子某些性格与您讨厌的特质一模一样。",
-    "极度在意老师或他人对孩子的负面评价。", "孩子表现与个人价值感挂钩，不出色感失败。",
-    "管教时心跳加快、胸闷、手抖或大脑空白。", "觉得带孩子是孤军奋战，配偶无实质支持。",
-    "睡眠质量差，入睡困难或报复性熬夜。", "内心焦虑、烦躁，很难获得平静。",
-    "除了聊学习吃睡，很难进行开心闲聊。", "在校受委屈或丢脸会选择隐瞒，不告知。",
-    "对您进房间或动用其物品有明显反感。", "经常反锁屋门，抗拒询问或靠近。",
-    "情绪爆发时，本能想靠讲道理或强行压制。", "犯错后第一反应是撒谎、推诿或冷战。",
-    "会翻看手机或日记来了解其真实想法。", "不敢在您面前表达真实不满、愤怒或意见。",
-    "抱怨在家里没自由，或想要早点离家。", "沟通有明显防御性，您一开口他就烦。",
-    "面对挑战，还没做就觉得肯定不行，想退缩。", "游戏输了或遇难题，立刻情绪崩塌或放弃。",
-    "过度在意评价，因别人一句话就郁郁寡欢。", "对学习以外的事物也兴致索然，没爱好。",
-    "经常说‘没意思、没劲’，感到空虚。", "要求极高且不容许失败，稍不如意就否定自己。",
-    "生命力在萎缩，越来越像一个‘空心人’。", "即使做感兴趣的事，也难以保持长久热情。",
-    "近期对以前喜欢的活动表现出明显冷感。",
-    "磨蹭拖延，通过各种准备动作逃避开始作业。", "写作业时神游发呆或手脚小动作不停。",
-    "写字姿势扭曲、力道极重，容易疲劳。", "经常‘转头就忘’，频繁丢失课本或文具。",
-    "指令‘左耳进右耳出’，吼几遍才有反应。", "阅读或抄写频繁跳行、漏字或笔画写反。",
-    "面对复杂任务，完全不知道从哪下手。", "启动效率极低，反应速度明显慢于同龄人。",
-    "坐姿东倒西歪，写作业时头低得非常近。", "处理多步骤指令时，中途断掉就直接放弃。",
-    "无法控制地咬指甲、咬衣领或笔头。",
-    "电子屏幕占据除学习外的绝大部分时间。", "收手机时出现剧烈情绪爆发或肢体对抗。",
-    "为了玩手机经常撒谎，或熬夜偷玩。", "提到上学或考试，有头痛腹痛等生理反应。",
-    "拒绝社交，有明显的社交回避或社恐。", "老师反馈纪律性差、孤僻或难以融入集体。",
-    "在学校没有可以倾诉、互助支持的朋友。", "对校园规则极度不耐受，有明显逆反心。",
-    "公共场合表现出局促感或不合时宜行为。", "电子产品是爆发家庭冲突的最主要诱因。",
-    "近期长时间不洗头不换衣，不在意个人卫生。", "食欲极端波动（暴食或长期厌食）。",
-    "表达过消极厌世或‘我消失了更好’的念头。", "身上有不明划痕，或拔头发、啃指甲见血。",
-    "对未来不抱期待，拒绝讨论任何计划。", "睡眠节律彻底混乱，黑白颠倒。",
-    "对最亲近的人也表现出极度冷漠和隔绝。", "提到学校或老师，浑身发抖或剧烈抵触。",
-    "玩游戏专注，面对学习坐不住、易走神。", "安静环境下，也无法停止身体扭动或晃动。",
-    "无法耐心等别人说完，经常抢话、插话。", "在排队或等待场合，表现出超越年龄的焦躁。",
-    "短时记忆黑洞，刚交代的事转头就忘。", "做作业或听讲时，极易被微小动静吸引。",
-    "依赖甜食面食，极度讨厌蔬菜。", "伴有长期口臭、肚子胀气、便秘或大便不成形。",
-    "长期过敏体质（鼻炎、腺样体、湿疹等）。", "进食大量糖面后，莫名亢奋或情绪崩溃。",
-    "睡觉张口呼吸、盗汗、磨牙或频繁翻身。", "睡眠充足但眼圈常年发青或水肿。"] 
-
-# --- 3. 状态管理 ---
+# --- 2. 初始化会话状态 ---
 if 'step' not in st.session_state:
-    st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
+    st.session_state.step = 'home'
+if 'ans' not in st.session_state:
+    st.session_state.ans = {}
+if 'user_id' not in st.session_state:
+    st.session_state.user_id = str(random.randint(100000, 999999))
 
-# --- 4. 页面流程 ---
+# --- 3. 题库数据注入 ---
+QUESTIONS_78 = [
+    # 1-8 系统维度
+    "孩子在家是否经常主动做家务？", "家庭规则是否清晰且稳定？", "员之间沟通是否顺畅？家庭成",
+    "孩子是否愿意参与家庭决策？", "家里是否有固定的家庭活动时间？", "孩子是否感到被尊重和理解？",
+    "家庭氛围是否轻松愉快？", "孩子是否知道遇到问题可以找谁求助？",
+    # 9-18 家长维度
+    "家长是否经常表扬孩子？", "家长是否容易发脾气？", "家长是否经常陪伴孩子？",
+    "家长是否鼓励孩子独立思考？", "家长是否过度控制孩子？", "家长是否尊重孩子的隐私？",
+    "家长是否经常与孩子谈心？", "家长是否以身作则？", "家长是否了解孩子的兴趣爱好？",
+    "家长是否经常批评孩子？",
+    # 19-28 关系维度
+    "孩子与同学相处是否融洽？", "孩子是否愿意分享自己的想法？", "孩子是否容易交到朋友？",
+    "孩子在集体活动中是否积极参与？", "孩子是否经常被同伴排斥或孤立？", "孩子是否愿意与异性交往？",
+    "孩子是否对人际关系敏感？", "孩子是否容易嫉妒他人？", "孩子是否愿意主动帮助别人？",
+    "孩子是否容易信任他人？",
+    # 29-37 动力维度
+    "孩子是否对学习充满兴趣？", "孩子是否经常主动学习？", "孩子是否容易困难的任务？放弃",
+    "孩子是否对自己的未来有规划？", "孩子是否经常设定目标并完成？", "孩子是否容易被激励？",
+    "孩子是否因为失败而气馁？", "孩子是否相信自己有能力做好事情？", "孩子是否经常感到无聊或无趣？",
+    # 38-48 学业维度
+    "孩子课堂注意力是否集中？", "孩子作业是否按时完成？", "孩子考试成绩是否稳定？",
+    "孩子是否喜欢阅读课外书？", "孩子是否经常向老师提问？", "孩子是否容易分心？",
+    "孩子是否对某一学科特别感兴趣？", "孩子是否经常复习功课？", "孩子是否容易拖延？",
+    "孩子是否参加学习竞赛或活动？", "孩子是否对自己的学业成绩满意？经常",
+    # 49-58 社会化维度
+    "孩子是否遵守社会规则？", "孩子是否尊重他人？", "孩子是否具有责任感？",
+    "孩子是否愿意承担后果？", "孩子是否关心社会问题？", "孩子是否具有同理心？",
+    "孩子是否愿意参与公益活动？", "孩子是否尊重不同文化和观点？", "孩子是否具有团队合作精神？",
+    "孩子是否对社会有归属感？",
+    # 59-66 情绪状态维度（专项风险）
+    "孩子是否经常感到焦虑？", "孩子是否容易生气或暴躁？", "孩子是否经常感到沮丧？",
+    "孩子是否容易流泪或情绪失控？", "孩子是否经常感到无助？", "孩子是否容易紧张？",
+    "孩子是否经常感到疲惫？", "孩子是否经常感到孤独？",
+    # 67-72 注意状态维度（专项风险）
+    "孩子是否经常走神？", "孩子是否容易分心？", "孩子是否难以专注一件事情？",
+    "孩子是否经常被外界干扰？", "孩子是否经常忘记刚刚说过的话？", "孩子是否经常需要重复提醒？",
+    # 73-78 底层营养维度（专项风险）
+    "孩子饮食是否均衡？", "孩子睡眠是否充足？", "孩子运动是否规律？",
+    "孩子是否有足够的户外活动？", "孩子是否经常吃零食或垃圾食品？", "孩子是否经常熬夜？",
+]
 
-# A. 首页：遮罩感 + 三行标题 + 老友文案
+BG_QS = [
+    "孩子性别是？", "孩子年龄是？", "孩子年级是？", "孩子性格偏向内向还是外向？",
+    "孩子目前主要困扰是什么？", "家长最希望改善的方面是什么？", "家庭所在城市是？",
+]
+
+# --- 4. 页面路由逻辑 ---
 if st.session_state.step == 'home':
-    st.markdown("""
-        <div class='home-mask'>
-            <div class='title-l1'>曹校长 脑科学专业版</div>
-            <div class='title-l2'>家庭教育</div>
-            <div class='title-l3'>十维深度探查表</div>
-            <div class='intro-text'>
-                这是一场跨越心与脑的对话。<br>
-                你好，我是曹校长。<br><br>
-                接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
-                这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.write("") 
-    if st.button("🚀 开始深度测评", use_container_width=True):
-        st.session_state.step = 'quiz'; st.rerun()
+    # 首页遮罩容器
+    st.markdown('<div class="home-mask">', unsafe_allow_html=True)
 
-# B. 答题页：Key 值唯一化防止报错
+    st.markdown('<div class="main-title">家庭教育十维深度探查</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-title">8分钟，10个维度，精准定位孩子成长卡点，提供个性化改善方案</div>', unsafe_allow_html=True)
+
+    st.markdown("---")
+
+    st.markdown("🎯 **测评价值**：")
+    st.markdown("- 揭示孩子隐藏的求助信号")
+    st.markdown("- 发现家庭教育的盲区与误区")
+    st.markdown("- 提供可落地的改善建议")
+
+    st.markdown("---")
+
+    if st.button("立即开始测评", key="start_btn"):
+        st.session_state.step = 'quiz'
+        st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
 elif st.session_state.step == 'quiz':
-    cur = st.session_state.cur
-    st.progress((cur + 1) / 85)
-    
-    if cur < 78:
-        st.markdown(f"<div class='q-text'>{cur+1}. {QUESTIONS_78[cur]}</div>", unsafe_allow_html=True)
-        opts = [("0 (从不)", 0), ("1 (偶尔)", 1), ("2 (经常)", 2), ("3 (总是)", 3)]
-        c1, c2 = st.columns(2)
-        for i, (txt, val) in enumerate(opts):
-            with (c1 if i % 2 == 0 else c2):
-                # 使用全局唯一 Key：题目索引 + 选项索引
-                if st.button(txt, key=f"btn_q_{cur}_{i}", use_container_width=True):
-                    st.session_state.ans[cur] = val
-                    st.session_state.cur += 1
-                    st.rerun()
-    # 背景题逻辑 (略，请参照之前版本)
+    # 答题页逻辑
+    st.markdown('<div class="home-mask">', unsafe_allow_html=True)
 
-# C. 结果页：雷达图 + 原版三大报警话术
+    # 进度条
+    total_q = 85
+    current_q = len(st.session_state.ans) + 1
+    progress = current_q / total_q
+    st.progress(progress)
+    st.markdown(f"<p style='text-align:center; color:#546E7A;'>第 {current_q} 题 / 共 {total_q} 题", unsafe_allow_html=True)
+
+    # 显示当前题目
+    if current_q <= 78:
+        q_text = QUESTIONS_78[current_q - 1]
+        st.markdown(f"### 📝 问题 {current_q}")
+        st.markdown(q_text)
+
+        # 选项
+        option_labels = ["完全不符合", "比较不符合", "一般", "比较符合", "完全符合"]
+        selected = st.radio("", option_labels, index=st.session_state.ans.get(current_q, 0), key=f"q_{current_q}")
+
+        # 保存答案
+        if st.button("下一题", key="next_btn"):
+            st.session_state.ans[current_q] = option_labels.index(selected)
+            st.rerun()
+
+    else:
+        # 79-85 背景题
+        bg_idx = current_q - 79
+        q_text = BG_QS[bg_idx]
+        st.markdown(f"### 📝 问题 {current_q}")
+        st.markdown(q_text)
+
+        # 背景题选项（单选或输入）
+        if bg_idx in [0, 1, 2]:  # 性别、年龄、年级
+            options = ["男", "女"] if bg_idx == 0 else ["6岁", "7岁", "8岁", "9岁", "10岁", "11岁", "12岁", "13岁", "14岁", "15岁"] if bg_idx == 1 else ["一年级", "二年级", "三年级", "四年级", "五年级", "六年级", "初一", "初二", "初三", "高一", "高二", "高三"]
+            selected = st.radio("", options, index=st.session_state.ans.get(current_q, 0), key=f"q_{current_q}")
+            if st.button("下一题", key="next_btn_bg"):
+                st.session_state.ans[current_q] = options.index(selected)
+                st.rerun()
+        elif bg_idx == 3:  # 性格
+            options = ["内向", "外向", "混合型"]
+            selected = st.radio("", options, index=st.session_state.ans.get(current_q, 0), key=f"q_{current_q}")
+            if st.button("下一题", key="next_btn_bg"):
+                st.session_state.ans[current_q] = options.index(selected)
+                st.rerun()
+        elif bg_idx == 4:  # 主要困扰
+            selected = st.text_input("", value=st.session_state.ans.get(current_q, ""), key=f"q_{current_q}")
+            if st.button("下一题", key="next_btn_bg"):
+                st.session_state.ans[current_q] = selected
+                st.rerun()
+        elif bg_idx == 5:  # 最希望改善的方面
+            selected = st.text_input("", value=st.session_state.ans.get(current_q, ""), key=f"q_{current_q}")
+            if st.button("下一题", key="next_btn_bg"):
+                st.session_state.ans[current_q] = selected
+                st.rerun()
+        elif bg_idx == 6:  # 城市
+            selected = st.text_input("", value=st.session_state.ans.get(current_q, ""), key=f"q_{current_q}")
+            if st.button("提交并查看报告", key="submit_btn"):
+                st.session_state.ans[current_q] = selected
+                st.session_state.step = 'report'
+                st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
 elif st.session_state.step == 'report':
+    # 结果页逻辑
+    st.markdown('<div class="home-mask">', unsafe_allow_html=True)
+
     # 顶部截屏提醒
-    st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:15px; border-radius:12px; text-align:center; margin-bottom:25px; border:1px solid #FFCDD2;'>📸 重要提示：编号是匹配您测评结果的唯一凭证，请截屏保存本页。</div>", unsafe_allow_html=True)
-    
-    # [Plotly 雷达图代码：颜色改为深蓝 #1A237E]
-    
-    # --- 三大维度原版话术还原 ---
-    
-    # 1. 情绪红灯 (59-66题)
-    if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
-        st.markdown("""<div class='warning-banner bg-red'>
-            ⚠️ 【最高级别红色警报】<br>
-            监测到孩子目前存在明显的生存危机或极度情绪创伤（如厌世念头、自伤、极度冷漠）。<br>
-            此时任何关于学习的督促都是在“火上浇油”。请务必立刻停止施压，寻求专业心理干预，确保生命安全是当前家庭的第一要务！
-        </div>""", unsafe_allow_html=True)
+    st.markdown('<div class="warning-box">📸 重要提示：编号是匹配您测评结果的唯一凭证，请截屏保存本页。</div>', unsafe_allow_html=True)
 
-    # 2. ADHD 脑特性 (67-72题)
-    adhd_score = sum(st.session_state.ans.get(i, 0) for i in range(66, 72)) / 6
-    if adhd_score >= 1.5:
-        st.markdown("""<div class='warning-banner bg-orange'>
-            ⚠️ 【脑特性深度预警】<br>
-            孩子表现出典型的高多动、冲动或注意力黑洞特质。这并非“态度不端正”，而是前额叶皮质执行功能发育的暂时性滞后。<br>
-            单纯的说教和惩罚只会破坏自尊，建议采用脑科学感统律动结合的行为管理方案进行“弯道超车”。
-        </div>""", unsafe_allow_html=True)
+    # --- 1. 计分与维度均分计算 ---
+    ans = st.session_state.ans
+    dim_ranges = {
+        '系统': (0, 8),    # 1-8题
+        '家长': (8, 18),   # 9-18题
+        '关系': (18, 28),  # 19-28题
+        '动力': (28, 37),  # 29-37题
+        '学业': (37, 48),  # 38-48题
+        '社会化': (48, 58), # 49-58题
+    }
 
-    # 3. 底层生理基础 (73-78题)
-    bio_score = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
-    if bio_score >= 1.5:
-        st.markdown("""<div class='warning-banner bg-blue'>
-            ⚠️ 【底层生理地基预警】<br>
-            监测到孩子伴有明显的肠脑轴失调或慢性生理压力迹象（如长期过敏、睡眠呼吸障碍、眼圈发青、情绪易炸）。<br>
-            当身体处于慢性炎症或缺氧状态时，大脑会自动切换到“生存模式”而非“学习模式”。建议先进行生理节律的系统调理。
-        </div>""", unsafe_allow_html=True)
+    # 计算每个维度的均分（1-5分制）
+    dim_scores = {}
+    for dim, (start, end) in dim_ranges.items():
+        scores = []
+        for i in range(start + 1, end + 1):
+            score = ans.get(i, 0)
+            if isinstance(score, int) and 0 <= score <= 4:
+                scores.append(score + 1)  # 转换为1-5分
+        if scores:
+            dim_scores[dim] = sum(scores) / len(scores)
+        else:
+            dim_scores[dim] = 0
 
-    # --- 转化区 ---
-    st.markdown(f"""
-        <div style='background:#E8EAF6; padding:35px; border-radius:24px; text-align:center; border:1px solid #C5CAE9; margin-top:40px;'>
-            <p style='color:#1A237E; font-size:18px; font-weight:600;'>这份报告揭示了孩子的求救，也看见了您的委屈。</p>
-            <div class='report-id'>{st.session_state.rid}</div>
-            <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:20px; border-radius:15px; font-size:22px; font-weight:bold; box-shadow: 0 6px 15px rgba(26,35,126,0.2);">👉 点击添加老师，预约 1V1 解析</a>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.caption("提示：编号是匹配您测评结果的唯一凭证，请截屏保存本页。")
+    # 专项风险维度（不参与雷达图，但用于预警）
+    risk_dims = {
+        '情绪状态': (58, 66),  # 59-66题
+        '注意状态': (66, 72),  # 67-72题
+        '底层营养': (72, 78),  # 73-78题
+    }
+    risk_scores = {}
+    for dim, (start, end) in risk_dims.items():
+        scores = []
+        for i in range(start + 1, end + 1):
+            score = ans.get(i, 0)
+            if isinstance(score, int) and 0 <= score <= 4:
+                scores.append(score + 1)
+        if scores:
+            risk_scores[dim] = sum(scores) / len(scores)
+        else:
+            risk_scores[dim] = 0
+
+    # --- 2. 生成六维雷达图 ---
+    st.markdown('<div class="radar-container">', unsafe_allow_html=True)
+    st.markdown("## 📊 六维雷达图分析")
+
+    categories = list(dim_scores.keys())
+    values = list(dim_scores.values())
+
+    # 创建雷达图
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+        r=values,
+        theta=categories,
+        fill='toself',
+        name='当前得分',
+        line_color='#1A237E',
+        fillcolor='rgba(26, 35, 126, 0.2)',
+        hovertemplate='%{theta}: %{r:.2f}<extra></extra>'
+    ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 5],
+                tickvals=[0, 1, 2, 3, 4, 5],
+                ticktext=["0", "1", "2", "3", "4", "5"],
+                gridcolor='lightgray',
+            ),
+            angularaxis=dict(
+                direction='clockwise',
+                period=6,
+            ),
+        ),
+        showlegend=False,
+        margin=dict(l=40, r=40, t=40, b=40),
+        height=500,
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 3. 六维解读（根据得分高低） ---
+    st.markdown('<div class="radar-container">', unsafe_allow_html=True)
+    st.markdown("## 🔍 六维深度解读")
+
+    def get_interpretation(dim, score):
+        if score < 2.5:
+            return f"**{dim}维度得分偏低 ({score:.2f})**：孩子在这个方面存在明显短板，可能正在经历压力或缺乏支持，需要优先关注和干预。"
+        elif 2.5 <= score < 3.5:
+            return f"**{dim}维度得分中等 ({score:.2f})**：处于正常范围，但仍有提升空间，建议通过日常互动和引导逐步优化。"
+        else:
+            return f"**{dim}维度得分较高 ({score:.2f})**：表现良好，说明孩子在这个方面具备较强的能力或支持系统，可作为优势资源强化。"
+
+    for dim in dim_scores:
+        st.markdown(get_interpretation(dim, dim_scores[dim]))
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 4. 专项风险预警（情绪、注意、底层营养） ---
+    st.markdown('<div class="radar-container">', unsafe_allow_html=True)
+    st.markdown("## ⚠️ 专项风险预警")
+
+    def get_risk_interpretation(dim, score):
+        if score > 3.5:
+            return f"**{dim}维度得分偏高 ({score:.2f})**：存在明显风险信号，建议关注孩子近期状态，必要时寻求专业支持。"
+        elif 2.5 <= score <= 3.5:
+            return f"**{dim}维度得分中等 ({score:.2f})**：有轻微波动或潜在风险，建议保持观察，加强沟通。"
+        else:
+            return f"**{dim}维度得分正常 ({score:.2f})**：目前无明显风险，继续保持当前状态即可。"
+
+    for dim in risk_scores:
+        st.markdown(get_risk_interpretation(dim, risk_scores[dim]))
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 5. 微信转化区（完全按照您提供的文案） ---
+    st.markdown('<div class="conversion-card">', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-title">这份报告揭示了孩子的求救，也看见了您的委屈。其实，您不需要独自扛着。</div>', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-title">添加微信您可以获得：</div>', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-content">', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-item">1. 十个维度个性化改善方案</div>', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-item">2. 30分钟 1V1 深度解析</div>', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-item">3. 特惠 198 元（原价 598 元）</div>', unsafe_allow_html=True)
+    st.markdown('<div class="conversion-note">添加时请备注生成的数字</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # --- 6. 添加老师按钮（绑定企业微信链接） ---
+    st.markdown("---")
+    st.markdown('<div style="text-align:center; margin-top:20px;">', unsafe_allow_html=True)
+    st.markdown(f'<a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="background-color: #1A237E; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">添加老师</a>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- 7. 页脚信息 ---
+st.markdown("""
+    <div style='position: fixed; bottom: 10px; right: 10px; font-size: 12px; color: #9E9E9E;'>
+        家庭教育十维深度探查 · 2025
+    </div>
+""", unsafe_allow_html=True)
