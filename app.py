@@ -123,7 +123,6 @@ if st.session_state.step == 'home':
              接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
              这不是一份考卷，而是给孩子和你自己一次被“看见”的机会。
 
-            </div>
     """, unsafe_allow_html=True)
     if st.button("🚀 开始深度测评"):
         st.session_state.step = 'quiz'
