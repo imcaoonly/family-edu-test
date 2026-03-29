@@ -2,68 +2,72 @@ import streamlit as st
 import random
 import plotly.graph_objects as go
 
-# --- 1. UI 深度适配（彻底解决顶部空白、按钮宽度不一） ---
+# --- 1. 像素级 UI 适配 (强制满幅 + 彻底去白) ---
 st.set_page_config(page_title="曹校长·脑科学专业版", layout="centered")
 
 st.markdown("""
     <style>
-    /* 1. 彻底干掉顶部白条：强制置顶 */
+    /* 1. 彻底干掉顶部白条与间隔 */
     .block-container { padding-top: 0rem !important; padding-bottom: 0rem !important; }
-    div[data-testid="stVerticalBlock"] > div:first-child { margin-top: -50px !important; }
-    
+    div[data-testid="stVerticalBlock"] > div:first-child { margin-top: -60px !important; }
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stToolbar"] {visibility: hidden;}
 
-    /* 全局背景与字体 */
+    /* 2. 强制按钮与卡片同宽 (100%) */
+    div.stButton > button {
+        width: 100% !important;
+        border-radius: 12px !important;
+        height: 55px !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        background-color: #1A237E !important;
+        color: white !important;
+        border: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* 3. 上一题按钮样式 */
+    button[kind="secondary"] { 
+        color: #FF7043 !important; 
+        border: 2px solid #FF7043 !important; 
+        background: transparent !important;
+        height: 45px !important;
+    }
+
     .stApp { background: #F8F9FA; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
 
-    /* 卡片容器：手机端适配 */
+    /* 4. 卡片容器 */
     .home-box {
         background: white; border-radius: 20px; padding: 25px 20px;
         margin: 0 auto; box-shadow: 0 8px 25px rgba(0,0,0,0.05);
         max-width: 500px; width: 100%;
     }
 
-    /* 曹校长品牌标题 */
     .t1 { font-size: 14px; color: #90A4AE; font-weight: 500; }
     .t2 { font-size: 32px; font-weight: 800; color: #1A237E; line-height: 1.1; }
     .t3 { font-size: 24px; font-weight: 700; color: #FF7043; margin-top: 5px; }
-
-    /* 按钮满幅强化逻辑 */
-    div.stButton > button {
-        border-radius: 14px; height: 60px; font-size: 18px !important; font-weight: 700;
-        background-color: #1A237E !important; color: white !important; border: none; 
-        width: 100% !important; margin-bottom: 10px; display: block;
-    }
-    
-    /* 橙色返回按钮 */
-    button[kind="secondary"] { 
-        color: #FF7043 !important; border: 2px solid #FF7043 !important; background: transparent !important;
-        font-weight: 600 !important; height: 48px !important; width: 100% !important;
-    }
-
-    /* 题目样式 */
     .q-title { font-size: 19px; font-weight: 600; color: #263238; line-height: 1.5; margin: 25px 0; }
     
-    /* 严重程度卡片（按分数变色） */
+    /* 严重程度卡片颜色 */
     .res-card { padding: 18px; border-radius: 15px; margin-bottom: 12px; border-left: 6px solid; }
-    .lv-green { background: #E8F5E9; border-color: #4CAF50; }   /* 安全 */
-    .lv-orange { background: #FFF3E0; border-color: #FF9800; }  /* 预警 */
-    .lv-red { background: #FFEBEE; border-color: #F44336; }     /* 严重 */
+    .lv-green { background: #E8F5E9; border-color: #4CAF50; }
+    .lv-orange { background: #FFF3E0; border-color: #FF9800; }
+    .lv-red { background: #FFEBEE; border-color: #F44336; }
     
     .em-red { color: #E53935 !important; font-weight: 800; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 2. 状态管理 ---
+# --- 2. 状态初始化 ---
 if 'step' not in st.session_state:
     st.session_state.update({'step': 'home', 'cur': 0, 'ans': {}, 'rid': str(random.randint(100000, 999999))})
 
-# --- 3. 1-85 全量题库数据 ---
+# --- 3. 1-85 全量题库 (严格按编号) ---
 QS_CONTENT = [
     "1. 3岁前，主要抚养人频繁更换或长期中断。", "2. 早期曾连续2周以上见不到核心抚养人。",
     "3. 长辈深度参与管教，经常推翻您的决定。", "4. 父母教育标准不一，经常“一宽一严”。",
-    "5. 幼年受委屈时极度粘人，无法离开抚养人。", "6. 近两年经历搬家、转学或财务大变动。",
+    "5. 幼年受委чив时极度粘人，无法离开抚养人。", "6. 近两年经历搬家、转学或财务大变动。",
     "7. 处理人际关系(如婆媳、夫妻矛盾)心力交瘁。", "8. 家人虽同住但各忙各的，缺乏交心时刻。",
     "9. 面对孩子问题，感到深深的无力感。", "10. 觉得若不是为了孩子，生活会更精彩自由。",
     "11. 吼叫后陷入“后悔自责-过度补偿”循环。", "12. 觉得孩子某些性格与您讨厌的特质一模一样。",
@@ -76,12 +80,12 @@ QS_CONTENT = [
     "25. 会翻看手机或日记来了解其真实想法。", "26. 不敢在您面前表达真实不满、愤怒或意见。",
     "27. 抱怨在家里没自由，或想要早点离家。", "28. 沟通有明显防御性，您一开口他就烦。",
     "29. 面对挑战，还没做就觉得肯定不行，想退缩。", "30. 游戏输了或遇难题，立刻情绪崩塌或放弃。",
-    "31. 过度在意评价，因别人一句话就郁郁欢欢。", "32. 对学习以外的事物也兴致索然，没爱好。",
+    "31. 过度在意评价，因别人一句话就郁郁寡欢。", "32. 对学习以外的事物也兴致索然，没爱好。",
     "33. 经常说没意思、没劲，感到空虚。", "34. 要求极高且不容许失败，稍不如意就否定自己。",
     "35. 生命力在萎缩，越来越像一个“空心人”。", "36. 即使做感兴趣的事，也难以保持长久热情。",
     "37. 近期对以前喜欢的活动表现出明显冷感。", "38. 磨蹭拖延，通过各种准备动作逃避开始作业。",
     "39. 写作业时神游发呆或手脚小动作不停。", "40. 写字姿势扭曲、力道极重，容易疲劳。",
-    "41. 经常“转头就忘”，频繁丢失课本或文具。", "42. 指令“左耳进右耳出”，吼几遍才有反应。",
+    "41. 经常“转头就忘”，频繁丢失课本或文具。", "42. 指令“左耳进耳出”，吼几遍才有反应。",
     "43. 阅读或抄写频繁跳行、漏字。", "44. 面对复杂任务，完全不知道从哪下手。",
     "45. 启动效率极低，反应速度明显慢于同龄人。", "46. 坐姿东倒西歪，写作业时头低得非常近。",
     "47. 处理多步骤指令时，中途断掉就直接放弃。", "48. 无法控制地咬指甲、咬衣领或笔头。",
@@ -153,26 +157,32 @@ if st.session_state.step == 'home':
             <div class='t1'>曹校长 脑科学专业版</div>
             <div class='t2'>家庭教育</div>
             <div class='t3'>十维深度探查表</div>
-            <div class='intro-box'>
+            <div style='color:#546E7A; line-height:1.8; margin:20px 0; font-size:16px;'>
                 这是一场跨越心与脑的对话。<br>
                 你好，我是曹校长。<br><br>
                 接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。这不是一份考卷，而是给孩子和自己一次被“看见”的机会。
             </div>
     """, unsafe_allow_html=True)
-    if st.button("🚀 开始深度测评", key="start_btn"):
+    if st.button("🚀 开始深度测评"):
         st.session_state.step = 'quiz'
         st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 elif st.session_state.step == 'quiz':
     cur = st.session_state.cur
-    st.markdown(f"<div style='width:100%;'><div style='width:{(cur+1)/85*100}%; background:#FF7043; height:4px;'></div></div>", unsafe_allow_html=True)
+    # 自定义进度条渲染
+    progress = int((cur / 85) * 100)
+    st.markdown(f"""
+        <div style="width: 100%; background-color: #ECEFF1; height: 6px; margin-bottom: 20px;">
+            <div style="width: {progress}%; background-color: #FF7043; height: 6px; transition: 0.3s;"></div>
+        </div>
+    """, unsafe_allow_html=True)
     
     st.markdown("<div class='home-box'>", unsafe_allow_html=True)
     if cur < 78:
         st.markdown(f"<div class='q-title'>{QS_CONTENT[cur]}</div>", unsafe_allow_html=True)
         for label, val in [("0 (从不)", 0), ("1 (偶尔)", 1), ("2 (经常)", 2), ("3 (总是)", 3)]:
-            if st.button(label, key=f"q_{cur}_{val}"):
+            if st.button(label, key=f"btn_{cur}_{val}"):
                 st.session_state.ans[cur] = val
                 st.session_state.cur += 1
                 st.rerun()
@@ -181,14 +191,14 @@ elif st.session_state.step == 'quiz':
         st.markdown(f"<div class='q-title'>{q['q']}</div>", unsafe_allow_html=True)
         if q['type'] == 'multi':
             sel = st.multiselect("可多选", q['opts'], key=f"m_{cur}")
-            if st.button("确认进入下一题", key=f"next_{cur}"):
+            if st.button("下一题", key=f"nb_{cur}"):
                 st.session_state.ans[cur] = sel
                 if cur == 84: st.session_state.step = 'report'
                 else: st.session_state.cur += 1
                 st.rerun()
         else:
             sel = st.radio("请选择", q['opts'], key=f"s_{cur}", index=None)
-            if sel and st.button("确认进入下一题", key=f"next_{cur}"):
+            if sel and st.button("下一题", key=f"nb_{cur}"):
                 st.session_state.ans[cur] = sel
                 if cur == 84: st.session_state.step = 'report'
                 else: st.session_state.cur += 1
@@ -196,67 +206,57 @@ elif st.session_state.step == 'quiz':
 
     if cur > 0:
         st.write("---")
-        if st.button("⬅ 返回上一题", key=f"back_{cur}", kind="secondary"):
+        if st.button("⬅ 返回上一题", key="global_back_btn", kind="secondary"):
             st.session_state.cur -= 1
             st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 elif st.session_state.step == 'report':
     ans = st.session_state.ans
+    # 报告页强制去白
+    st.markdown("<div style='margin-top:-30px;'></div>", unsafe_allow_html=True)
     st.markdown("<div class='home-box'>", unsafe_allow_html=True)
-    st.markdown("<div class='t2'>深度解析报告</div>", unsafe_allow_html=True)
-    st.markdown(f"<div style='color:#90A4AE; margin-bottom:20px;'>报告编号：{st.session_state.rid}</div>", unsafe_allow_html=True)
+    st.markdown("<div class='t2'>报告解析</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='color:#90A4AE; margin-bottom:15px;'>报告编号：{st.session_state.rid}</div>", unsafe_allow_html=True)
 
-    # 1. 雷达图生成
+    # 雷达图渲染
     categories = list(DIM_DATA.keys())
     values = [sum(ans.get(i, 0) for i in d['range']) / len(d['range']) for d in DIM_DATA.values()]
-    
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=values + [values[0]], theta=categories + [categories[0]], fill='toself', fillcolor='rgba(255, 112, 67, 0.3)', line=dict(color='#FF7043', width=2)))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 3])), showlegend=False, margin=dict(l=40, r=40, t=20, b=20), height=350)
+    fig.add_trace(go.Scatterpolar(r=values + [values[0]], theta=categories + [categories[0]], fill='toself', fillcolor='rgba(26, 35, 126, 0.2)', line=dict(color='#1A237E', width=2)))
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 3])), showlegend=False, height=300, margin=dict(l=30, r=30, t=30, b=30))
     st.plotly_chart(fig, use_container_width=True)
 
-    # 2. 核心维度卡片 (根据严重程度分色)
+    # 维度分色解析
     for name, d in DIM_DATA.items():
         score = sum(ans.get(i, 0) for i in d['range']) / len(d['range'])
-        # 变色逻辑：低分绿，中分橙，高分红
         if score >= 1.8: cls, lv = "lv-red", 2
         elif score >= 0.8: cls, lv = "lv-orange", 1
         else: cls, lv = "lv-green", 0
-        
-        st.markdown(f"""
-            <div class='res-card {cls}'>
-                <div style='color:#1A237E; font-weight:800; font-size:17px;'>{name} (风险值: {score:.1f})</div>
-                <div style='color:#455A64; margin-top:8px; line-height:1.6; font-size:15px;'>{d['texts'][lv]}</div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='res-card {cls}'><div style='font-weight:800; color:#1A237E;'>{name} (风险指数: {score:.1f})</div><div style='font-size:14px; color:#455A64; margin-top:5px;'>{d['texts'][lv]}</div></div>", unsafe_allow_html=True)
 
-    # 3. 专项报警逻辑 (59-78题)
-    if any(ans.get(i, 0) >= 2 for i in range(58, 66)):
-        st.error("🚨 【红区警告】生命力受损严重。孩子目前处于生存模式，存在心理防御崩塌风险。")
-    if any(ans.get(i, 0) >= 2 for i in range(66, 72)):
-        st.warning("⚠️ 【橙区预警】检测到脑执行功能代偿过度。磨蹭、走神是生理性求救信号。")
-    if any(ans.get(i, 0) >= 2 for i in range(72, 78)):
-        st.info("ℹ️ 【蓝区提示】生理硬件基础（睡眠/代谢）不稳定。身体炎症正消耗学习意志。")
+    # 专项预警
+    if any(ans.get(i, 0) >= 2 for i in range(58, 66)): st.error("🚨 【红区警告】孩子目前处于极高压生存模式，存在心理防线崩塌风险。")
 
-    # 4. 最终转化卡片 (三处标红强调)
+    # 最终转化卡片
     st.markdown(f"""
-        <div class='home-box' style='border:2px solid #1A237E; margin-top:30px;'>
-            <div style='font-weight:bold; color:#1A237E; font-size:18px;'>添加微信您可以获得：</div>
-            <div style='margin:15px 0; line-height:2.2; font-size:16px;'>
+        <div class='home-box' style='border:2px solid #1A237E; margin-top:25px; padding:20px;'>
+            <div style='font-size:16px; color:#455A64; line-height:1.8; margin-bottom:15px;'>
+                这份报告提示了孩子的求救，<br>
+                也看见了您的委屈。<br>
+                其实，您不需要独自扛着。
+            </div>
+            <div style='font-weight:bold; color:#1A237E; font-size:17px; margin-bottom:10px;'>添加微信您可以获得：</div>
+            <div style='line-height:2; font-size:15px; margin-bottom:15px;'>
                 1. 十个维度<span class='em-red'>个性化</span>改善方案<br>
                 2. <span class='em-red'>30 分钟 1V1</span> 深度解析<br>
                 3. 特惠 <span class='em-red'>198 元</span>（原价 598 元）
             </div>
-            <div style='text-align:center;'>
-                <div style='font-size:13px; color:#90A4AE;'>请备注生成的专属编号：</div>
-                <div style='font-size:32px; font-weight:900; color:#E53935; letter-spacing:2px; margin:5px 0;'>{st.session_state.rid}</div>
+            <div style='text-align:center; background:#F5F5F5; border-radius:10px; padding:10px; margin-bottom:15px;'>
+                <div style='font-size:12px; color:#90A4AE;'>添加时请备注生成的数字：</div>
+                <div style='font-size:30px; font-weight:900; color:#E53935;'>{st.session_state.rid}</div>
             </div>
-            <a href="https://work.weixin.qq.com/..." target="_blank" style="text-decoration:none;">
-                <div style='width:100%; background:#1A237E; color:white; padding:18px; border-radius:15px; font-size:19px; font-weight:bold; text-align:center;'>
-                    👉 点击预约曹校长 1V1 解析
-                </div>
-            </a>
+            <button style='width:100% !important; background:#1A237E; color:white; height:60px; border-radius:12px; font-size:18px; font-weight:bold; border:none;'>👉 复制编号预约 1V1 解析</button>
         </div>
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
