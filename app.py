@@ -253,6 +253,7 @@ elif st.session_state.step == 'report':
                 <span style='color:#FF7043;'>其实，您不需要独自扛着。</span>
             </p>
             <div style='text-align:left; margin-top:15px;'>
+            <p style='margin:10px 0 5px 0; font-weight:bold; color:#455A64;'>添加微信您可以获得：</p>
                 <p style='margin:5px 0;'>✅ 10个维度个性化改善方案</p>
                 <p style='margin:5px 0;'>✅ 30分钟 1V1 深度解析</p>
                 <p style='margin:5px 0;'>✅ <b>特惠 198 元</b>（原价 598 元）</p>
