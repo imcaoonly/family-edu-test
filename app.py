@@ -215,24 +215,11 @@ elif st.session_state.step == 'report':
         st.markdown("<div class='warn-banner bg-blue'>⚠️ 【身体状态预警】当前表现受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议从营养与节律层面修复。</div>", unsafe_allow_html=True)
 
     # 2. 雷达图绘制
-    scores = []
-    original_labels = list(DIM_DATA.keys()) 
-    # 手动定义雷达图显示的短标签，顺序必须与 DIM_DATA 一致
-    short_labels = ["系统", "家长", "关系", "动力", "学业", "社会化"]
-    
+        scores, labels = [], list(DIM_DATA.keys())
     for dim in labels:
         r = DIM_DATA[dim]['range']
         avg = sum(st.session_state.ans.get(i, 0) for i in r) / len(r)
         scores.append(round(avg * 33.3, 1)) # 转化为100分制展示
-
-    # 将 theta 参数改为 short_labels
-    fig = go.Figure(data=go.Scatterpolar(
-        r=scores, 
-        theta=short_labels, 
-        fill='toself', 
-        line_color='#1A237E', 
-        fillcolor='rgba(26, 35, 126, 0.2)'
-    ))
     
     fig = go.Figure(data=go.Scatterpolar(r=scores, theta=labels, fill='toself', line_color='#1A237E', fillcolor='rgba(26, 35, 126, 0.2)'))
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=350, margin=dict(t=20, b=20, l=40, r=40))
