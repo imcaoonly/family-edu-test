@@ -193,7 +193,7 @@ elif st.session_state.step == 'quiz':
 # C. 结果报告页逻辑
 elif st.session_state.step == 'report':
     # --- 标题部分 ---
-    st.markdown("<h2 style='text-align:center; color:#1A237E; margin-bottom:15px;'>报告解析</h2>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; color:#000000; font-weight:900; margin-bottom:20px;'>报告解析</h1>", unsafe_allow_html=True)
     st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
