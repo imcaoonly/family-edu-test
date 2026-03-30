@@ -81,50 +81,25 @@ DIM_DATA = {
 }
 # --- 5. 页面流程 ---
 
-# A. 首页 (采用文件2的"遮罩感"+"老友文案")
+# A. 首页 (采用文件2的“遮罩感”+“老友文案”)
 if st.session_state.step == 'home':
-    # 创建垂直居中的容器
-    st.markdown("""
-        <style>
-        .home-container {
-            min-height: calc(100vh - 100px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .home-content {
-            width: 100%;
-            max-width: 800px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<div class='home-container'>", unsafe_allow_html=True)
-    st.markdown("<div class='home-content'>", unsafe_allow_html=True)
-    
-    st.markdown("""
-        <div class='home-mask'>
-            <div class='title-l1'>曹校长 脑科学专业版</div>
-            <div class='title-l2'>家庭教育</div>
-            <div class='title-l3'>十维深度探查表</div>
-            <div class='intro-text'>
-                这是一场跨越心与脑的对话。<br>
-                你好，我是你的老朋友。<br><br>
-                接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
-                这不是一份考卷，而是给孩子和你自己一次被"看见"的机会。
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.write("")
-    if st.button("🚀 开始深度测评", use_container_width=True, type="primary"):
-        st.session_state.step = 'quiz'
-        st.rerun()
-    
-    st.markdown("</div>", unsafe_allow_html=True)  # 关闭 home-content
-    st.markdown("</div>", unsafe_allow_html=True)  # 关闭 home-container
-
+    st.markdown("""
+        <div class='home-mask'>
+            <div class='title-l1'>HelloADHDer 脑科学专业版</div>
+            <div class='title-l2'>家庭教育</div>
+            <div class='title-l3'>十维深度探查表</div>
+            <div class='intro-text'>
+                这是一场跨越心与脑的对话。<br>
+                你好，我是你的老朋友。<br><br>
+                接下来的测评，请放下焦虑，客观回顾近一个月的家庭状态。<br>
+                这不仅是一份考卷，更是给孩子和你自己一次被“看见”的机会。
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    st.write("") 
+    if st.button("🚀 开始深度测评", use_container_width=True):
+        st.session_state.step = 'quiz'
+        st.rerun()
 
 # B. 答题页 (保持文件1的逻辑)
 elif st.session_state.step == 'quiz':
