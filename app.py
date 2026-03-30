@@ -248,31 +248,41 @@ elif st.session_state.step == 'quiz':
                     st.session_state.cur += 1
                     st.rerun()
 
-    # --- 逻辑分水岭：79-85题 为背景/意愿题（含多选）[cite: 84, 85, 86, 87, 88] ---
+   # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
     else:
-        if cur == 78: # 79题：确诊情况（多选）[cite: 85]
-            user_input = st.multiselect("可多选", ["ADHD", "抑郁/焦虑", "其他", "暂无"])
-        elif cur == 79: # 80题：尝试方式（多选）[cite: 86]
-            user_input = st.multiselect("可多选", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"])
-        elif cur == 80: # 81题：未生效原因（多选）[cite: 87]
-            user_input = st.multiselect("可多选", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"])
-        elif cur == 81: # 82题：前三个痛点（多选）[cite: 88]
-            user_input = st.multiselect("请勾选（建议不超过3个）", ["关系", "厌学", "专注力差", "情绪较大", "手机"])
-        elif cur == 82: # 83题：参与改变勇气（单选）[cite: 89]
-            user_input = st.radio("请选择", ["有", "有，但需指导", "比较纠结", "只想改孩子"])
-        elif cur == 83: # 84题：预约解读（单选）[cite: 90]
-            user_input = st.radio("请选择", ["是", "否"])
-        elif cur == 84: # 85题：了解意愿（单选）[cite: 91]
-            user_input = st.radio("请选择", ["是", "否"])
+        # 定义题目及其选项（严格匹配题库内容）
+        if cur == 78: # 79题
+            user_input = st.multiselect("可多选", ["ADHD", "抑郁/焦虑", "其他", "暂无"], key=f"ms_{cur}")
+        elif cur == 79: # 80题
+            user_input = st.multiselect("可多选", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], key=f"ms_{cur}")
+        elif cur == 80: # 81题
+            user_input = st.multiselect("可多选", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], key=f"ms_{cur}")
+        elif cur == 81: # 82题
+            user_input = st.multiselect("请勾选（建议不超过3个）", ["关系", "厌学", "专注力差", "情绪较大", "手机"], key=f"ms_{cur}")
+        elif cur == 82: # 83题
+            user_input = st.radio("请选择", ["有", "有，但需指导", "比较纠结", "只想改孩子"], key=f"ms_{cur}")
+        elif cur == 83: # 84题
+            user_input = st.radio("请选择", ["是", "否"], key=f"ms_{cur}")
+        elif cur == 84: # 85题
+            user_input = st.radio("请选择", ["是", "否"], key=f"ms_{cur}")
 
+        # --- 1. 动态调整按钮文字 ---
+        btn_label = "生成报告 📊" if cur == 84 else "确认，下一题 ➡️"
+        
         st.write("")
-        if st.button("确认，下一题 ➡️", use_container_width=True):
-            st.session_state.ans[cur] = user_input
-            if cur == 84:
-                st.session_state.step = 'report'
+        
+        # --- 2. 增加必选拦截逻辑 ---
+        if st.button(btn_label, use_container_width=True):
+            # 校验：如果 user_input 为空（针对多选）或未选择
+            if not user_input:
+                st.warning("⚠️ 请至少选择一个选项后再继续。")
             else:
-                st.session_state.cur += 1
-            st.rerun()
+                st.session_state.ans[cur] = user_input
+                if cur == 84:
+                    st.session_state.step = 'report'
+                else:
+                    st.session_state.cur += 1
+                st.rerun()
             
     # 底部导航
     if cur > 0:
