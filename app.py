@@ -122,7 +122,7 @@ elif st.session_state.step == 'quiz':
     
     if cur > 0:
         st.write("")
-        if st.button("⬅ 返回上一题", key="back"):
+        if st.button("⬅ 上一题", key="back"):
             st.session_state.cur -= 1
             st.rerun()
 
