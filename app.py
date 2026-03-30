@@ -92,14 +92,56 @@ if 'step' not in st.session_state:
 if 'QUESTIONS' not in locals():
     QUESTIONS = [f"第 {i+1} 题：关于孩子在家庭中的某种行为表现或心态描述..." for i in range(85)]
 
-# --- 4. 维度话术数据库 ---
+# --- 4. 维度话术数据库 (严格匹配文档文案) ---
 DIM_DATA = {
-    "系统维度": {"range": range(0,8), "levels": ["【稳固】地基牢固，依恋关系安全。", "【预警】地基有裂缝，系统承压接近临界。", "【危险】地基动摇，孩子缺乏基本安全感。"]},
-    "家长维度": {"range": range(8,18), "levels": ["【优秀】能量充沛，情绪自控力强。", "【内耗】内耗严重，管教伴随生理性无力。", "【力竭】心理力竭，已丧失有效引导能力。"]},
-    "关系维度": {"range": range(18,28), "levels": ["【信任】沟通畅通，边界清晰信任高。", "【防御】防御性增强，沟通仅维持功能层面。", "【断联】情感断联，孩子有明显逃离倾向。"]},
-    "动力维度": {"range": range(28,37), "levels": ["【旺盛】生机勃勃，具备天然抗挫力。", "【下行】动力开始萎缩，出现空心化苗头。", "【枯竭】动力枯竭，自我价值感降至冰点。"]},
-    "学业维度": {"range": range(37,48), "levels": ["【高效】脑认知高效，任务执行力强。", "【疲劳】生理性疲劳导致执行功能受损。", "【宕机】大脑保护性关闭，对学业极端抗拒。"]},
-    "社会化": {"range": range(48,58), "levels": ["【自如】规则意识强，社交半径正常。", "【退缩】依赖屏幕，现实社交回避明显。", "【受损】社会功能受损，拒绝参与现实生活。"]}
+    "家庭系统": {
+        "range": range(0, 8), 
+        "levels": [
+            "【稳固】您的家庭地基非常扎实，孩子早期依恋关系很好。这意味着孩子内心的安全感底色是亮的，只要解决表层的功能问题，他好起来会比别人快得多。",
+            "【内耗】您的家庭基础整体是稳定的，但内部存在一些“微损耗”（如教育标准不一）。孩子现在像是在顺风和逆风交替的环境下航行，虽然没翻船，但走得很累。",
+            "【动荡】家里的“气压”太不稳定了。孩子现在就像在地震带上盖房子，他把所有的能量都用来“维稳”了，根本没有余力去搞学习。"
+        ]
+    },
+    "家长状态": {
+        "range": range(8, 18), 
+        "levels": [
+            "【高能】您的心理建设做得很好。您是孩子最稳的后盾。现在的困局不是您无能，而是您手里缺一把精准的“手术刀”。",
+            "【疲劳】您正处于“育儿倦怠”的边缘。您依然在坚持，但这种坚持带有一种强迫性的自我牺牲感。现在的您就像亮起黄灯的仪表盘，提醒您该停下来修整认知模式了。",
+            "【力竭】您现在的油箱已经干了。您在用透支自己的方式陪跑，这种焦灼感会通过镜像神经元直接传染给孩子，咱们得先帮您把油加满。"
+        ]
+    },
+    "亲子关系": {
+        "range": range(18, 28), 
+        "levels": [
+            "【顺畅】最宝贵的是，孩子还愿意跟您说真心话。只要情感管道通着，任何技术手段都能 100% 发挥作用。",
+            "【疏离】你们之间没有大冲突，但缺乏“深链接”。沟通仅维持在琐事的“事务性交流”上。孩子正在慢慢关上心门，如果您不主动更换频率，他会习惯性心理隔离。",
+            "【淤塞】你们之间现在是“信号屏蔽”状态。您说的每一句“为他好”，在他听来都是攻击。不先疏通情感，所有的教育都是无效功。"
+        ]
+    },
+    "动力状态": {
+        "range": range(28, 37), 
+        "levels": [
+            "【自驱】孩子骨子里是有胜负欲和生命力的。他现在的颓废只是“暂时的死机”，只要重装系统，他自己就能跑起来。",
+            "【摇摆】孩子的生命力处于“待机状态”。他有想好的愿望，但缺乏持续的推力。这种“推一下动一下”的状态，最容易在压力剧增时彻底熄火。",
+            "【空心】孩子已经进入了“节能模式”，对外界失去了探索欲。这是典型的生命力萎缩，我们要通过底层激活，让他重新“活”过来。"
+        ]
+    },
+    "学业管理": {
+        "range": range(37, 48), 
+        "levels": [
+            "【高效】孩子的大脑硬件配置其实很高，执行功能没问题。现在的成绩波动，纯粹是情绪或态度的小感冒，很好修补。",
+            "【补偿】孩子目前的学业表现是一种“高代偿”的维持。他在用双倍意志力弥补脑启动效率不足。一旦难度超过极限，会迅速厌学崩盘。",
+            "【损耗】这不是态度问题，是“大脑CPU过载”。他写一个字消耗的能量是别人的三倍。咱们得用脑科学的方法帮他降载。"
+        ]
+    },
+    "社会化适应": {
+        "range": range(48, 58), 
+        "levels": [
+            "【合群】孩子的社会化属性很好。这种对集体的归属感，是我们后期把他从手机世界拉回现实的最强抓手。",
+            "【依赖】电子世界对他吸引力正在盖过现实。如果现在不干预，他会越来越倾向于在虚拟世界寻找安全感，现实社交能力将持续退化。",
+            "【退缩】他在现实世界里找不到成就感，只能去虚拟世界吸氧。学校对他来说不是学习的地方，而是“刑场”，我们要重建他的现实自信。"
+        ]
+    }
 }
 
 # --- 5. 页面流程逻辑 ---
@@ -148,36 +190,57 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# C. 结果报告页
+# C. 结果报告页逻辑
 elif st.session_state.step == 'report':
     st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
     
-    # 雷达图数据处理
+    # 1. 风险预警模块（暖橙色卡片提示）
+    st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
+    
+    # 7. 情绪状态预警 (59-66题)
+    emo_scores = [st.session_state.ans.get(i, 0) for i in range(58, 66)]
+    if any(s == 3 for s in emo_scores) or (sum(emo_scores) >= 24 * 0.6) or any(st.session_state.ans.get(i, 0) >= 2 for i in [64, 65]): # 假设65/66为消极倾向题
+        st.markdown("<div class='warn-banner bg-red'>⚠️ 【情绪安全警报】当前孩子情绪安全水位极低，沉默是他在呼救。首要任务不是抓学习，而是“稳情绪”，必须立刻切入心理安全干预。</div>", unsafe_allow_html=True)
+    
+    # 8. 注意状态预警 (67-72题)
+    adhd_scores = [st.session_state.ans.get(i, 0) for i in range(66, 72)]
+    if any(s == 3 for s in adhd_scores) or (sum(adhd_scores) >= 18 * 0.6):
+        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑功能预警】疑似 ADHD 特质。孩子大脑天生自带“降噪功能缺陷”，不要再骂他粗心了，他需要专业的脑功能整合训练。</div>", unsafe_allow_html=True)
+
+    # 9. 身体状态预警 (73-78题)
+    body_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
+    if body_avg > 1.5:
+        st.markdown("<div class='warn-banner bg-blue'>⚠️ 【生理地基预警】当前表现受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议从营养与节律层面修复。</div>", unsafe_allow_html=True)
+
+    # 2. 雷达图绘制
     scores, labels = [], list(DIM_DATA.keys())
     for dim in labels:
         r = DIM_DATA[dim]['range']
         avg = sum(st.session_state.ans.get(i, 0) for i in r) / len(r)
-        scores.append(round(avg * 33.3, 1))
+        scores.append(round(avg * 33.3, 1)) # 转化为100分制展示
     
-    fig = go.Figure(data=go.Scatterpolar(
-        r=scores, theta=labels, fill='toself', 
-        line_color='#1A237E', fillcolor='rgba(26, 35, 126, 0.2)'
-    ))
+    fig = go.Figure(data=go.Scatterpolar(r=scores, theta=labels, fill='toself', line_color='#1A237E', fillcolor='rgba(26, 35, 126, 0.2)'))
     fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])), showlegend=False, height=350, margin=dict(t=20, b=20, l=40, r=40))
     st.plotly_chart(fig, use_container_width=True)
+    st.markdown("<p style='font-size:12px; color:#90A4AE; text-align:center;'>注：分值越高，代表该维度的“负荷”或“风险”越大。</p>", unsafe_allow_html=True)
 
-    # 预警逻辑
-    if any(st.session_state.ans.get(i, 0) == 3 for i in range(58, 66)):
-        st.markdown("<div class='warn-banner bg-red'>⚠️ 【红色警报】检测到生存危机或极度情绪创伤，请立刻停止施压！</div>", unsafe_allow_html=True)
-    
-    if (sum(st.session_state.ans.get(i, 0) for i in range(66, 72))/6) >= 1.5:
-        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【脑特性预警】孩子表现出注意力黑洞特质，需科学干预。</div>", unsafe_allow_html=True)
-
-    # 详细维度解析
+    # 3. 六大维度深度解析卡片 (匹配 0.8/1.8/3.0 分层逻辑)
     for dim, info in DIM_DATA.items():
         avg = sum(st.session_state.ans.get(i, 0) for i in info['range']) / len(info['range'])
-        lv = 2 if avg >= 1.86 else (1 if avg >= 0.86 else 0)
-        st.markdown(f"<div class='res-card'><b>{dim}</b><br>{info['levels'][lv]}</div>", unsafe_allow_html=True)
+        # 匹配分值：0-0.8 优秀(绿/蓝), 0.9-1.8 预警(黄), 1.9-3.0 危险(红)
+        if avg <= 0.8:
+            color, idx = "#2E7D32", 0 # 稳固
+        elif avg <= 1.8:
+            color, idx = "#F9A825", 1 # 中位
+        else:
+            color, idx = "#C62828", 2 # 高分危险
+            
+        st.markdown(f"""
+            <div style='padding:18px; border-radius:12px; background:white; border-left:6px solid {color}; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
+                <b style='color:{color};'>{dim}</b><br>
+                <span style='color:#455A64; font-size:15px;'>{info['levels'][idx]}</span>
+            </div>
+        """, unsafe_allow_html=True)
 
     # 微信转化区域
     st.markdown(f"""
