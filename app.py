@@ -260,6 +260,6 @@ elif st.session_state.step == 'report':
             </div>
             <div class='rid-box'>{st.session_state.rid}</div>
             <p style='color:#546E7A; font-size:13px;'>添加微信请备注上方数字编号</p>
-            <a href="https://work.weixin.qq.com/ca/your_id" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:15px; border-radius:12px; font-size:18px; font-weight:bold; margin-top:10px;">👉 添加老师预约解析</a>
+            <a href="https://work.weixin.qq.com/ca/your_id" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:15px; border-radius:12px; font-size:18px; font-weight:bold; margin-top:10px;">👉 点击添加预约深度解析</a>
         </div>
     """, unsafe_allow_html=True)
