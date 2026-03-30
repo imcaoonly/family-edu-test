@@ -433,3 +433,8 @@ elif st.session_state.step == 'report':
             <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:15px; border-radius:12px; font-size:18px; font-weight:bold; margin-top:10px;">👉 点击添加预约曹校深度解析</a>
         </div>
     """, unsafe_allow_html=True)
+    # --- 就在这里添加！注意缩进要和上面的 st.markdown 对齐 ---
+    st.write("") 
+    if st.button("🔄 新开始测评", use_container_width=True):
+        st.session_state.clear() # 清空所有答案和状态
+        st.rerun() # 强制回到首页重新开始
