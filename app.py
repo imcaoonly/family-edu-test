@@ -84,7 +84,8 @@ if 'step' not in st.session_state:
     st.session_state.update({
         'step': 'home', 
         'cur': 0, 
-        'ans': {}, 
+        'ans': {},
+        'age': 7,  # 新增：保存孩子年龄
         'rid': str(random.randint(100000, 999999))
     })
     # --- 3. 全量题库 (1-85题) ---
@@ -163,10 +164,29 @@ if st.session_state.step == 'home':
     """, unsafe_allow_html=True)
     st.write("") 
     if st.button("🚀 开始深度测评", use_container_width=True):
+        st.session_state.step = 'info'
+        st.rerun()
+# B. 背景信息登记页 (新增部分)
+elif st.session_state.step == 'info':
+    st.markdown("<h3 style='text-align:center; color:#1A237E; font-weight:900;'>基本资料登记</h3>", unsafe_allow_html=True)
+    st.write("")
+    
+    st.markdown("<p style='font-size:18px; font-weight:600; color:#263238;'>请选择孩子的周岁年龄：</p>", unsafe_allow_html=True)
+    
+    # 按照指南要求：1-25周岁滑动条
+    age_selected = st.slider("", 1, 25, st.session_state.age, help="请滑动选择孩子目前的周岁年龄")
+    
+    st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{age_selected} 周岁</div>", unsafe_allow_html=True)
+    
+    st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
+    
+    st.write("")
+    if st.button("确认并开始答题 🚀", use_container_width=True):
+        st.session_state.age = age_selected
         st.session_state.step = 'quiz'
         st.rerun()
 
-# B. 答题页
+# C. 答题页
 elif st.session_state.step == 'quiz':
     cur = st.session_state.cur
     st.progress((cur + 1) / 85)
@@ -190,7 +210,7 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# C. 结果报告页逻辑
+# D. 结果报告页逻辑
 elif st.session_state.step == 'report':
     # --- 标题部分 ---
     st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>多维报告解析</h2>", unsafe_allow_html=True)
