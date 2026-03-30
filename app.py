@@ -41,10 +41,32 @@ st.markdown("""
         border-left: 4px solid #FF7043; padding-left: 15px;
     }
     
-    /* 按钮样式保持一致 */
+/* 1. 基础按钮样式：默认深蓝色 */
     div.stButton > button {
-        border-radius: 12px; height: 55px; font-size: 18px !important; font-weight: 700;
-        background-color: #1A237E; color: white; border: none;
+        border-radius: 12px; 
+        height: 55px; 
+        font-size: 18px !important; 
+        font-weight: 700;
+        background-color: #1A237E; 
+        color: white; 
+        border: none;
+        transition: all 0.2s;
+    }
+
+    /* 2. 悬停状态：颜色稍微变深 */
+    div.stButton > button:hover {
+        background-color: #0D47A1;
+        color: white;
+    }
+
+    /* 3. 关键修改：点击后及获得焦点时的状态 */
+    /* 这里的 #FF7043 是你品牌色中的橙色，按下后会变成橙色且不再跳回蓝色 */
+    div.stButton > button:focus, 
+    div.stButton > button:active {
+        background-color: #FF7043 !important; 
+        color: white !important;
+        box-shadow: 0 0 0 0.2rem rgba(255, 112, 67, 0.5) !important;
+        outline: none !important;
     }
     
     /* 结果页与其他样式 */
