@@ -1,6 +1,31 @@
 import streamlit as st
 import random
 import plotly.graph_objects as go
+import requests    
+import json        
+from datetime import datetime  
+
+def send_to_feishu(payload):
+    # 你的 Webhook 地址
+    webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/e0c47a6f-4e26-405c-87ff-7fc955c8c279"
+    headers = {"Content-Type": "application/json"}
+    
+    # 构造飞书卡片格式，包含关键词“报告”
+    data = {
+        "msg_type": "post",
+        "content": {
+            "post": {
+                "zh_cn": {
+                    "title": "新的系统测评报告提交", # 必须含关键词：报告
+                    "content": [[{"tag": "text", "text": json.dumps(payload, ensure_ascii=False)}]]
+                }
+            }
+        }
+    }
+    try:
+        requests.post(webhook_url, json=data, timeout=10)
+    except:
+        pass # 静默处理，不影响用户体验
 
 # --- 1. UI 深度定制：首页高度优化版 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
@@ -188,6 +213,44 @@ DIM_DATA = {
     }
 }
 
+def prepare_report_data():
+    ans = st.session_state.ans
+    
+    # 辅助：多选列表转文字
+    def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
+
+    # 1. 计算维度分 (1-78题)
+    sys_avg = round(sum(ans.get(i,0) for i in range(8))/8, 2)
+    par_avg = round(sum(ans.get(i,0) for i in range(8,21))/13, 2)
+    rel_avg = round(sum(ans.get(i,0) for i in range(21,31))/10, 2)
+    pow_avg = round(sum(ans.get(i,0) for i in range(31,40))/9, 2)
+    stu_avg = round(sum(ans.get(i,0) for i in range(40,51))/11, 2)
+    soc_avg = round(sum(ans.get(i,0) for i in range(51,60))/9, 2)
+
+    # 2. 预警逻辑
+    emo_risk = "🚩 红色警报" if any(ans.get(i,0)==3 for i in range(60,67)) else "正常"
+    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(71,77))/6 > 1.5 else "正常"
+    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(77,83))/6 > 1.5 else "正常"
+
+    # 3. 封装 14 个字段
+    return {
+        "编号": st.session_state.rid,
+        "年龄": f"{st.session_state.age}岁",
+        "确诊情况": fmt(ans.get(78)),
+        "试过方法": fmt(ans.get(79)),
+        "不生效原因": fmt(ans.get(80)),
+        "痛点": fmt(ans.get(81)),
+        "改变勇气": fmt(ans.get(82)),
+        "预约意愿": fmt(ans.get(83)),
+        "了解意愿": fmt(ans.get(84)),
+        "各维度均分": f"系统:{sys_avg}, 家长:{par_avg}, 关系:{rel_avg}, 动力:{pow_avg}, 学业:{stu_avg}, 社会:{soc_avg}",
+        "情绪预警": emo_risk,
+        "注意预警": adhd_risk,
+        "身体预警": body_risk,
+        "原始凭证": ",".join(str(ans.get(i,"")) for i in range(85)),
+        "提交时间": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+
 # --- 5. 页面流程逻辑 ---
 
 # A. 首页：优化后的紧凑版
@@ -271,14 +334,20 @@ elif st.session_state.step == 'quiz':
         
         st.write("")
         
-        # --- 2. 增加必选拦截逻辑 ---
+       # --- 2. 增加必选拦截逻辑 ---
         if st.button(btn_label, use_container_width=True):
-            # 校验：如果 user_input 为空（针对多选）或未选择
             if not user_input:
                 st.warning("⚠️ 请至少选择一个选项后再继续。")
             else:
                 st.session_state.ans[cur] = user_input
                 if cur == 84:
+                    # 【核心插入：点击生成报告瞬间发送】
+                    try:
+                        report_payload = prepare_report_data()
+                        send_to_feishu(report_payload)
+                    except:
+                        pass # 即使飞书挂了，也不影响用户看报告
+                    
                     st.session_state.step = 'report'
                 else:
                     st.session_state.cur += 1
