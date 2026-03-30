@@ -193,7 +193,7 @@ elif st.session_state.step == 'quiz':
 # C. 结果报告页逻辑
 elif st.session_state.step == 'report':
     # --- 标题部分 ---
-    st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>报告解析</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>多维报告解析</h2>", unsafe_allow_html=True)
     st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
@@ -247,7 +247,11 @@ elif st.session_state.step == 'report':
     # 微信转化区域
     st.markdown(f"""
         <div class='wx-card'>
-            <p style='color:#1A237E; font-size:18px; font-weight:bold;'>这份报告揭示了孩子的求救，<br>也看见了您的委屈。</p>
+            <p style='color:#1A237E; font-size:18px; font-weight:bold;'>
+                这份报告揭示了孩子的求救，<br>
+                也看见了您的委屈。<br>
+                <span style='color:#FF7043;'>其实，您不需要独自扛着。</span>
+            </p>
             <div style='text-align:left; margin-top:15px;'>
                 <p style='margin:5px 0;'>✅ 10个维度个性化改善方案</p>
                 <p style='margin:5px 0;'>✅ 30分钟 1V1 深度解析</p>
