@@ -314,13 +314,11 @@ elif st.session_state.step == 'info':
     
     st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
     
-    st.write("")
+     st.write("")
     if st.button("确认并开始答题 🚀", use_container_width=True):
-    # 【关键步骤】在跳走之前，手动把滑动条的当前值，同步给全局状态
-    st.session_state.age = age_selected  
-    
-    st.session_state.step = 'quiz'
-    st.rerun()
+        st.session_state.age = age_selected
+        st.session_state.step = 'quiz'
+        st.rerun()
 
 # C. 答题页
 elif st.session_state.step == 'quiz':
