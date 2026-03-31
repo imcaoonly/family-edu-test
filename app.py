@@ -355,23 +355,27 @@ elif st.session_state.step == 'info':
     
     st.markdown("<p style='font-size:18px; font-weight:600; color:#263238;'>请选择孩子的周岁年龄：</p>", unsafe_allow_html=True)
     
-    # --- 核心修改：将滑块的值直接赋给 session_state.age ---
-    st.session_state.age = st.slider(
+    # 1. 使用一个独立的 key（例如 "slider_val"）来承接滑块的即时动作
+    # 2. 将滑块的返回值直接赋给变量 age_picked
+    age_picked = st.slider(
         label="", 
         min_value=1, 
         max_value=25, 
         value=st.session_state.age, 
-        key="age_input", # 换一个 key 名，避免与变量名直接冲突
+        key="slider_val", 
         help="请滑动选择孩子目前的周岁年龄"
     )
     
-    # 这里的显示会自动随滑动而变化
-    st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{st.session_state.age} 周岁</div>", unsafe_allow_html=True)
+    # 实时显示选中的年龄，确保用户能看到变化
+    st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{age_picked} 周岁</div>", unsafe_allow_html=True)
     
     st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
     
     st.write("")
+    
+    # 3. 关键点：在点击确认按钮时，强制执行覆盖操作
     if st.button("确认并开始答题 🚀", use_container_width=True):
+        st.session_state.age = age_picked  # 这一行是物理覆盖，确保 7 被替换掉
         st.session_state.step = 'quiz'
         st.rerun()
 
