@@ -516,12 +516,12 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# D. 结果报告页逻辑
+# --- D. 结果报告页逻辑 ---
 elif st.session_state.step == 'report':
-    # --- 1. 终极校准：已处理大括号转义，防止代码外露 ---
-    st.markdown(f"""
-<style>
-    .seal-box {{
+    # 1. 先渲染 CSS 样式（使用普通字符串，不带 f，防止大括号报错）
+    st.markdown("""
+    <style>
+    .seal-box {
         border: 2px solid #C62828;
         color: #C62828;
         padding: 4px 12px;
@@ -532,9 +532,12 @@ elif st.session_state.step == 'report':
         display: inline-block;
         margin-bottom: 15px;
         background: rgba(198, 40, 40, 0.03);
-    }}
-</style>
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
+    # 2. 再渲染 HTML 结构（使用 f-string 引入编号变量）
+    st.markdown(f"""
 <div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
