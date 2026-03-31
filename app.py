@@ -639,8 +639,7 @@ elif st.session_state.step == 'report':
     <p style="color:#90A4AE; font-size:11px; margin-top:15px; line-height:1.4;">
         * 点击无反应请截屏保存此页，微信扫码添加<br>
         曹校长亲自解读，名额稀缺，添加后请发送编号
-    </a>
-    <p style="color:#90A4AE; font-size:11px; margin-top:15px;">* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
