@@ -6,12 +6,13 @@ import json
 from datetime import datetime
 import pytz  
 
-# --- 1. 飞书多维表格 API 模块  ---
+# --- 1. 飞书多维表格 API 模块 (安全优化版) ---
 
-APP_ID = "cli_a941cc514b639bcd"          # 你的 App ID
-APP_SECRET = "7tjJzFqaSY0fyh2GDNCjPgD12NWYnw4b"  # 你的 App Secret
-APP_TOKEN = "UKsvb9YQEajaYTsEjHmcq1CEnqh"   # 多维表格的 Token
-TABLE_ID = "tblp77Ua52JtkEaX"            # 数据表的 ID
+# 从 Streamlit 的“保险柜”(Secrets) 中直接读取，不再把明文写在代码里
+APP_ID = st.secrets["APP_ID"]
+APP_SECRET = st.secrets["APP_SECRET"]
+APP_TOKEN = st.secrets["APP_TOKEN"]
+TABLE_ID = st.secrets["TABLE_ID"]
 
 def get_tenant_access_token():
     """获取飞书 API 访问令牌"""
