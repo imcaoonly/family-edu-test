@@ -256,10 +256,10 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
 
-    # --- 时间修正逻辑：获取北京时间 (UTC+8) ---
-    from datetime import timedelta
-    # 获取 UTC 时间，然后手动加上 8 小时
-    beijing_time = datetime.utcnow() + timedelta(hours=8)
+    # --- 优化后的时间修正逻辑 ---
+    # 强制获取 Asia/Shanghai 时区，不受服务器系统时区设置影响
+    tz = pytz.timezone('Asia/Shanghai')
+    beijing_time = datetime.now(tz)
     
   # 辅助：多选列表转文字（统一转为文本，飞书写入最稳）
     def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
