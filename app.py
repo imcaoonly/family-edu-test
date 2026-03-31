@@ -242,18 +242,16 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-    # --- 1. 辅助转换函数：确保格式正确，移除所有非法字符 ---
-    def fmt(v):  
-        if v is 如果 v 是 None:
+    # 定义内部转换逻辑
+    def fmt(val): 
+        if val is 如果值为 None:
             return  ""
 
-        if 如果 isinstance(v, list):
-            # 使用标准英文逗号拼接，避免全角字符报错
-            return 返回 ",".join(map(str, v))
-        return ,".join(map(str, v))return str(v)
+        if 如果 isinstance(val, list):
+            return 判断 val 是否为列表：返回 ",".join(map(str, val))
+        return ,".join(map(str, val))return str(val)
 
-    # --- 2. 维度均分计算 --- 
-    # 确保索引与 QUESTIONS 列表(0-84)严格对应
+    # 1. 计算六大维度均分
     sys_avg = round(sum(int(ans.get(i, 0)) for i in range(0, 8)) / 8, 2)
     par_avg = round(sum(int(ans.get(i, 0)) for i in range(8, 18)) / 10, 2)
     rel_avg = round(sum(int(ans.get(i, 0)) for i in range(18, 28)) / 10, 2)
@@ -261,16 +259,13 @@ def prepare_report_data():
     stu_avg = round(sum(int(ans.get(i, 0)) for i in range(37, 48)) / 11, 2)
     soc_avg = round(sum(int(ans.get(i, 0)) for i in range(48, 58)) / 10, 2)
 
-    # --- 3. 预警逻辑 ---
-    # 情绪预警 (59-66题)
-    emo_risk = "High Risk" if 如果 any(int(ans.get(i, 0)) == 3 any（int（ans. get（i，0））==3 for i in 对于i range(58, 66)) else  "Normal" “正常”
-    # 注意力预警 (67-72题)
-    adhd_risk = "Attention Alert" if 如果 sum(int(ans.get(i, 0)) for i in  range(66, 72)) / 6 > 1.5  else 否则 "Normal" 正常
-    # 身体预警 (73-78题)
-    body_risk = "Physical Load" if 如果 sum(int(ans.get(i, 0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "Normal" “正常” 
+    # 2. 预警逻辑判断
+    emo_risk = "🚩 红色警报" if 如果 any(int(ans.get(i, 0)) == 3 any（int（ans. get（i，0））==3 for i in 对于i range(58, 66)) else  "正常"
+    adhd_risk = "🟠 注意受损"  if 如果 sum(int(ans.get(i, 0)) for i in  range(66, 72)) / 6 > 1.5  else 否则 "正常"
+    body_risk = "🔵 生理负荷"  if 如果 sum(int(ans.get(i, 0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "正常"  
 
-    # --- 4. 构造返回字典 ---  
-    return {
+    # 3. 组装最后的数据字典
+    res = {
         "提交日期": datetime.now().strftime("%Y-%m-%d"),
         "提交时间": datetime.now().strftime("%H:%M:%S"),
         "编号": st.session_state.rid,
@@ -283,12 +278,13 @@ def prepare_report_data():
         "改变勇气": fmt(ans.get(82)),
         "预约意愿": fmt(ans.get(83)),
         "了解意愿": fmt(ans.get(84)),
-        "各维度均分": f"System:{sys_avg}, Parent:{par_avg}, Relation:{rel_avg}, Power:{pow_avg}, Study:{stu_avg}, Social:{soc_avg}",
+        "各维度均分": f"系统:{sys_avg}, 家长:{par_avg}, 关系:{rel_avg}, 动力:{pow_avg}, 学业:{stu_avg}, 社会:{soc_avg}",
         "情绪预警": emo_risk,
         "注意预警": adhd_risk,
         "身体预警": body_risk,
         "原始凭证": ",".join(str(ans.get(i, "")) for i in range(85))
     }
+    return res
 
 # --- 5. 页面流程逻辑 ---
 
