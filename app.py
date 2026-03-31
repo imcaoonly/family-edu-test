@@ -504,25 +504,26 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- 1. 深度美化：纸质档案感头部 (极简兼容版，防止代码外露) ---
+    # --- D. 结果报告页逻辑 ---
+    # --- 1. 深度美化：纸质档案感头部 (极简兼容版) ---
     st.markdown(f"""
-<div style="background:#FFFFFF; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.08); border:1px solid #ECEFF1; margin-bottom:20px; overflow:hidden;">
+<div style="background:#FFFFFF; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.08); border:1px solid #ECEFF1; margin-top:-15px; margin-bottom:20px; overflow:hidden; width:100%;">
     <div style="height:6px; background:linear-gradient(90deg, #1A237E, #FF7043);"></div>
-    <div style="padding:20px 10px; text-align:center;">
-        <p style="color:#90A4AE; font-size:10px; letter-spacing:3px; margin:0 0 5px 0;">REPORT ANALYSIS</p>
-        <h2 style="color:#1A237E; font-size:24px; font-weight:900; margin:0;">多维报告解析</h2>
-        <p style="color:#546E7A; font-size:13px; margin:8px 0 0 0;">家庭教育十维深度探查</p>
+    <div style="padding:15px 10px; text-align:center;">
+        <p style="color:#90A4AE; font-size:10px; letter-spacing:3px; margin:0 0 2px 0;">REPORT ANALYSIS</p>
+        <h2 style="color:#1A237E; font-size:28px; font-weight:900; margin:0; line-height:1.2; letter-spacing:1px;">多维报告解析</h2>
+        <p style="color:#546E7A; font-size:13px; margin:3px 0 0 0;">家庭教育十维深度探查</p>
     </div>
-    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; padding:12px; margin:0 10px 15px 10px; border-radius:8px;">
-        <table style="width:100%; border-collapse:collapse;">
+    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; padding:12px 10px; margin:0 10px 15px 10px; border-radius:8px;">
+        <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <tr>
-                <td style="text-align:left;">
-                    <p style="color:#E65100; font-size:14px; font-weight:bold; margin:0;">📸 截图保存此页</p>
-                    <p style="color:#F57C00; font-size:11px; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
+                <td style="text-align:left; padding-right:5px;">
+                    <p style="color:#E65100; font-size:14px; font-weight:bold; margin:0; line-height:1.4;">📸 截图保存此页</p>
+                    <p style="color:#F57C00; font-size:12px; font-weight:800; margin:2px 0 0 0; line-height:1.4;">1V1 咨询核心凭证</p>
                 </td>
-                <td style="text-align:right;">
-                    <p style="color:#90A4AE; font-size:10px; margin:0;">报告编号</p>
-                    <p style="color:#1A237E; font-family:monospace; font-size:18px; font-weight:900; margin:0;">{st.session_state.rid}</p>
+                <td style="text-align:right; border-left:1px dashed #FFD54F; padding-left:10px; width:45%;">
+                    <p style="color:#90A4AE; font-size:11px; font-weight:700; margin:0; line-height:1.2;">报告编号</p>
+                    <p style="color:#1A237E; font-family:'Roboto Mono',monospace; font-size:20px; font-weight:900; margin:2px 0 0 0; line-height:1.2;">{st.session_state.rid}</p>
                 </td>
             </tr>
         </table>
