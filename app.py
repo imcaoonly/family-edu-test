@@ -589,27 +589,63 @@ elif st.session_state.step == 'report':
             </div>
         """, unsafe_allow_html=True)
 
-    # 微信转化区域
-    st.markdown(f"""
-        <div class='wx-card'>
-            <p style='color:#1A237E; font-size:18px; font-weight:bold;'>
-                这份报告揭示了孩子的求救，<br>
-                也看见了您的委屈。<br>
-                <span style='color:#FF7043;'>其实，您不需要独自扛着。</span>
+    # --- 4. 情感升华：校长的结语 (新增：建立心理链接) ---
+    st.markdown("""
+        <div style='text-align:center; margin: 40px 0 30px 0; padding: 0 10px;'>
+            <div style='width: 30px; height: 3px; background: #FF7043; margin: 0 auto 20px; border-radius:2px;'></div>
+            <p style='color:#1A237E; font-size:18px; font-weight:600; line-height:1.8; font-style:italic;'>
+                “这份报告揭示了孩子的求救，<br>
+                也看见了您的委屈。”
             </p>
-            <div style='text-align:left; margin-top:15px;'>
-            <p style='margin:10px 0 5px 0; font-weight:bold; color:#455A64;'>添加微信您可以获得：</p>
-                <p style='margin:5px 0;'>✅ 10个维度<span style='color:#FF7043; font-weight:bold;'>个性化</span> 改善方案</p>
-                <p style='margin:5px 0;'>✅ 30分钟 <span style='color:#FF7043; font-weight:bold;'>1V1</span> 深度解析</p>
-                <p style='margin:5px 0;'>✅ <span style='color:#FF7043; font-weight:bold;'>特惠 198 元</span>（原价 598 元）</p>
-            </div>
-            <div class='rid-box'>{st.session_state.rid}</div>
-            <p style='color:#546E7A; font-size:13px;'>添加微信请备注上方数字编号</p>
-            <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:15px; border-radius:12px; font-size:18px; font-weight:bold; margin-top:10px;">👉 点击添加预约曹校深度解析</a>
+            <p style='color:#546E7A; font-size:15px; margin-top:12px; line-height:1.6;'>
+                每一个在深夜焦虑的父母，其实都在孤军奋战。<br>
+                改变不一定靠“用力吼叫”，而是靠<b>“精准调频”</b>。
+            </p>
         </div>
     """, unsafe_allow_html=True)
-    # --- 就在这里添加！注意缩进要和上面的 st.markdown 对齐 ---
+
+    # --- 5. 微信转化区域 (升级版：高价值感卡片) ---
+    st.markdown(f"""
+        <div class='wx-card' style='border: 2px solid #E8EAF6; background: #FFFFFF; padding: 25px; border-radius: 20px; box-shadow: 0 12px 40px rgba(26,35,126,0.12); text-align:center;'>
+            <div style='background: #FFF5F2; display: inline-block; padding: 4px 15px; border-radius: 20px; color: #FF7043; font-size: 13px; font-weight: bold; margin-bottom: 15px;'>
+                🎯 深度干预建议 · 预约通道
+            </div>
+            
+            <p style='color:#1A237E; font-size:21px; font-weight:900; line-height:1.4; margin-bottom:15px;'>
+                既然已经找到了“病灶”，<br>
+                <span style='color:#FF7043;'>让我们一起对症下药。</span>
+            </p>
+            
+            <div style='text-align:left; margin: 20px 0; background:#F8F9FA; padding:20px; border-radius:15px; border: 1px solid #EEE;'>
+                <p style='margin:0 0 12px 0; font-weight:bold; color:#1A237E; font-size:16px;'>添加微信预约曹校长：</p>
+                <p style='margin:8px 0; color:#455A64; display:flex; align-items:center; font-size:15px;'>
+                    <span style='color:#FF7043; margin-right:10px; font-weight:bold;'>✓</span> 10个维度<span style='color:#FF7043; font-weight:bold; margin:0 4px;'>个性化</span>改善方案
+                </p>
+                <p style='margin:8px 0; color:#455A64; display:flex; align-items:center; font-size:15px;'>
+                    <span style='color:#FF7043; margin-right:10px; font-weight:bold;'>✓</span> 30分钟<span style='color:#FF7043; font-weight:bold; margin:0 4px;'>1V1</span>深度视频解析
+                </p>
+                <p style='margin:8px 0; color:#455A64; display:flex; align-items:center; font-size:15px;'>
+                    <span style='color:#FF7043; margin-right:10px; font-weight:bold;'>✓</span> <span style='color:#FF7043; font-weight:bold;'>特惠 198 元</span> <span style='text-decoration:line-through; font-size:12px; color:#90A4AE; margin-left:6px;'>(原价 598)</span>
+                </p>
+            </div>
+
+            <div style='margin-bottom: 20px;'>
+                <p style='color:#546E7A; font-size:13px; margin-bottom:8px;'>您的专属报告编号（添加时发送）：</p>
+                <div style='background: #FFF9C4; border: 2px dashed #FBC02D; font-size: 34px; font-weight: 900; color: #E65100; padding: 10px 30px; border-radius: 12px; display: inline-block; letter-spacing: 2px;'>
+                    {st.session_state.rid}
+                </div>
+            </div>
+
+            <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" 
+               style="text-decoration:none; display:block; background:#1A237E; color:white; padding:18px; border-radius:15px; font-size:19px; font-weight:bold; transition: 0.3s; box-shadow: 0 6px 20px rgba(26,35,126,0.3);">
+                👉 立即预约 · 开启家庭重塑
+            </a>
+            <p style='color:#90A4AE; font-size:12px; margin-top:15px; line-height:1.4;'>* 曹校长亲自解读，名额稀缺<br>添加后请务必发送上方 6 位编号</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # --- 6. 底部重置按钮 ---
     st.write("") 
-    if st.button("🔄 新开始测评", use_container_width=True):
-        st.session_state.clear() # 清空所有答案和状态
-        st.rerun() # 强制回到首页重新开始
+    if st.button("🔄 重新开始测评", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
