@@ -106,11 +106,20 @@ st.markdown("""
 
 # --- 2. 状态管理 ---
 if 'step' not in st.session_state:
+   # 抓取 URL 参数 (?from=xhs 或 ?from=dy)
+    query_params = st.query_params
+    url_source = query_params.get("from", "直接打开")
+    
+    # 建立映射表
+    source_map = {"xhs": "小红书", "dy": "抖音"}
+    final_source = source_map.get(url_source, url_source)
+    
     st.session_state.update({
         'step': 'home', 
         'cur': 0, 
         'ans': {},
-        'age': 7,  # 新增：保存孩子年龄
+        'age': 7,  
+        'source': final_source,
         'rid': str(random.randint(100000, 999999))
     })
     # --- 3. 全量题库 (1-85题) ---
@@ -235,6 +244,7 @@ def prepare_report_data():
     # 3. 封装 14 个字段
     return {
         "编号": st.session_state.rid,
+        "来源渠道": st.session_state.source,
         "年龄": f"{st.session_state.age}岁",
         "确诊情况": fmt(ans.get(78)),
         "试过方法": fmt(ans.get(79)),
