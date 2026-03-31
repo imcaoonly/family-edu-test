@@ -518,14 +518,6 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    这种情况通常是因为在 st.markdown 的字符串中使用了 Python 的 f-string (f"""...""")，但字符串内部的 CSS 样式代码也含有大括号 {}。
-
-Python 会误把 CSS 的 { color: red; } 当成变量去解析，解析失败就会直接把源码暴露在页面上，或者报错。
-
-核心解决方案：双大括号转义
-在 f-string 中，如果要显示 CSS 的大括号，必须用 双大括号 {{ 和 }} 包起来。我已经为你处理好了，请直接替换 step == 'report' 下的这一段：
-
-Python
     # --- 1. 终极校准：已处理大括号转义，防止代码外露 ---
     st.markdown(f"""
 <style>
