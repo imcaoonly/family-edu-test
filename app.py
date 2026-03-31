@@ -242,37 +242,34 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-    # --- 1. 辅助转换函数：确保格式正确，清理中文干扰 ---
-    def fmt(v): 
+    # --- 1. 辅助转换函数：确保格式正确 ---
+    def fmt(v):  
         if v is 如果 v 是 None:
-            return 无：返回 ""
+            return  ""
 
         if 如果 isinstance(v, list):
-            return  "、".join(map(str, v))
-        return 、".join(map(str, v))return str(v)
+            return 如果是列表类型则返回 "、".join(map(str, v))
+        return 、".join(map(str, v))
+return str(v)
 
-    # --- 2. 维度均分计算 ---
+    # --- 2. 维度均分计算 --- 
+    # 确保每个维度的计算索引与 QUESTIONS 列表严格对应
     sys_avg = round(sum(int(ans.get(i, 0)) for i in range(0, 8)) / 8, 2)
-    par_avg = round(sum(int(ans.get(i, 0)) for i in
-计算0到8题得分的总和再除以8，结果保留两位小数；par_avg 为计算8到18题得分的总和再除以10，结果保留两位小数。
- range(8, 18)) / 10, 2)
-    rel_avg = round(sum(int(ans.get(i, 0)) for i in
-计算 8 到 18 题的得分总和除以 10，结果保留两位小数）；rel_avg = round（计算 18 到 28 题的得分总和除以 10，结果保留两位小数）
- range(18, 28)) / 10, 2)
+    par_avg = round(sum(int(ans.get(i, 0)) for i in range(8, 18)) / 10, 2)
+    rel_avg = round(sum(int(ans.get(i, 0)) for i in range(18, 28)) / 10, 2)
     pow_avg = round(sum(int(ans.get(i, 0)) for i in range(28, 37)) / 9, 2)
-    stu_avg = round(sum(int(ans.get(i, 0)) for i in
-计算28至37题的总分除以9，结果保留两位小数；stu_avg = 计算37至48题的总分除以11，结果保留两位小数
- range(37, 48)) / 11, 2)
-    soc_avg = round(sum(int(ans.get(i, 0)) for i in
-计算 37 至 48 题得分总和后除以 11，结果保留两位小数。社交平均得分 = 对 48 至 57 题的得分取整后求和
- range(48, 58)) / 10, 2)
+    stu_avg = round(sum(int(ans.get(i, 0)) for i in range(37, 48)) / 11, 2)
+    soc_avg = round(sum(int(ans.get(i, 0)) for i in range(48, 58)) / 10, 2)
 
     # --- 3. 预警逻辑 (59-78题) ---
-    emo_risk = "🚩 红色警报" if 如果 any(int(ans.get(i, 0)) == 3 any（int（ans. get（i，0））==3 for i in 为 i range(58, 66)) else  "正常"
-    adhd_risk = "🟠 注意受损"  if 如果 sum(int(ans.get(i, 0)) for i in  range(66, 72)) / 6 > 1.5  else 否则 "正常"
-    body_risk = "🔵 生理负荷"  if 如果 sum(int(ans.get(i, 0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "正常" 
+    # 情绪预警：任意一题选了3分(总是)，或总分过高
+    emo_risk = "🚩 红色警报" if 如果 any(int(ans.get(i, 0)) == 3 any（int（ans. get（i，0））==3 for i in 对于i range(58, 66)) else  "正常" 
+    # 注意力预警：均分超过1.5
+    adhd_risk = "🟠 注意受损" if 如果 sum(int(ans.get(i, 0)) for i in  range(66, 72)) / 6 > 1.5  else 否则 "正常" 
+    # 身体预警：均分超过1.5
+    body_risk = "🔵 生理负荷" if 如果 sum(int(ans.get(i, 0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "正常"  
 
-    # --- 4. 构造飞书表格字段 --- 
+    # --- 4. 构造飞书表格字段 ---  
     return {
         "提交日期": datetime.now().strftime("%Y-%m-%d"),
         "提交时间": datetime.now().strftime("%H:%M:%S"),
