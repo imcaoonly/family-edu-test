@@ -604,43 +604,43 @@ elif st.session_state.step == 'report':
         </div>
     """, unsafe_allow_html=True)
 
-    # --- 5. 微信转化区域 (升级版：高价值感卡片) ---
+    # --- 5. 微信转化区域 (修复版：确保 HTML 渲染正常) ---
     st.markdown(f"""
-        <div class='wx-card' style='border: 2px solid #E8EAF6; background: #FFFFFF; padding: 25px; border-radius: 20px; box-shadow: 0 12px 40px rgba(26,35,126,0.12); text-align:center;'>
+        <div style='border: 2px solid #E8EAF6; background: #FFFFFF; padding: 20px; border-radius: 20px; box-shadow: 0 12px 40px rgba(26,35,126,0.12); text-align:center; margin: 10px 0;'>
             <div style='background: #FFF5F2; display: inline-block; padding: 4px 15px; border-radius: 20px; color: #FF7043; font-size: 13px; font-weight: bold; margin-bottom: 15px;'>
                 🎯 深度干预建议 · 预约通道
             </div>
             
-            <p style='color:#1A237E; font-size:21px; font-weight:900; line-height:1.4; margin-bottom:15px;'>
+            <p style='color:#1A237E; font-size:20px; font-weight:900; line-height:1.4; margin-bottom:15px; padding:0;'>
                 既然已经找到了“病灶”，<br>
                 <span style='color:#FF7043;'>让我们一起对症下药。</span>
             </p>
             
-            <div style='text-align:left; margin: 20px 0; background:#F8F9FA; padding:20px; border-radius:15px; border: 1px solid #EEE;'>
-                <p style='margin:0 0 12px 0; font-weight:bold; color:#1A237E; font-size:16px;'>添加微信预约曹校长：</p>
-                <p style='margin:8px 0; color:#455A64; display:flex; align-items:center; font-size:15px;'>
-                    <span style='color:#FF7043; margin-right:10px; font-weight:bold;'>✓</span> 10个维度<span style='color:#FF7043; font-weight:bold; margin:0 4px;'>个性化</span>改善方案
+            <div style='text-align:left; margin: 15px 0; background:#F8F9FA; padding:15px; border-radius:15px; border: 1px solid #EEE;'>
+                <p style='margin:0 0 10px 0; font-weight:bold; color:#1A237E; font-size:15px;'>添加微信预约曹校长：</p>
+                <p style='margin:6px 0; color:#455A64; font-size:14px;'>
+                    <span style='color:#FF7043; font-weight:bold;'>✓</span> 10个维度<span style='color:#FF7043; font-weight:bold;'> 个性化 </span>改善方案
                 </p>
-                <p style='margin:8px 0; color:#455A64; display:flex; align-items:center; font-size:15px;'>
-                    <span style='color:#FF7043; margin-right:10px; font-weight:bold;'>✓</span> 30分钟<span style='color:#FF7043; font-weight:bold; margin:0 4px;'>1V1</span>深度视频解析
+                <p style='margin:6px 0; color:#455A64; font-size:14px;'>
+                    <span style='color:#FF7043; font-weight:bold;'>✓</span> 30分钟<span style='color:#FF7043; font-weight:bold;'> 1V1 </span>深度视频解析
                 </p>
-                <p style='margin:8px 0; color:#455A64; display:flex; align-items:center; font-size:15px;'>
-                    <span style='color:#FF7043; margin-right:10px; font-weight:bold;'>✓</span> <span style='color:#FF7043; font-weight:bold;'>特惠 198 元</span> <span style='text-decoration:line-through; font-size:12px; color:#90A4AE; margin-left:6px;'>(原价 598)</span>
+                <p style='margin:6px 0; color:#455A64; font-size:14px;'>
+                    <span style='color:#FF7043; font-weight:bold;'>✓</span> <span style='color:#FF7043; font-weight:bold;'>特惠 198 元</span> <span style='text-decoration:line-through; font-size:11px; color:#90A4AE;'>(原价 598)</span>
                 </p>
             </div>
 
             <div style='margin-bottom: 20px;'>
-                <p style='color:#546E7A; font-size:13px; margin-bottom:8px;'>您的专属报告编号（添加时发送）：</p>
-                <div style='background: #FFF9C4; border: 2px dashed #FBC02D; font-size: 34px; font-weight: 900; color: #E65100; padding: 10px 30px; border-radius: 12px; display: inline-block; letter-spacing: 2px;'>
+                <p style='color:#546E7A; font-size:12px; margin-bottom:8px;'>您的专属报告编号（添加时发送）：</p>
+                <div style='background: #FFF9C4; border: 2px dashed #FBC02D; font-size: 30px; font-weight: 900; color: #E65100; padding: 10px 20px; border-radius: 12px; display: inline-block;'>
                     {st.session_state.rid}
                 </div>
             </div>
 
             <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" 
-               style="text-decoration:none; display:block; background:#1A237E; color:white; padding:18px; border-radius:15px; font-size:19px; font-weight:bold; transition: 0.3s; box-shadow: 0 6px 20px rgba(26,35,126,0.3);">
+               style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold; box-shadow: 0 6px 20px rgba(26,35,126,0.3);">
                 👉 立即预约 · 开启家庭重塑
             </a>
-            <p style='color:#90A4AE; font-size:12px; margin-top:15px; line-height:1.4;'>* 曹校长亲自解读，名额稀缺<br>添加后请务必发送上方 6 位编号</p>
+            <p style='color:#90A4AE; font-size:11px; margin-top:15px; line-height:1.4;'>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
         </div>
     """, unsafe_allow_html=True)
 
