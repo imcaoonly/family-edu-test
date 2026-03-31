@@ -516,34 +516,36 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 ---
+# --- D. 结果报告页逻辑 (变量拼接版，彻底杜绝代码外露) ---
 elif st.session_state.step == 'report':
-    # 1. 先渲染 CSS 样式（使用普通字符串，不带 f，防止大括号报错）
-    st.markdown("""
+    # 1. 独立定义样式
+    seal_style = """
     <style>
     .seal-box {
-        border: 2px solid #C62828;
-        color: #C62828;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 900;
+        border: 2px solid #C62828 !important;
+        color: #C62828 !important;
+        padding: 4px 12px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        font-weight: 900 !important;
         transform: rotate(-8deg); 
-        display: inline-block;
-        margin-bottom: 15px;
-        background: rgba(198, 40, 40, 0.03);
+        display: inline-block !important;
+        margin-bottom: 15px !important;
+        background: rgba(198, 40, 40, 0.03) !important;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(seal_style, unsafe_allow_html=True)
 
-    # 2. 再渲染 HTML 结构（使用 f-string 引入编号变量）
-    st.markdown(f"""
+    # 2. 使用变量替换，不使用 f-string，确保大括号不被误解
+    report_rid = str(st.session_state.rid)
+    
+    html_template = """
 <div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
     <div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
         <div class="seal-box">系统认证·唯一凭证</div>
-        
         <div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
         <div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div>
         <div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
@@ -561,14 +563,17 @@ elif st.session_state.step == 'report':
                 <td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;">
                     <div style="line-height:1.2;">
                         <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#C62828; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">{st.session_state.rid}</p>
+                        <p style="color:#C62828; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">REPLACE_ID</p>
                     </div>
                 </td>
             </tr>
         </table>
     </div>
 </div>
-""", unsafe_allow_html=True)
+"""
+    # 手动替换编号，绝对不会触发 f-string 的报错
+    final_html = html_template.replace("REPLACE_ID", report_rid)
+    st.markdown(final_html, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
