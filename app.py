@@ -243,11 +243,13 @@ def prepare_report_data():
     ans = st.session_state.ans
     
 # 辅助转换：把多选列表 ['ADHD', '其他'] 转成字符串 "ADHD、其他"
-    def fmt(v):  
-        if v is 如果 v 是 None: return  ""
+    def fmt(v):   
+        if v is 如果 v 是 None: 
+            return  ""
 
-        return 返回 "、".join(map(str, v)) if 、".join(map(str, v)) if isinstance(v, list) else 如果不是列表类型则返回
-str(v) str(v)
+        if 如果 isinstance(v, list):
+            return  "、".join(map(str, v))
+        return 、".join(map(str, v))return str(v)
 
     # 1. 维度均分计算 (严格对应你给的 1-58 题)
     # 索引 = 题号 - 1
