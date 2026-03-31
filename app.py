@@ -307,9 +307,16 @@ elif st.session_state.step == 'info':
     
     st.markdown("<p style='font-size:18px; font-weight:600; color:#263238;'>请选择孩子的周岁年龄：</p>", unsafe_allow_html=True)
     
-    # --- 核心改进点：直接使用 key="age" 绑定 ---
-    # 这样用户滑动滑块时，st.session_state.age 会实时变成滑动的值
-    st.slider("", 1, 25, key="age", help="请滑动选择孩子目前的周岁年龄")
+    # --- 修复点：显式设置 value=st.session_state.age ---
+    # 这样滑块在加载的一瞬间，就会根据初始化的 7 自动停在 7 的位置
+    st.slider(
+        label="", 
+        min_value=1, 
+        max_value=25, 
+        value=st.session_state.age, # 强制滑块初始位置与状态一致
+        key="age", 
+        help="请滑动选择孩子目前的周岁年龄"
+    )
     
     # 这里直接读取绑定后的值显示即可
     st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{st.session_state.age} 周岁</div>", unsafe_allow_html=True)
