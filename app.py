@@ -507,20 +507,6 @@ elif st.session_state.step == 'report':
     # --- 标题部分 ---
     st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>多维报告解析</h2>", unsafe_allow_html=True)
     st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
-
-    # --- 2. 强化版截屏提醒 (仪式感的核心：像一张门票或凭证) ---
-    st.markdown(f"""
-        <div style="background:#FFF9C4; border:1px dashed #FBC02D; padding:15px; border-radius:15px; text-align:center; margin-bottom:25px; position:relative; overflow:hidden;">
-            <div style="position:absolute; right:-10px; top:-10px; font-size:40px; opacity:0.1; transform:rotate(-20deg);">📸</div>
-            
-            <p style="color:#E65100; font-weight:bold; font-size:15px; margin:0; display:flex; align-items:center; justify-content:center;">
-                <span style="margin-right:8px;">⚠️</span> 建议立即【截屏保存】本页结果
-            </p>
-            <p style="color:#F57C00; font-size:13px; margin:5px 0 0 0;">
-                此编号 <b>{st.session_state.rid}</b> 及雷达图将作为 1V1 咨询的核心凭证
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
