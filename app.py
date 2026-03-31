@@ -5,7 +5,7 @@ import requests
 import json        
 from datetime import datetime  
 
-# --- 1. 飞书多维表格 API 模块 (替代原 Webhook) ---
+# --- 1. 飞书多维表格 API 模块  ---
 
 APP_ID = "cli_a941cc514b639bcd"          # 你的 App ID
 APP_SECRET = "7tjJzFqaSY0fyh2GDNCjPgD12NWYnw4b"  # 你的 App Secret
@@ -23,11 +23,14 @@ def get_tenant_access_token():
         return None
 
 def send_to_feishu_bitable(data_dict):
-    """将数据写入飞书多维表格"""
+    """将数据写入飞书多维表格 (后台日志增强版)"""
+    # 1. 记录开始动作 (在日志里留个脚印，证明程序运行到这了)
+    print(f"🚀 [飞书同步] 准备写入记录，用户编号: {data_dict.get('编号', '未知')}")
+    
     token = get_tenant_access_token()
     if not token: 
-        st.error("系统连接故障，请联系曹校长。")
-        return
+        print("❌ [错误] 无法获取 Tenant Access Token，请检查 App ID 和 Secret")
+        return False
     
     url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
     headers = {
@@ -37,12 +40,23 @@ def send_to_feishu_bitable(data_dict):
     payload = {"fields": data_dict}
     
     try:
+        # 设置超时，防止无限等待
         res = requests.post(url, headers=headers, json=payload, timeout=10)
-        # 调试用：如果写入失败，可以在后台看到原因
-        if res.status_code != 200:
-            print(f"写入失败原因: {res.text}")
+        
+        # 2. 检查返回状态码
+        if res.status_code == 200:
+            print("✅ [成功] 数据已成功写入飞书多维表格")
+            return True
+        else:
+            # --- 关键改动：这里会将飞书返回的具体报错 JSON 打印到日志 ---
+            print(f"🔴 [同步失败] 状态码: {res.status_code}")
+            print(f"🔴 [详细原因] {res.text}")
+            return False
+            
     except Exception as e:
-        print(f"网络异常: {e}")
+        # 3. 记录物理网络异常 (如服务器断网、DNS解析失败)
+        print(f"🔥 [严重异常] 网络或代码崩溃: {str(e)}")
+        return False
 
 # --- 1. UI 深度定制：首页高度优化版 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
