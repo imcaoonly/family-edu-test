@@ -336,17 +336,24 @@ elif st.session_state.step == 'quiz':
     q_text = QUESTIONS[cur]
     st.markdown(f"<div class='q-text'>{cur+1}. {q_text}</div>", unsafe_allow_html=True)
 
-    # --- 逻辑分水岭：1-78题 为程度选择 [cite: 4, 5] ---
+    # --- 逻辑分水岭：1-78题 为程度选择 ---
     if cur < 78:
-        # 0(从不)、1(偶尔)、2(经常)、3(总是) [cite: 4]
         opts = [("0 (从不)", 0), ("1 (偶尔)", 1), ("2 (经常)", 2), ("3 (总是)", 3)]
         cols = st.columns(2)
         for i, (txt, val) in enumerate(opts):
             with (cols[0] if i % 2 == 0 else cols[1]):
+                # 为每个按钮设置唯一 key
                 if st.button(txt, key=f"q_{cur}_{i}", use_container_width=True):
+                    # 1. 尝试记录当前题
                     st.session_state.ans[cur] = val
-                    st.session_state.cur += 1
-                    st.rerun()
+                    
+                    # 2. 核心校验：如果当前题号 cur 不在 ans 字典里，说明记录失败
+                    if cur not in st.session_state.ans:
+                        st.error("⚠️ 上一题未记录，请点击“上一题”重新作答。")
+                    else:
+                        # 记录成功，丝滑进入下一题
+                        st.session_state.cur += 1
+                        st.rerun()
 
    # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
     else:
