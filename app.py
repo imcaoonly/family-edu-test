@@ -516,36 +516,38 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (原生组件稳健版) ---
+# --- D. 结果报告页逻辑 (死锁对齐版) ---
 elif st.session_state.step == 'report':
-    # 1. 顶部标题区域
-    st.markdown("<div style='text-align:center; margin-top:-50px;'>", unsafe_allow_html=True)
-    st.caption("REPORT ANALYSIS")
-    st.markdown("<h1 style='color:#1A237E; margin-top:-10px;'>多维报告解析</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color:#546E7A; font-size:14px;'>家庭教育十维深度探查</p>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    # 1. 定义一个绝对稳定的编号展示区
+    report_rid = str(st.session_state.rid)
+    
+    # 顶部标题（居中对齐）
+    st.markdown(f"""
+        <div style="text-align:center; padding: 20px 0;">
+            <p style="color:#90A4AE; font-size:10px; letter-spacing:2px; margin:0;">REPORT ANALYSIS</p>
+            <h1 style="color:#1A237E; margin:5px 0; font-size:28px;">多维报告解析</h1>
+            <p style="color:#546E7A; font-size:14px; margin:0;">家庭教育十维深度探查</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # 2. 核心凭证卡片 (使用原生 container + columns)
-    with st.container():
-        # 模拟卡片样式
-        st.markdown("""
-            <div style="border: 2px solid #FFD54F; background-color: #FFFDE7; padding: 20px; border-radius: 15px; border-style: dashed;">
-            </div>
-        """, unsafe_allow_html=True)
-        
-        # 在卡片内放置内容
-        col_left, col_right = st.columns([3, 2])
-        
-        with col_left:
-            st.markdown("<h3 style='color:#E65100; margin:0;'>📸 截图保存此页</h3>", unsafe_allow_html=True)
-            st.markdown("<p style='color:#F57C00; font-weight:bold; margin:0;'>1V1 咨询核心凭证</p>", unsafe_allow_html=True)
-            
-        with col_right:
-            st.markdown("<p style='color:#90A4AE; font-size:12px; margin:0; text-align:right;'>报告编号</p>", unsafe_allow_html=True)
-            # 这里的编号直接用 st.title 或大号 markdown，绝对不会报错
-            st.markdown(f"<h2 style='color:#C62828; margin:0; text-align:right; font-family:monospace;'>{st.session_state.rid}</h2>", unsafe_allow_html=True)
-
-    st.write("---") # 分割线
+    # 2. 核心凭证卡片（使用 Table 强行对齐，防止移动端乱序）
+    st.markdown(f"""
+    <div style="background-color: #FFFDE7; border: 2px dashed #FFD54F; border-radius: 12px; padding: 15px; margin: 10px 0;">
+        <table style="width:100%; border-collapse:collapse; border:none;">
+            <tr>
+                <td style="width:60%; text-align:left; vertical-align:middle; border:none;">
+                    <div style="color:#E65100; font-size:18px; font-weight:900; margin-bottom:4px;">📸 截图保存此页</div>
+                    <div style="color:#F57C00; font-size:13px; font-weight:bold;">1V1 咨询核心凭证</div>
+                </td>
+                <td style="width:1px; border-left: 1px dashed #FFD54F; padding: 0 10px;"></td>
+                <td style="width:35%; text-align:right; vertical-align:middle; border:none;">
+                    <div style="color:#90A4AE; font-size:11px; font-weight:bold; margin-bottom:2px;">报告编号</div>
+                    <div style="color:#C62828; font-size:24px; font-weight:900; font-family:monospace;">{report_rid}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    """, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
