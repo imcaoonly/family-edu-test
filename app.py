@@ -58,15 +58,15 @@ st.markdown("""
     
     /* 首页专用遮盖容器：优化高度与溢出 */
     .home-mask {
-        padding: 25px 20px; /* 缩小内边距 */
+        padding: 25px 20px; 
         background: rgba(255, 255, 255, 0.9);
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(26, 35, 126, 0.05);
         border: 1px solid rgba(255,255,255,0.6);
         backdrop-filter: blur(10px);
         margin-top: 10px;
-        max-height: 85vh; /* 限制高度，防止滚动 */
-        overflow: hidden; /* 禁止容器内部滚动 */
+        /* --- 核心修复：去掉 max-height 和 overflow:hidden --- */
+        margin-bottom: 20px; /* 增加底部间距，防止贴边 */
         display: flex;
         flex-direction: column;
         justify-content: center;
