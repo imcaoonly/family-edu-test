@@ -86,22 +86,8 @@ st.markdown("""
         display: flex;
         flex-direction: column;
         justify-content: center;
-    }
-    
-    /* 模拟官方认证印章效果 */
-    .seal-box {
-        border: 2px solid #C62828;
-        color: #C62828;
-        padding: 4px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        font-weight: 900;
-        transform: rotate(-8deg); 
-        display: inline-block;
-        margin-bottom: 15px;
-        background: rgba(198, 40, 40, 0.03);
-    }
-    
+    }   
+  
     /* 三行标题：压缩间距 */
     .title-l1 { font-size: 14px; color: #90A4AE; font-weight: 500; margin-bottom: 4px; }
     .title-l2 { font-size: 32px; font-weight: 800; color: #1A237E; line-height: 1.1; margin-bottom: 2px; }
@@ -516,35 +502,71 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# D. 结果报告页逻辑
+# --- D. 结果报告页逻辑 (请完整替换这一段) ---
 elif st.session_state.step == 'report':
-    # --- 1. 终极校准：强制重置对齐与间距 (解决代码外露) ---
+    # 1. 预先定义编号变量
+    report_rid = str(st.session_state.rid)
+
+    # 2. 先渲染 CSS 样式 (使用普通字符串，不带 f)
+    st.markdown("""
+        <style>
+        .report-header-box {
+            background:#FFFFFF; 
+            border-radius:12px; 
+            box-shadow:0 4px 15px rgba(0,0,0,0.05); 
+            border:1px solid #ECEFF1; 
+            margin-top:-60px; 
+            margin-bottom:20px; 
+            overflow:hidden; 
+            width:100%;
+        }
+        .seal-box {
+            border: 2px solid #C62828 !important;
+            color: #C62828 !important;
+            padding: 4px 12px !important;
+            border-radius: 6px !important;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            transform: rotate(-8deg); 
+            display: inline-block !important;
+            margin-bottom: 15px !important;
+            background: rgba(198, 40, 40, 0.03) !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # 3. 再渲染 HTML 结构 (使用 f-string 引入变量)
+    # 使用 Table 强行锁定左右布局，防止移动端乱位
     st.markdown(f"""
-<div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
-<div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
-<div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-<div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
-<div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div>
-<div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
-</div>
-<div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center; justify-content:center;">
-<table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;">
-<tr style="border:none; vertical-align:middle;">
-<td style="padding-left:15px; text-align:left; vertical-align:middle; border:none;">
-<div style="line-height:1.4;">
-<p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
-<p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
-</div>
-</td>
-<td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;">
-<div style="line-height:1.2;">
-<p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-<p style="color:#1A237E; font-family:monospace; font-size:24px; font-weight:900; margin:2px 0 0 0;">{st.session_state.rid}</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
+<div class="report-header-box">
+    <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
+    
+    <div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+        <div class="seal-box">系统认证·唯一凭证</div>
+        <div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
+        <div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%;">多维报告解析</div>
+        <div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
+    </div>
+
+    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center;">
+        <table style="width:100%; border-collapse:collapse; border:none; margin:0;">
+            <tr style="border:none;">
+                <td style="width:55%; padding-left:15px; text-align:left; vertical-align:middle; border:none;">
+                    <div style="line-height:1.4;">
+                        <p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
+                        <p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
+                    </div>
+                </td>
+                <td style="width:1px; border-left:1px dashed #FFD54F; height:50px; padding:0;"></td>
+                <td style="width:40%; padding-right:15px; text-align:right; vertical-align:middle; border:none;">
+                    <div style="line-height:1.2;">
+                        <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
+                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">{report_rid}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>
 """, unsafe_allow_html=True)
     
