@@ -643,7 +643,7 @@ elif st.session_state.step == 'report':
     </a>
     """
     <p style="color:#90A4AE; font-size:11px;">* 若点击按钮无反应，请长按二维码识别或截屏扫码<br>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
-    
+    </div>
     
     # 构建二维码图片标签
     qr_img_tag = f'<img src="data:image/png;base64,{qr_b64}" style="width:180px; height:180px; display:block; margin:20px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
