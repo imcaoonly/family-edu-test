@@ -607,9 +607,7 @@ elif st.session_state.step == 'report':
     """, unsafe_allow_html=True)
 
     # --- 5. 微信转化区域 (全兼容纯净版) ---
-
-    # --- 2. 构建 HTML (采用拆分拼接法，彻底解决显示代码问题) ---
-    html_start = """
+    st.markdown(f"""
 <div style="border:2px solid #E8EAF6; background:#FFFFFF; padding:20px; border-radius:20px; box-shadow:0 12px 40px rgba(26,35,126,0.12); text-align:center; margin:10px 0;">
     <div style="background:#FFF5F2; display:inline-block; padding:4px 15px; border-radius:20px; color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:15px;">
         🎯 深度干预建议 · 预约通道
@@ -636,25 +634,10 @@ elif st.session_state.step == 'report':
             {st.session_state.rid}
         </div>
     </div>
-    
-    # 插入编号和二维码图片部分
-    rid_display = str(st.session_state.rid)
-    image_tag = '<img src="data:image/png;base64,' + qr_code_str + '" style="width:160px; height:160px; display:block; margin:20px auto; border-radius:8px; shadow:0 4px 10px rgba(0,0,0,0.1);">'
-    
-    html_end = """
-        </div>
-    </div>
-    <div style="margin:10px 0 20px 0; background:#F8F9FA; padding:15px; border-radius:15px; border:1px solid #EEE; text-align:left;">
-        <p style="margin:4px 0; color:#455A64; font-size:15px;"><b>✓</b> 10个维度 <b>个性化</b> 改善方案</p>
-        <p style="margin:4px 0; color:#455A64; font-size:15px;"><b>✓</b> 30分钟 <b>1V1</b> 深度解析报告</p>
-    </div>
-    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold;">
-        👉立即预约 · 开启家庭重塑
+    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold;">
+        👉 立即预约 · 开启家庭重塑
     </a>
-    <p style="color:#90A4AE; font-size:11px; margin-top:15px; line-height:1.5;">
-        * 若点击无反应，请<b>长按二维码</b>或<b>截屏扫码</b><br>
-        * 曹校长亲自解读，名额稀缺，添加后请发送编号
-    </p>
+    <p style="color:#90A4AE; font-size:11px; margin-top:15px;">* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
 </div>
 """, unsafe_allow_html=True)
 
