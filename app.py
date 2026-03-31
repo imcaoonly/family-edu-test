@@ -607,14 +607,14 @@ elif st.session_state.step == 'report':
     # --- 5. 微信转化区域 (全兼容纯净版) ---
         
     # 1. 你的 Data URI 字符串（请确保这里的内容是完整的）
-    qr_data_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMCAYAAADJOZVK..." # 此处省略，实际请保持完整
+qr_data_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMCAYAAADJOZVK..." # 此处省略，实际请保持完整
 
-    # 获取 ID
-    rid_val = str(st.session_state.get('rid', '888888'))
+# 获取 ID
+rid_val = str(st.session_state.get('rid', '888888'))
 
-    # 构造完整的 HTML
-    full_html = f"""
-    <div style="border:2px solid #E8EAF6; background:#FFFFFF; padding:20px; border-radius:20px; box-shadow:0 12px 40px rgba(26,35,126,0.12); text-align:center; margin:10px 0;">
+# 构造完整的 HTML
+full_html = f"""
+<div style="border:2px solid #E8EAF6; background:#FFFFFF; padding:20px; border-radius:20px; box-shadow:0 12px 40px rgba(26,35,126,0.12); text-align:center; margin:10px 0;">
     <div style="background:#FFF5F2; display:inline-block; padding:4px 15px; border-radius:20px; color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:15px;">
         🎯 深度干预建议 · 预约通道
     </div>
@@ -649,8 +649,8 @@ elif st.session_state.step == 'report':
 </div>
 """
 
-    # 一次性渲染
-    st.markdown(full_html, unsafe_allow_html=True)
+# 一次性渲染
+st.markdown(full_html, unsafe_allow_html=True)
 
     # --- 6. 底部重置按钮 ---
     st.write("") 
