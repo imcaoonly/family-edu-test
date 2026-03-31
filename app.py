@@ -502,42 +502,38 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (请完整替换这一段) ---
+# --- D. 结果报告页逻辑 (无错加强版：保留印章 + 锁定对齐) ---
 elif st.session_state.step == 'report':
-    # 1. 预先定义编号变量
+    # 1. 预先处理编号（转为字符串）
     report_rid = str(st.session_state.rid)
 
-    # 2. 先渲染 CSS 样式 (使用普通字符串，不带 f)
-    st.markdown("""
-        <style>
-        .report-header-box {
-            background:#FFFFFF; 
-            border-radius:12px; 
-            box-shadow:0 4px 15px rgba(0,0,0,0.05); 
-            border:1px solid #ECEFF1; 
-            margin-top:-60px; 
-            margin-bottom:20px; 
-            overflow:hidden; 
-            width:100%;
-        }
-        .seal-box {
-            border: 2px solid #C62828 !important;
-            color: #C62828 !important;
-            padding: 4px 12px !important;
-            border-radius: 6px !important;
-            font-size: 14px !important;
-            font-weight: 900 !important;
-            transform: rotate(-8deg); 
-            display: inline-block !important;
-            margin-bottom: 15px !important;
-            background: rgba(198, 40, 40, 0.03) !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
+    # 2. 定义样式表（注意：这里字符串前面没有 f，防止大括号报错）
+    report_css = """
+    <style>
+    .report-header-box {
+        background:#FFFFFF; border-radius:12px; 
+        box-shadow:0 4px 15px rgba(0,0,0,0.05); 
+        border:1px solid #ECEFF1; margin-top:-60px; 
+        margin-bottom:20px; overflow:hidden; width:100%;
+    }
+    .seal-box {
+        border: 2px solid #C62828 !important;
+        color: #C62828 !important;
+        padding: 4px 12px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        font-weight: 900 !important;
+        transform: rotate(-8deg); 
+        display: inline-block !important;
+        margin-bottom: 15px !important;
+        background: rgba(198, 40, 40, 0.03) !important;
+    }
+    </style>
+    """
+    st.markdown(report_css, unsafe_allow_html=True)
 
-    # 3. 再渲染 HTML 结构 (使用 f-string 引入变量)
-    # 使用 Table 强行锁定左右布局，防止移动端乱位
-    st.markdown(f"""
+    # 3. 定义 HTML 模板（使用 REPLACE_RID 作为占位符，不使用 f-string）
+    html_template = """
 <div class="report-header-box">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
@@ -561,14 +557,17 @@ elif st.session_state.step == 'report':
                 <td style="width:40%; padding-right:15px; text-align:right; vertical-align:middle; border:none;">
                     <div style="line-height:1.2;">
                         <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">{report_rid}</p>
+                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">REPLACE_RID</p>
                     </div>
                 </td>
             </tr>
         </table>
     </div>
 </div>
-""", unsafe_allow_html=True)
+"""
+    # 4. 手动注入变量并渲染
+    final_html = html_template.replace("REPLACE_RID", report_rid)
+    st.markdown(final_html, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
