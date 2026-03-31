@@ -510,9 +510,9 @@ elif st.session_state.step == 'report':
 <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043);"></div>
 
 <div style="padding:15px 0 8px 0; width:100%; display:grid; place-items:center; text-align:center;">
-<p style="color:#90A4AE; font-size:9px; letter-spacing:2px; margin:0; line-height:1;">REPORT ANALYSIS</p>
-<h2 style="color:#1A237E; font-size:32px; font-weight:900; margin:2px 0; line-height:1.1; padding:0; border:none; width:auto; display:inline-block;">多维报告解析</h2>
-<p style="color:#546E7A; font-size:13px; margin:0; line-height:1; font-weight:500;">家庭教育十维深度探查</p>
+<p style="color:#90A4AE; font-size:9px; letter-spacing:2px; margin:1; line-height:1;">REPORT ANALYSIS</p>
+<h2 style="color:#1A237E; font-size:32px; line-height:2; font-weight:900; ">多维报告解析</h2>
+<p style="color:#546E7A; font-size:13px; margin:1; line-height:1; font-weight:500;">家庭教育十维深度探查</p>
 </div>
 
 <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 8px 15px 8px; border-radius:6px; height:75px; display:flex; align-items:center; justify-content:center;">
