@@ -3,7 +3,7 @@ import random
 import plotly.graph_objects as go
 import requests    
 import json        
-from datetime import datetime  
+from datetime import datetime, timedelta 
 
 # --- 1. 飞书多维表格 API 模块  ---
 
@@ -255,6 +255,9 @@ DIM_DATA = {
 
 def prepare_report_data():
     ans = st.session_state.ans
+
+    # --- 核心修复：获取当前时间并增加 8 小时 ---
+    beijing_time = datetime.utcnow() + timedelta(hours=8)
     
   # 辅助：多选列表转文字（统一转为文本，飞书写入最稳）
     def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
@@ -308,8 +311,8 @@ def prepare_report_data():
 
    # 3. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
     return {
-        "提交日期": datetime.now().strftime("%Y-%m-%d"),
-        "提交时间": datetime.now().strftime("%H:%M:%S"),
+        "提交日期": beijing_time.strftime("%Y-%m-%d"),
+        "提交时间": beijing_time.strftime("%H:%M:%S")
         "编号": st.session_state.rid,
         "来源渠道": st.session_state.source,
         "年龄": f"{st.session_state.age}岁",
