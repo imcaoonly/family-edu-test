@@ -504,47 +504,31 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- D. 结果报告页逻辑 ---
-    # --- 1. 深度美化：纸质档案感头部 (极简兼容版) ---
+    # --- 1. 深度美化：纸质档案感头部 (极简紧凑版) ---
     st.markdown(f"""
-<div style="background:#FFFFFF; border-radius:15px; box-shadow:0 8px 20px rgba(0,0,0,0.08); border:1px solid #ECEFF1; margin-top:-15px; margin-bottom:20px; overflow:hidden; width:100%;">
-    <div style="height:6px; background:linear-gradient(90deg, #1A237E, #FF7043);"></div>
-    <div style="padding:15px 10px; text-align:center;">
-        <p style="color:#90A4AE; font-size:10px; letter-spacing:3px; margin:0 0 2px 0;">REPORT ANALYSIS</p>
-        <h2 style="color:#1A237E; font-size:28px; font-weight:900; margin:0; line-height:1.2; letter-spacing:1px;">多维报告解析</h2>
-        <p style="color:#546E7A; font-size:13px; margin:3px 0 0 0;">家庭教育十维深度探查</p>
+<div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-30px; margin-bottom:15px; overflow:hidden; width:100%;">
+    <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043);"></div>
+    <div style="padding:10px 10px 8px 10px; text-align:center;">
+        <p style="color:#90A4AE; font-size:9px; letter-spacing:2px; margin:0; line-height:1;">REPORT ANALYSIS</p>
+        <h2 style="color:#1A237E; font-size:30px; font-weight:900; margin:2px 0; line-height:1.1;">多维报告解析</h2>
+        <p style="color:#546E7A; font-size:13px; margin:0; line-height:1; font-weight:500;">家庭教育十维深度探查</p>
     </div>
-    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; padding:12px 10px; margin:0 10px 15px 10px; border-radius:8px;">
+    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; padding:10px; margin:0 8px 12px 8px; border-radius:6px;">
         <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <tr>
-                <td style="text-align:left; padding-right:5px;">
-                    <p style="color:#E65100; font-size:14px; font-weight:bold; margin:0; line-height:1.4;">📸 截图保存此页</p>
-                    <p style="color:#F57C00; font-size:12px; font-weight:800; margin:2px 0 0 0; line-height:1.4;">1V1 咨询核心凭证</p>
+                <td style="text-align:left; vertical-align:middle;">
+                    <p style="color:#E65100; font-size:15px; font-weight:900; margin:0; line-height:1.2;">📸 截图保存此页</p>
+                    <p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0; line-height:1.2;">1V1 咨询核心凭证</p>
                 </td>
-                <td style="text-align:right; border-left:1px dashed #FFD54F; padding-left:10px; width:45%;">
-                    <p style="color:#90A4AE; font-size:11px; font-weight:700; margin:0; line-height:1.2;">报告编号</p>
-                    <p style="color:#1A237E; font-family:'Roboto Mono',monospace; font-size:20px; font-weight:900; margin:2px 0 0 0; line-height:1.2;">{st.session_state.rid}</p>
+                <td style="text-align:right; border-left:1px dashed #FFD54F; padding-left:10px; width:42%; vertical-align:middle;">
+                    <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0; line-height:1;">报告编号</p>
+                    <p style="color:#1A237E; font-family:'Roboto Mono',monospace; font-size:22px; font-weight:900; margin:2px 0 0 0; line-height:1;">{st.session_state.rid}</p>
                 </td>
             </tr>
         </table>
     </div>
 </div>
 """, unsafe_allow_html=True)
-    
-    # --- 2. 强化版截屏提醒 (保留原有警示功能，视觉更高级) ---
-    st.markdown(f"""
-        <div style="background:#FFEBEE; border:1px solid #FFCDD2; padding:15px; border-radius:12px; text-align:center; margin-bottom:20px;">
-            <p style="color:#C62828; font-weight:bold; font-size:15px; margin:0;">
-                📸 请【截屏保存】本页结果
-            </p>
-            <p style="color:#D32F2F; font-size:13px; margin:5px 0 0 0; opacity:0.9;">
-                专属报告编号：<span style="font-family:monospace; font-weight:900; font-size:16px;">{st.session_state.rid}</span>
-            </p>
-            <p style="color:#D32F2F; font-size:12px; margin-top:4px;">
-                ( 预约 1V1 咨询时请主动出示此截屏 )
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
