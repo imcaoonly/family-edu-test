@@ -636,9 +636,14 @@ elif st.session_state.step == 'report':
         👉 立即预约 · 开启家庭重塑
     </a>
     
-    <p style="color:#90A4AE; font-size:11px; margin-top:15px; line-height:1.4;">
-        * 点击无反应请截屏保存此页，微信扫码添加<br>
-        曹校长亲自解读，名额稀缺，添加后请发送编号
+    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" 
+       style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold;">
+        直接点击预约 (若无效请扫码)
+    </a>
+
+    <p style="color:#90A4AE; font-size:11px; margin-top:15px; line-height: 1.5;">
+        * 曹校长亲自解读，名额稀缺<br>
+        * 若点击无反应，请<b>截屏保存二维码</b>到微信扫码
     </p>
 </div>
 """, unsafe_allow_html=True)
