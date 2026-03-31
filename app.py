@@ -368,18 +368,15 @@ elif st.session_state.step == 'quiz':
                 st.warning("⚠️ 请至少选择一个选项后再继续。")
             else:
                 st.session_state.ans[cur] = user_input
-                if cur == 84: # 第 85 题提交
-                    try:
-                        report_payload = prepare_report_data()
-                        # 改用新的 API 写入函数
-                        send_to_feishu_bitable(report_payload)
-                    except Exception as e:
-                        print(f"写入失败: {e}") 
-                    
-                    st.session_state.step = 'report'
-                else:
-                    st.session_state.cur += 1
-                st.rerun()
+               if cur == 84:
+            with st.spinner('正在为您生成深度解析报告...'): # 增加加载动画
+                try:
+                    report_payload = prepare_report_data()
+                    send_to_feishu_bitable(report_payload)
+                except Exception as e:
+                    st.error(f"数据保存失败，但不影响查看结果。错误: {e}") 
+            st.session_state.step = 'report'
+            st.rerun()
             
     # 底部导航
     if cur > 0:
