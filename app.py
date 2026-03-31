@@ -386,7 +386,7 @@ elif st.session_state.step == 'quiz':
 
     # --- 逻辑分水岭：1-78题 为程度选择 ---
     if cur < 78:
-        opts = [("0 (从不)", 0), ("1 (偶尔)", 1), ("2 (经常)", 2), ("3 (总是)", 3)]
+        opts = [("0 (从不)", 0), ("2 (经常)", 2), ("1 (偶尔)", 1), ("3 (总是)", 3)]
         cols = st.columns(2)
         for i, (txt, val) in enumerate(opts):
             with (cols[0] if i % 2 == 0 else cols[1]):
