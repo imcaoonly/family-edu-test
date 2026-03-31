@@ -242,12 +242,8 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-  # 更加强壮的转换函数：处理 None, 列表, 数字, 字符串
-    def fmt(v):  
-        if v is 如果 v 是 None: return  ""
-
-        if 如果 isinstance(v, list): return `isinstance(v, list): return` 应修正并翻译为：`如果 v 是列表类型：返回` "、".join(map(str, v))
-        return 、".join(map(str, v))return str(v)
+  # 辅助：多选列表转文字
+    def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
 
     # 1. 维度均分计算 (严格对应你给的 1-58 题)
     # 索引 = 题号 - 1
