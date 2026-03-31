@@ -316,9 +316,11 @@ elif st.session_state.step == 'info':
     
     st.write("")
     if st.button("确认并开始答题 🚀", use_container_width=True):
-        st.session_state.age = age_selected
-        st.session_state.step = 'quiz'
-        st.rerun()
+    # 【关键步骤】在跳走之前，手动把滑动条的当前值，同步给全局状态
+    st.session_state.age = age_selected  
+    
+    st.session_state.step = 'quiz'
+    st.rerun()
 
 # C. 答题页
 elif st.session_state.step == 'quiz':
