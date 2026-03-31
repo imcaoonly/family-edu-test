@@ -504,9 +504,40 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- 标题部分 ---
-    st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>多维报告解析</h2>", unsafe_allow_html=True)
-    st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
+    # --- 1. 专业报告封面头部 ---
+    st.markdown(f"""
+        <div style="text-align:center; padding: 20px 0 10px 0; background: linear-gradient(to bottom, #F5F7FF, #FFFFFF); border-radius: 20px;">
+            <div style="display:inline-block; padding:4px 12px; background:rgba(26,35,126,0.08); border-radius:20px; color:#1A237E; font-size:11px; font-weight:bold; letter-spacing:1px; margin-bottom:12px;">
+                CONFIDENTIAL | 家庭教育十维深度探查
+            </div>
+            
+            <h2 style="color:#1A237E; font-size:24px; font-weight:900; margin:0; letter-spacing:1px;">
+                数字化家庭评估报告
+            </h2>
+            
+            <div style="margin: 12px 0; display: flex; justify-content: center; gap: 15px; color: #78909C; font-size: 13px;">
+                <span>编号：{st.session_state.rid}</span>
+                <span>|</span>
+                <span>时间：{pd.Timestamp.now().strftime('%Y-%m-%d')}</span>
+            </div>
+            
+            <div style="width:50px; height:3px; background:#FF7043; margin:10px auto; border-radius:2px;"></div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # --- 2. 强化版截屏提醒 (仪式感的核心：像一张门票或凭证) ---
+    st.markdown(f"""
+        <div style="background:#FFF9C4; border:1px dashed #FBC02D; padding:15px; border-radius:15px; text-align:center; margin-bottom:25px; position:relative; overflow:hidden;">
+            <div style="position:absolute; right:-10px; top:-10px; font-size:40px; opacity:0.1; transform:rotate(-20deg);">📸</div>
+            
+            <p style="color:#E65100; font-weight:bold; font-size:15px; margin:0; display:flex; align-items:center; justify-content:center;">
+                <span style="margin-right:8px;">⚠️</span> 建议立即【截屏保存】本页结果
+            </p>
+            <p style="color:#F57C00; font-size:13px; margin:5px 0 0 0;">
+                此编号 <b>{st.session_state.rid}</b> 及雷达图将作为 1V1 咨询的核心凭证
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
