@@ -307,16 +307,18 @@ elif st.session_state.step == 'info':
     
     st.markdown("<p style='font-size:18px; font-weight:600; color:#263238;'>请选择孩子的周岁年龄：</p>", unsafe_allow_html=True)
     
-    # 按照指南要求：1-25周岁滑动条
-    age_selected = st.slider("", 1, 25, st.session_state.age, help="请滑动选择孩子目前的周岁年龄")
+    # --- 核心改进点：直接使用 key="age" 绑定 ---
+    # 这样用户滑动滑块时，st.session_state.age 会实时变成滑动的值
+    st.slider("", 1, 25, key="age", help="请滑动选择孩子目前的周岁年龄")
     
-    st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{age_selected} 周岁</div>", unsafe_allow_html=True)
+    # 这里直接读取绑定后的值显示即可
+    st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{st.session_state.age} 周岁</div>", unsafe_allow_html=True)
     
     st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
     
     st.write("")
+    # 点击按钮只负责切换页面，不需要再手动赋值了
     if st.button("确认并开始答题 🚀", use_container_width=True):
-        st.session_state.age = age_selected
         st.session_state.step = 'quiz'
         st.rerun()
 
