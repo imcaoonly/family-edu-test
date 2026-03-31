@@ -615,15 +615,15 @@ elif st.session_state.step == 'report':
         <span style="color:#FF7043;">让我们一起对症下药。</span>
     </p>
     <div style="text-align:left; margin:15px 0; background:#F8F9FA; padding:15px; border-radius:15px; border:1px solid #EEE;">
-        <p style="margin:0 0 10px 0; font-weight:bold; color:#1A237E; font-size:15px;">添加微信预约曹校长：</p>
-        <p style="margin:6px 0; color:#455A64; font-size:14px;">
-            <b style="color:#FF7043;">✓</b> 10个维度<b style="color:#FF7043;"> 个性化 </b>改善方案
+        <p style="margin:0 0 10px 0; font-weight:bold; color:#1A237E; font-size:18px;">添加微信预约曹校长：</p>
+        <p style="margin:6px 0; color:#455A64; font-size:16px;">
+            <b style="color:#C62828; font-weight:bold;">✓</b> 10个维度<b style="color:#FF7043;"> 个性化 </b>改善方案
         </p>
-        <p style="margin:6px 0; color:#455A64; font-size:14px;">
-            <b style="color:#FF7043;">✓</b> 30分钟<b style="color:#FF7043;"> 1V1 </b>深度视频解析
+        <p style="margin:6px 0; color:#455A64; font-size:16px;">
+            <b style="color:#C62828; font-weight:bold;">✓</b> 30分钟<b style="color:#FF7043;"> 1V1 </b>深度视频解析
         </p>
-        <p style="margin:6px 0; color:#455A64; font-size:14px;">
-            <b style="color:#FF7043;">✓</b> <b style="color:#FF7043;">特惠 198 元</b> <span style="text-decoration:line-through; font-size:11px; color:#90A4AE;">(原价 598)</span>
+        <p style="margin:6px 0; color:#455A64; font-size:16px;">
+            <b style="color:#C62828;font-weight:bold;">✓</b> <b style="color:#FF7043;">特惠 198 元</b> <span style="text-decoration:line-through; font-size:16px; color:#90A4AE;">(原价 598)</span>
         </p>
     </div>
     <div style="margin-bottom:20px;">
