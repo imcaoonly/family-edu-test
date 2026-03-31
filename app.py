@@ -242,30 +242,32 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-    # 定义内部转换逻辑
-    def fmt(val): 
-        if val is 如果值为 None:
-            return  ""
+# 辅助转换：把多选列表 ['ADHD', '其他'] 转成字符串 "ADHD、其他"
+    def fmt(v):  
+        if v is 如果 v 是 None: return  ""
 
-        if 如果 isinstance(val, list):
-            return 判断 val 是否为列表：返回 ",".join(map(str, val))
-        return ,".join(map(str, val))return str(val)
+        return 返回 "、".join(map(str, v)) if 、".join(map(str, v)) if isinstance(v, list) else 如果不是列表类型则返回
+str(v) str(v)
 
-    # 1. 计算六大维度均分
-    sys_avg = round(sum(int(ans.get(i, 0)) for i in range(0, 8)) / 8, 2)
-    par_avg = round(sum(int(ans.get(i, 0)) for i in range(8, 18)) / 10, 2)
-    rel_avg = round(sum(int(ans.get(i, 0)) for i in range(18, 28)) / 10, 2)
-    pow_avg = round(sum(int(ans.get(i, 0)) for i in range(28, 37)) / 9, 2)
-    stu_avg = round(sum(int(ans.get(i, 0)) for i in range(37, 48)) / 11, 2)
-    soc_avg = round(sum(int(ans.get(i, 0)) for i in range(48, 58)) / 10, 2)
+    # 1. 维度均分计算 (严格对应你给的 1-58 题)
+    # 索引 = 题号 - 1
+    sys_avg = round(sum(int(ans.get(i,0)) for i in range(0, 8)) / 8, 2)    # 1-8题
+    par_avg = round(sum(int(ans.get(i,0)) for i in range(8, 18)) / 10, 2)  # 9-18题
+    rel_avg = round(sum(int(ans.get(i,0)) for i in range(18, 28)) / 10, 2) # 19-28题
+    pow_avg = round(sum(int(ans.get(i,0)) for i in range(28, 37)) / 9, 2)  # 29-37题
+    stu_avg = round(sum(int(ans.get(i,0)) for i in range(37, 48)) / 11, 2) # 38-48题
+    soc_avg = round(sum(int(ans.get(i,0)) for i in range(48, 58)) / 10, 2) # 49-58题
 
-    # 2. 预警逻辑判断
-    emo_risk = "🚩 红色警报" if 如果 any(int(ans.get(i, 0)) == 3 any（int（ans. get（i，0））==3 for i in 对于i range(58, 66)) else  "正常"
-    adhd_risk = "🟠 注意受损"  if 如果 sum(int(ans.get(i, 0)) for i in  range(66, 72)) / 6 > 1.5  else 否则 "正常"
-    body_risk = "🔵 生理负荷"  if 如果 sum(int(ans.get(i, 0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "正常"  
+    # 2. 预警逻辑 (严格对应 59-78 题) 
+    # 情绪预警 (59-66题) -> 对应索引 58-65
+    emo_risk = "🚩 红色警报" if 如果 any(int(ans.get(i,0)) == 3 any（int（ans. get（i，0））==3 for i in 为 i range(58, 66)) else  "正常" 
+    # 注意预警 (67-72题) -> 对应索引 66-71
+    adhd_risk = "🟠 注意受损" if 如果 sum(int(ans.get(i,0)) for i in 计算所有索引对应答案的整数之和 range(66, 72)) / 6 > 1.5  else 否则 "正常" 
+    # 身体预警 (73-78题) -> 对应索引 72-77
+    body_risk = "🔵 生理负荷" if 如果 sum(int(ans.get(i,0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "正常"
 
-    # 3. 组装最后的数据字典
-    res = {
+   # 3. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
+    return {
         "提交日期": datetime.now().strftime("%Y-%m-%d"),
         "提交时间": datetime.now().strftime("%H:%M:%S"),
         "编号": st.session_state.rid,
@@ -284,7 +286,6 @@ def prepare_report_data():
         "身体预警": body_risk,
         "原始凭证": ",".join(str(ans.get(i, "")) for i in range(85))
     }
-    return res
 
 # --- 5. 页面流程逻辑 ---
 
@@ -375,20 +376,18 @@ elif st.session_state.step == 'quiz':
                 st.warning("⚠️ 请至少选择一个选项后再继续。")
             else:
                 st.session_state.ans[cur] = user_input
-                if cur == 84: # 第 85 题提交 
-                    # 这里增加转圈等待提示 
-                    with st.spinner('正在为您生成解析报告，请稍候...'):
-                        try:
-                            report_payload = prepare_report_data()
-                            send_to_feishu_bitable(report_payload)
-                        except Exception as e:
-                            # 失败提示
-                            st.error("数据同步略有延迟。")
-                            st.warning("💡 请截屏保存报告结果。")
-                        
-                        # 无论成功失败，都跳入报告页
-                        st.session_state.step = 'report'
-                        st.rerun()
+                if cur == 84: # 第 85 题提交
+                    try:
+                        report_payload = prepare_report_data()
+                        # 改用新的 API 写入函数
+                        send_to_feishu_bitable(report_payload)
+                    except Exception as e:
+                        print(f"写入失败: {e}") 
+                    
+                    st.session_state.step = 'report'
+                else:
+                    st.session_state.cur += 1
+                st.rerun()
             
     # 底部导航
     if cur > 0:
