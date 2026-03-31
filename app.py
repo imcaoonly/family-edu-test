@@ -378,7 +378,7 @@ elif st.session_state.step == 'quiz':
                     st.session_state.step = 'report'
                     st.rerun() 
                 except Exception as e:
-                    st.error(f"数据同步暂时失败，但您可以先查看报告。错误: {e}")
+                    st.error(f"数据同步出错，但您可以先查看报告。错误: {e}")
                     st.session_state.step = 'report'
                     st.rerun()
                 else:
