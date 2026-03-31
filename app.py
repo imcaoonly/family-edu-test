@@ -518,8 +518,31 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- 1. 终极校准：强制重置对齐与间距 (带印章优化版) ---
+    这种情况通常是因为在 st.markdown 的字符串中使用了 Python 的 f-string (f"""...""")，但字符串内部的 CSS 样式代码也含有大括号 {}。
+
+Python 会误把 CSS 的 { color: red; } 当成变量去解析，解析失败就会直接把源码暴露在页面上，或者报错。
+
+核心解决方案：双大括号转义
+在 f-string 中，如果要显示 CSS 的大括号，必须用 双大括号 {{ 和 }} 包起来。我已经为你处理好了，请直接替换 step == 'report' 下的这一段：
+
+Python
+    # --- 1. 终极校准：已处理大括号转义，防止代码外露 ---
     st.markdown(f"""
+<style>
+    .seal-box {{
+        border: 2px solid #C62828;
+        color: #C62828;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 900;
+        transform: rotate(-8deg); 
+        display: inline-block;
+        margin-bottom: 15px;
+        background: rgba(198, 40, 40, 0.03);
+    }}
+</style>
+
 <div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
