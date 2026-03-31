@@ -355,24 +355,22 @@ elif st.session_state.step == 'info':
     
     st.markdown("<p style='font-size:18px; font-weight:600; color:#263238;'>请选择孩子的周岁年龄：</p>", unsafe_allow_html=True)
     
-    # --- 修复点：显式设置 value=st.session_state.age ---
-    # 这样滑块在加载的一瞬间，就会根据初始化的 7 自动停在 7 的位置
-    st.slider(
+    # --- 核心修改：将滑块的值直接赋给 session_state.age ---
+    st.session_state.age = st.slider(
         label="", 
         min_value=1, 
         max_value=25, 
-        value=st.session_state.age, # 强制滑块初始位置与状态一致
-        key="age", 
+        value=st.session_state.age, 
+        key="age_input", # 换一个 key 名，避免与变量名直接冲突
         help="请滑动选择孩子目前的周岁年龄"
     )
     
-    # 这里直接读取绑定后的值显示即可
+    # 这里的显示会自动随滑动而变化
     st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{st.session_state.age} 周岁</div>", unsafe_allow_html=True)
     
     st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
     
     st.write("")
-    # 点击按钮只负责切换页面，不需要再手动赋值了
     if st.button("确认并开始答题 🚀", use_container_width=True):
         st.session_state.step = 'quiz'
         st.rerun()
