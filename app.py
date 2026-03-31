@@ -502,73 +502,37 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (终极兼容版：彻底杜绝源码泄露) ---
+# D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # 1. 准备数据：确保编号是纯字符串
-    report_id_str = str(st.session_state.rid)
-
-    # 2. 渲染样式：使用纯字符串，绝对不要在前面加 f
-    # 这样 Python 就不会去解析里面的大括号 {}
-    st.markdown("""
-        <style>
-        .report-header-box {
-            background:#FFFFFF; border-radius:12px; 
-            box-shadow:0 4px 15px rgba(0,0,0,0.05); 
-            border:1px solid #ECEFF1; margin-top:-60px; 
-            margin-bottom:20px; overflow:hidden; width:100%;
-        }
-        .seal-box {
-            border: 2px solid #C62828 !important;
-            color: #C62828 !important;
-            padding: 4px 12px !important;
-            border-radius: 6px !important;
-            font-size: 14px !important;
-            font-weight: 900 !important;
-            transform: rotate(-8deg); 
-            display: inline-block !important;
-            margin-bottom: 15px !important;
-            background: rgba(198, 40, 40, 0.03) !important;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-    # 3. 编写 HTML 模板：使用一个独特的占位符 [ID_HERE]
-    # 同样，这里前面绝对不要加 f
-    report_tpl = """
-<div class="report-header-box">
-    <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
-    
-    <div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <div class="seal-box">系统认证·唯一凭证</div>
-        <div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
-        <div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%;">多维报告解析</div>
-        <div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
-    </div>
-
-    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center;">
-        <table style="width:100%; border-collapse:collapse; border:none; margin:0;">
-            <tr style="border:none;">
-                <td style="width:55%; padding-left:15px; text-align:left; vertical-align:middle; border:none;">
-                    <div style="line-height:1.4;">
-                        <p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
-                        <p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
-                    </div>
-                </td>
-                <td style="width:1px; border-left:1px dashed #FFD54F; height:50px; padding:0;"></td>
-                <td style="width:40%; padding-right:15px; text-align:right; vertical-align:middle; border:none;">
-                    <div style="line-height:1.2;">
-                        <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">[ID_HERE]</p>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+    # --- 1. 终极校准：强制重置对齐与间距 (解决代码外露) ---
+    st.markdown(f"""
+<div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
+<div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
+<div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+<div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
+<div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div>
+<div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
 </div>
-"""
-    # 4. 手动替换占位符并输出
-    # 这样规避了所有可能导致渲染失败的语法冲突
-    st.markdown(report_tpl.replace("[ID_HERE]", report_id_str), unsafe_allow_html=True)
+<div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center; justify-content:center;">
+<table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;">
+<tr style="border:none; vertical-align:middle;">
+<td style="padding-left:15px; text-align:left; vertical-align:middle; border:none;">
+<div style="line-height:1.4;">
+<p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
+<p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
+</div>
+</td>
+<td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;">
+<div style="line-height:1.2;">
+<p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
+<p style="color:#1A237E; font-family:monospace; font-size:24px; font-weight:900; margin:2px 0 0 0;">{st.session_state.rid}</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+""", unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
