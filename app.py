@@ -504,9 +504,33 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- 标题部分 ---
-    st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>多维报告解析</h2>", unsafe_allow_html=True)
-    st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
+    # --- 1. 报告页头部 (回归业务逻辑：多维报告解析) ---
+    st.markdown(f"""
+        <div style="text-align:center; padding: 15px 0 5px 0;">
+            <h2 style="color:#1A237E; font-size:24px; font-weight:900; margin:0; letter-spacing:1.5px;">
+                多维报告解析
+            </h2>
+            <p style="color:#546E7A; font-size:14px; margin-top:8px; font-weight:500;">
+                家庭教育十维深度探查 · 专属评估结果
+            </p>
+            <div style="width:40px; height:3px; background:#FF7043; margin:12px auto; border-radius:2px;"></div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # --- 2. 强化版截屏提醒 (保留原有警示功能，视觉更高级) ---
+    st.markdown(f"""
+        <div style="background:#FFEBEE; border:1px solid #FFCDD2; padding:15px; border-radius:12px; text-align:center; margin-bottom:20px;">
+            <p style="color:#C62828; font-weight:bold; font-size:15px; margin:0;">
+                📸 请【截屏保存】本页结果
+            </p>
+            <p style="color:#D32F2F; font-size:13px; margin:5px 0 0 0; opacity:0.9;">
+                专属报告编号：<span style="font-family:monospace; font-weight:900; font-size:16px;">{st.session_state.rid}</span>
+            </p>
+            <p style="color:#D32F2F; font-size:12px; margin-top:4px;">
+                ( 预约 1V1 咨询时请主动出示此截屏 )
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
