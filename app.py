@@ -253,10 +253,44 @@ def prepare_report_data():
     stu_avg = round(sum(ans.get(i,0) for i in range(37, 48)) / 11, 2)
     soc_avg = round(sum(ans.get(i,0) for i in range(48, 58)) / 10, 2)
 
-    # 2. 预警逻辑 (严格对应图片中的“情绪/注意/身体”预警)
-    emo_risk = "🚩 红色警报" if any(ans.get(i,0) == 3 for i in range(58, 66)) else "正常"
-    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(66, 72)) / 6 > 1.5 else "正常"
-    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(72, 78)) / 6 > 1.5 else "正常"
+    # --- 2. 预警逻辑重构 (针对红线题 61, 62 优化) ---
+    
+    # 【情绪状态预警】 (对应 59-66 题，索引 58-65)
+    emo_range = range(58, 66)
+    emo_score = sum(ans.get(i, 0) for i in emo_range)
+    emo_max = len(emo_range) * 3  # 总分 24
+    
+    # --- 核心红线拦截 ---
+    # 第 61 题索引为 60，第 62 题索引为 61
+    negative_worldview = ans.get(60, 0) >= 2  # 消极厌世
+    self_harm_intent = ans.get(61, 0) >= 2    # 自伤倾向
+    
+    # 触发条件：红线触发 OR 任意一题3分 OR 总分超过60%
+    if negative_worldview or self_harm_intent:
+        emo_risk = "🚨 极高风险 (敏感指标)"
+    elif any(ans.get(i, 0) == 3 for i in emo_range) or (emo_score / emo_max > 0.6):
+        emo_risk = "🚩 情绪预警"
+    else:
+        emo_risk = "正常"
+
+    # 【注意状态预警】 (对应 67-72 题，索引 66-71)
+    att_range = range(66, 72)
+    att_score = sum(ans.get(i, 0) for i in att_range)
+    att_max = len(att_range) * 3  # 总分 18
+    
+    # 触发条件：任意一题3分 OR 总分超过60%
+    if any(ans.get(i, 0) == 3 for i in att_range) or (att_score / att_max > 0.6):
+        adhd_risk = "🟠 注意受损"
+    else:
+        adhd_risk = "正常"
+
+    # 【身体状态预警】 (对应 73-78 题，索引 72-77)
+    # 触发条件：均分 > 1.5
+    body_range = range(72, 78)
+    body_scores = [ans.get(i, 0) for i in body_range]
+    body_avg = sum(body_scores) / len(body_scores) if body_scores else 0
+    
+    body_risk = "🔵 生理负荷" if body_avg > 1.5 else "正常"
 
    # 3. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
     return {
