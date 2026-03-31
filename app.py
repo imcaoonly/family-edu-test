@@ -314,7 +314,7 @@ elif st.session_state.step == 'info':
     
     st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
     
-     st.write("")
+    st.write("")
     if st.button("确认并开始答题 🚀", use_container_width=True):
         st.session_state.age = age_selected
         st.session_state.step = 'quiz'
