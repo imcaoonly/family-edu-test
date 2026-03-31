@@ -11,21 +11,31 @@ def send_to_feishu(payload):
     headers = {"Content-Type": "application/json"}
     
     # 构造飞书卡片格式，包含关键词“报告”
-    data = {
-        "msg_type": "post",
-        "content": {
-            "post": {
-                "zh_cn": {
-                    "title": "新的系统测评报告提交", # 必须含关键词：报告
-                    "content": [[{"tag": "text", "text": json.dumps(payload, ensure_ascii=False)}]]
-                }
-            }
-        }
-    }
+   # --- 替换为你的真实数据 ---
+    APP_ID = "cli_a941cc514b639bcd" 
+    APP_SECRET = "7tjJzFqaSY0fyh2GDNCjPgD12NWYnw4b"
+    APP_TOKEN = "UKsvb9YQEajaYTsEjHmcq1CEnqh"
+    TABLE_ID = "tblp77Ua52JtkEaX"
+    # -----------------------
+
     try:
-        requests.post(webhook_url, json=data, timeout=10)
+        # 获取 Token
+        token_url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+        token_res = requests.post(token_url, json={"app_id": APP_ID, "app_secret": APP_SECRET}, timeout=10)
+        token = token_res.json().get("tenant_access_token")
+
+        if token:
+            # 写入 API
+            write_url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json; charset=utf-8"
+            }
+            # 这里的 payload 就是下面 prepare_report_data 返回的字典
+            data = {"fields": payload}
+            requests.post(write_url, headers=headers, json=data, timeout=15)
     except:
-        pass # 静默处理，不影响用户体验
+        pass
 
 # --- 1. UI 深度定制：首页高度优化版 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
@@ -225,8 +235,10 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-    # 辅助：多选列表转文字
+   # 辅助函数：把列表转为字符串
     def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
+    
+    now = datetime.now()
 
     # 1. 计算维度分 (1-78题)
     sys_avg = round(sum(ans.get(i,0) for i in range(8))/8, 2)
@@ -242,7 +254,9 @@ def prepare_report_data():
     body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(77,83))/6 > 1.5 else "正常"
 
     # 3. 封装 14 个字段
-    return {
+return {
+        "提交日期": now.strftime("%Y-%m-%d"),
+        "提交时间": now.strftime("%H:%M:%S"),
         "编号": st.session_state.rid,
         "来源渠道": st.session_state.source,
         "年龄": f"{st.session_state.age}岁",
@@ -257,8 +271,7 @@ def prepare_report_data():
         "情绪预警": emo_risk,
         "注意预警": adhd_risk,
         "身体预警": body_risk,
-        "原始凭证": ",".join(str(ans.get(i,"")) for i in range(85)),
-        "提交时间": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "原始凭证": ",".join(str(ans.get(i, "")) for i in range(85))
     }
 
 # --- 5. 页面流程逻辑 ---
