@@ -504,26 +504,9 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- 1. 专业报告封面头部 ---
-    st.markdown(f"""
-        <div style="text-align:center; padding: 20px 0 10px 0; background: linear-gradient(to bottom, #F5F7FF, #FFFFFF); border-radius: 20px;">
-            <div style="display:inline-block; padding:4px 12px; background:rgba(26,35,126,0.08); border-radius:20px; color:#1A237E; font-size:11px; font-weight:bold; letter-spacing:1px; margin-bottom:12px;">
-                CONFIDENTIAL | 家庭教育十维深度探查
-            </div>
-            
-            <h2 style="color:#1A237E; font-size:24px; font-weight:900; margin:0; letter-spacing:1px;">
-                数字化家庭评估报告
-            </h2>
-            
-            <div style="margin: 12px 0; display: flex; justify-content: center; gap: 15px; color: #78909C; font-size: 13px;">
-                <span>编号：{st.session_state.rid}</span>
-                <span>|</span>
-                <span>时间：{pd.Timestamp.now().strftime('%Y-%m-%d')}</span>
-            </div>
-            
-            <div style="width:50px; height:3px; background:#FF7043; margin:10px auto; border-radius:2px;"></div>
-        </div>
-    """, unsafe_allow_html=True)
+    # --- 标题部分 ---
+    st.markdown("<h2 style='text-align:center; color:#000000; font-weight:900; margin-bottom:8px;'>多维报告解析</h2>", unsafe_allow_html=True)
+    st.markdown("<div style='color:#C62828; font-weight:bold; background:#FFEBEE; padding:12px; border-radius:10px; text-align:center; margin-bottom:20px; font-size:14px;'>📸 请【截屏保存】本页结果，作为咨询凭证。</div>", unsafe_allow_html=True)
 
     # --- 2. 强化版截屏提醒 (仪式感的核心：像一张门票或凭证) ---
     st.markdown(f"""
