@@ -606,12 +606,14 @@ elif st.session_state.step == 'report':
 
     # --- 5. 微信转化区域 (全兼容纯净版) ---
         
-    # 1. 直接定义完整的 Data URI（包含你粘贴的那长串）
-    # 注意：确保这一行在 elif 内部，且缩进正确
-    qr_data_uri = """data:image/png;base64,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)""".replace('\n', '').strip()
-    
-    # 第一部分：顶部到按钮和提示语
-    html_part1 = """
+    # 1. 你的 Data URI 字符串（请确保这里的内容是完整的）
+    qr_data_uri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMCAYAAADJOZVK..." # 此处省略，实际请保持完整
+
+    # 获取 ID
+    rid_val = str(st.session_state.get('rid', '888888'))
+
+    # 构造完整的 HTML
+    full_html = f"""
     <div style="border:2px solid #E8EAF6; background:#FFFFFF; padding:20px; border-radius:20px; box-shadow:0 12px 40px rgba(26,35,126,0.12); text-align:center; margin:10px 0;">
     <div style="background:#FFF5F2; display:inline-block; padding:4px 15px; border-radius:20px; color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:15px;">
         🎯 深度干预建议 · 预约通道
@@ -628,34 +630,27 @@ elif st.session_state.step == 'report':
     <div style="margin-bottom:20px;">
         <p style="color:#546E7A; font-size:12px; margin-bottom:8px;">您的专属报告编号：</p>
         <div style="background:#FFF9C4; border:2px dashed #FBC02D; font-size:30px; font-weight:900; color:#E65100; padding:10px 20px; border-radius:12px; display:inline-block;">
-"""
-
-    # 第二部分：编号、按钮、小贴士
-    # 这里手动拼入 rid
-    rid_val = str(st.session_state.rid)
-    html_part2 = """
+            {rid_val}
         </div>
     </div>
-    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold; -webkit-tap-highlight-color: transparent;">
+    
+    <img src="{qr_data_uri}" style="width:180px; height:180px; display:block; margin:20px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); border: 1px solid #eee;">
+    
+    <p style="color:#FF7043; font-size:14px; font-weight:bold; margin-top:-10px; margin-bottom:20px;">↑ 长按识别二维码 ↑</p>
+
+    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold;">
         👉 点击预约 · 开启家庭重塑
     </a>
+    
     <p style="color:#90A4AE; font-size:11px; margin-top:12px; line-height:1.5;">
         * 曹校长亲自解读，名额稀缺，添加后请发送编号<br>
-        * 若点击按钮无反应，请长按二维码识别或截屏扫码
+        * 若点击按钮无反应，请截屏后在微信扫码识别
     </p>
+</div>
 """
 
-    # 第三部分：二维码图片
-    img_html = f'<img src="{qr_data_uri}" style="width:160px; height:160px; display:block; margin:15px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
-
-    # 第四部分：页脚文字和闭合
-    html_part3 = """
-    <p style="color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:5px;">↑ 长按上方二维码识别 ↑</p>
-    </div>
-    """
-
-    # 最终渲染：用加号拼接，绝对不报语法错
-    st.markdown(html_part1 + rid_val + html_part2 + img_html + html_part3, unsafe_allow_html=True)
+    # 一次性渲染
+    st.markdown(full_html, unsafe_allow_html=True)
 
     # --- 6. 底部重置按钮 ---
     st.write("") 
