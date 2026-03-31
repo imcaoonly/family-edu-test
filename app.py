@@ -387,26 +387,60 @@ elif st.session_state.step == 'info':
 # C. 答题页
 elif st.session_state.step == 'quiz':
     cur = st.session_state.cur
+
+    # 1. 定义动态文案字典 (建议放在这，或者放在代码最顶部的配置区)
+    LOGIC_MAP = {
+        0:  "🔍 正在开始家庭根基扫描...", 
+        8:  "⚡ 正在评估家长能量状态...", 
+        18: "🔗 正在剖析亲子链接密度...", 
+        28: "🚀 正在触达底层动力核心...", 
+        37: "📚 正在测算学习功能损耗...", 
+        48: "🤝 正在评估社会化适应能力...", 
+        58: "🌊 正在监测情绪安全水平...", 
+        66: "🧠 正在解析大脑注意模型...", 
+        72: "🍎 正在追溯生理代谢底层...", 
+        78: "🎯 正在匹配深入解析方向..."
+    }
+
+    # 2. 匹配当前文案
+    current_status = "📝 正在录入测评数据..."
+    for start_idx in sorted(LOGIC_MAP.keys(), reverse=True):
+        if cur >= start_idx:
+            current_status = LOGIC_MAP[start_idx]
+            break
+
+    # 3. 渲染美化后的动态进度条区域
+    col_status, col_pct = st.columns([3, 1])
+    with col_status:
+        st.markdown(f"""
+            <div style='font-size: 14px; color: #1A237E; font-weight: 600; margin-bottom: -5px;'>
+                {current_status}
+            </div>
+        """, unsafe_allow_html=True)
+    with col_pct:
+        st.markdown(f"""
+            <div style='font-size: 12px; color: #90A4AE; text-align: right; margin-bottom: -5px;'>
+                已分析 {round((cur + 1) / 85 * 100)}%
+            </div>
+        """, unsafe_allow_html=True)
+
     st.progress((cur + 1) / 85)
+
+    # 4. 显示题目文本 (保持你原有的 q-text 样式)
     q_text = QUESTIONS[cur]
     st.markdown(f"<div class='q-text'>{cur+1}. {q_text}</div>", unsafe_allow_html=True)
 
-    # --- 逻辑分水岭：1-78题 为程度选择 ---
+    # --- 以下保持你原有的按钮逻辑不变 ---
     if cur < 78:
         opts = [("0 (从不)", 0), ("2 (经常)", 2), ("1 (偶尔)", 1), ("3 (总是)", 3)]
         cols = st.columns(2)
         for i, (txt, val) in enumerate(opts):
             with (cols[0] if i % 2 == 0 else cols[1]):
-                # 为每个按钮设置唯一 key
                 if st.button(txt, key=f"q_{cur}_{i}", use_container_width=True):
-                    # 1. 尝试记录当前题
                     st.session_state.ans[cur] = val
-                    
-                    # 2. 核心校验：如果当前题号 cur 不在 ans 字典里，说明记录失败
                     if cur not in st.session_state.ans:
                         st.error("⚠️ 上一题未记录，请点击“上一题”重新作答。")
                     else:
-                        # 记录成功，丝滑进入下一题
                         st.session_state.cur += 1
                         st.rerun()
 
