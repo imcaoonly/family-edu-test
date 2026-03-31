@@ -363,24 +363,20 @@ elif st.session_state.step == 'quiz':
         st.write("")
         
        # --- 2. 增加必选拦截逻辑 ---
-       if st.button(btn_label, use_container_width=True):
-    if not user_input:
-        st.warning("⚠️ 请至少选择一个选项后再继续。")
-    else:
-        st.session_state.ans[cur] = user_input
-        
-        if cur == 84:  # 第 85 题提交
-            with st.spinner('🚀 正在同步数据并生成深度报告...'):
-                try:
-                    report_payload = prepare_report_data()
-                    send_to_feishu_bitable(report_payload)
-                    # 只有写入成功或尝试过后才跳转
+        if st.button(btn_label, use_container_width=True):
+            if not user_input:
+                st.warning("⚠️ 请至少选择一个选项后再继续。")
+            else:
+                st.session_state.ans[cur] = user_input
+                if cur == 84: # 第 85 题提交
+                    try:
+                        report_payload = prepare_report_data()
+                        # 改用新的 API 写入函数
+                        send_to_feishu_bitable(report_payload)
+                    except Exception as e:
+                        print(f"写入失败: {e}") 
+                    
                     st.session_state.step = 'report'
-                    st.rerun() 
-                except Exception as e:
-                    st.error(f"数据同步出错，但您可以先查看报告。错误: {e}")
-                    st.session_state.step = 'report'
-                    st.rerun()
                 else:
                     st.session_state.cur += 1
                 st.rerun()
