@@ -502,17 +502,18 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (视觉强化+避错版) ---
+# --- D. 结果报告页逻辑 (硬核兼容版：保住印章+拒绝乱码) ---
 elif st.session_state.step == 'report':
-    # 1. 确保变量准备好
+    # 1. 先把编号拿出来备用
     report_rid = str(st.session_state.rid)
 
-    # 2. 直接渲染 HTML (所有样式内联，彻底杜绝报错)
-    st.markdown(f"""
+    # 2. 定义纯 HTML 模板 (注意：前面没有 f)
+    # [ID_HOLDER] 是我们自定义的占位符
+    report_html = """
 <div style="background:#FFFFFF; border-radius:16px; box-shadow:0 10px 30px rgba(26,35,126,0.08); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:25px; overflow:hidden; width:100%; position:relative;">
     <div style="height:6px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
-    <div style="position:absolute; top:15px; right:15px; border:2px solid #C62828; color:#C62828; padding:3px 8px; border-radius:4px; transform:rotate(15deg); font-size:10px; font-weight:900; opacity:0.8; letter-spacing:1px;">
+    <div style="position:absolute; top:18px; right:12px; border:2px solid #C62828; color:#C62828; padding:3px 10px; border-radius:4px; transform:rotate(12deg); font-size:11px; font-weight:900; opacity:0.8; letter-spacing:1px; background:rgba(198,40,40,0.02);">
         系统认证·唯一凭证
     </div>
 
@@ -534,14 +535,20 @@ elif st.session_state.step == 'report':
                 <td style="padding-right:18px; text-align:right; border-left:1.5px dashed #FFD54F; width:45%; vertical-align:middle; border:none;">
                     <div style="line-height:1.2;">
                         <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:3px 0 0 0; letter-spacing:1px;">{report_rid}</p>
+                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:3px 0 0 0; letter-spacing:1px;">[ID_HOLDER]</p>
                     </div>
                 </td>
             </tr>
         </table>
     </div>
 </div>
-""", unsafe_allow_html=True)
+"""
+    # 3. 关键一步：用 Python 的原生替换函数把 ID 塞进去
+    # 这样避开了 Streamlit 所有的语法解析坑
+    final_output = report_html.replace("[ID_HOLDER]", report_rid)
+    
+    # 4. 最终渲染
+    st.markdown(final_output, unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
