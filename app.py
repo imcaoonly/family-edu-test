@@ -640,6 +640,7 @@ elif st.session_state.step == 'report':
     </div>
     <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold; -webkit-tap-highlight-color: transparent;">
     👉 点击预约 · 开启家庭重塑
+    <p style="color:#90A4AE; font-size:11px;">* 若点击按钮无反应，请长按二维码识别或截屏扫码<br>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
     </a>
     """
     
@@ -648,7 +649,6 @@ elif st.session_state.step == 'report':
     
     html_bottom = """
     <p style="color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:15px;">↑ 长按上方二维码识别 ↑</p>
-    <p style="color:#90A4AE; font-size:11px;">* 若点击按钮无反应，请长按二维码识别或截屏扫码<br>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
 </div>
     """
 
