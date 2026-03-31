@@ -502,13 +502,13 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (无错加强版：保留印章 + 锁定对齐) ---
+# --- D. 结果报告页逻辑 (物理隔离版：解决源码外露) ---
 elif st.session_state.step == 'report':
-    # 1. 预先处理编号（转为字符串）
-    report_rid = str(st.session_state.rid)
+    # 1. 准备变量
+    current_rid = str(st.session_state.rid)
 
-    # 2. 定义样式表（注意：这里字符串前面没有 f，防止大括号报错）
-    report_css = """
+    # 2. 定义 CSS (纯字符串，不带 f，防止大括号冲突)
+    header_css = """
     <style>
     .report-header-box {
         background:#FFFFFF; border-radius:12px; 
@@ -527,12 +527,13 @@ elif st.session_state.step == 'report':
         display: inline-block !important;
         margin-bottom: 15px !important;
         background: rgba(198, 40, 40, 0.03) !important;
+        font-family: sans-serif;
     }
     </style>
     """
-    st.markdown(report_css, unsafe_allow_html=True)
+    st.markdown(header_css, unsafe_allow_html=True)
 
-    # 3. 定义 HTML 模板（使用 REPLACE_RID 作为占位符，不使用 f-string）
+    # 3. 定义 HTML 模板 (使用自定义占位符 @@RID@@，不带 f-string)
     html_template = """
 <div class="report-header-box">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
@@ -557,7 +558,7 @@ elif st.session_state.step == 'report':
                 <td style="width:40%; padding-right:15px; text-align:right; vertical-align:middle; border:none;">
                     <div style="line-height:1.2;">
                         <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">REPLACE_RID</p>
+                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">@@RID@@</p>
                     </div>
                 </td>
             </tr>
@@ -565,9 +566,9 @@ elif st.session_state.step == 'report':
     </div>
 </div>
 """
-    # 4. 手动注入变量并渲染
-    final_html = html_template.replace("REPLACE_RID", report_rid)
-    st.markdown(final_html, unsafe_allow_html=True)
+    # 4. 物理注入变量并渲染
+    # 这样 Python 就不会把 HTML 里的内容误认为代码了
+    st.markdown(html_template.replace("@@RID@@", current_rid), unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
