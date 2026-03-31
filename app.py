@@ -88,6 +88,20 @@ st.markdown("""
         justify-content: center;
     }
     
+    /* 模拟官方认证印章效果 */
+    .seal-box {
+        border: 2px solid #C62828;
+        color: #C62828;
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 900;
+        transform: rotate(-8deg); 
+        display: inline-block;
+        margin-bottom: 15px;
+        background: rgba(198, 40, 40, 0.03);
+    }
+    
     /* 三行标题：压缩间距 */
     .title-l1 { font-size: 14px; color: #90A4AE; font-weight: 500; margin-bottom: 4px; }
     .title-l2 { font-size: 32px; font-weight: 800; color: #1A237E; line-height: 1.1; margin-bottom: 2px; }
@@ -117,22 +131,6 @@ st.markdown("""
         color: white;
     }
     
-/* 模拟官方认证印章效果 */
-.seal-box {
-    border: 3px solid #C62828;
-    color: #C62828;
-    padding: 2px 10px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 900;
-    text-transform: uppercase;
-    transform: rotate(-10deg); /* 倾斜一点，更有盖章的真实感 */
-    display: inline-block;
-    margin-bottom: 10px;
-    background: rgba(198, 40, 40, 0.05);
-    box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-}
-
     /* 3. 关键修改：点击后及获得焦点时的状态 */
     /* 这里的 #FF7043 是你品牌色中的橙色，按下后会变成橙色且不再跳回蓝色 */
     div.stButton > button:focus, 
@@ -520,13 +518,13 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # 在 st.session_state.step == 'report' 逻辑下修改
-st.markdown(f"""
+    # --- 1. 终极校准：强制重置对齐与间距 (带印章优化版) ---
+    st.markdown(f"""
 <div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
     <div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <div class="seal-box">系统认证唯一凭证</div>
+        <div class="seal-box">系统认证·唯一凭证</div>
         
         <div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
         <div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div>
