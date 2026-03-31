@@ -116,6 +116,22 @@ st.markdown("""
         background-color: #0D47A1;
         color: white;
     }
+    
+/* 模拟官方认证印章效果 */
+.seal-box {
+    border: 3px solid #C62828;
+    color: #C62828;
+    padding: 2px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 900;
+    text-transform: uppercase;
+    transform: rotate(-10deg); /* 倾斜一点，更有盖章的真实感 */
+    display: inline-block;
+    margin-bottom: 10px;
+    background: rgba(198, 40, 40, 0.05);
+    box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
 
     /* 3. 关键修改：点击后及获得焦点时的状态 */
     /* 这里的 #FF7043 是你品牌色中的橙色，按下后会变成橙色且不再跳回蓝色 */
