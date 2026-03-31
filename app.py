@@ -607,8 +607,9 @@ elif st.session_state.step == 'report':
     """, unsafe_allow_html=True)
 
     # --- 5. 微信转化区域 (全兼容纯净版) ---
-    st.markdown(f"""
-<div style="border:2px solid #E8EAF6; background:#FFFFFF; padding:20px; border-radius:20px; box-shadow:0 12px 40px rgba(26,35,126,0.12); text-align:center; margin:10px 0;">
+    # 使用拼接法构建 HTML，防止 f-string 解析超长字符串报错
+    html_top = f"""
+    <div style="border:2px solid #E8EAF6; background:#FFFFFF; padding:20px; border-radius:20px; box-shadow:0 12px 40px rgba(26,35,126,0.12); text-align:center; margin:10px 0;">
     <div style="background:#FFF5F2; display:inline-block; padding:4px 15px; border-radius:20px; color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:15px;">
         🎯 深度干预建议 · 预约通道
     </div>
@@ -635,11 +636,22 @@ elif st.session_state.step == 'report':
         </div>
     </div>
     <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold;">
-        👉 立即预约 · 开启家庭重塑
+        👉 点击预约 · 开启家庭重塑
     </a>
-    <p style="color:#90A4AE; font-size:11px; margin-top:15px;">* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
+    
+    """
+    
+    # 构建二维码图片标签
+    qr_img_tag = f'<img src="data:image/png;base64,{qr_b64}" style="width:180px; height:180px; display:block; margin:20px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
+    
+    html_bottom = """
+    <p style="color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:15px;">↑ 长按上方二维码识别 ↑</p>
+    <p style="color:#90A4AE; font-size:11px;">* 若点击按钮无反应，请长按二维码识别或截屏扫码<br>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
 </div>
-""", unsafe_allow_html=True)
+    """
+
+    # 最终组合并输出
+    st.markdown(html_top + qr_img_tag + html_bottom, unsafe_allow_html=True)
 
     # --- 6. 底部重置按钮 ---
     st.write("") 
