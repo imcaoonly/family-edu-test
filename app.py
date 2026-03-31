@@ -242,29 +242,21 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-# 辅助转换：把多选列表 ['ADHD', '其他'] 转成字符串 "ADHD、其他"
-    def fmt(v):  
-        if v is 如果 v 是 None: return  ""
+  # 辅助：多选列表转文字（统一转为文本，飞书写入最稳）
+    def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
 
-        return 返回 "、".join(map(str, v)) if 、".join(map(str, v)) if isinstance(v, list) else 如果不是列表类型则返回
-str(v) str(v)
+    # 1. 维度均分计算 (严格对应 1-78 题)
+    sys_avg = round(sum(ans.get(i,0) for i in range(0, 8)) / 8, 2)
+    par_avg = round(sum(ans.get(i,0) for i in range(8, 18)) / 10, 2)
+    rel_avg = round(sum(ans.get(i,0) for i in range(18, 28)) / 10, 2)
+    pow_avg = round(sum(ans.get(i,0) for i in range(28, 37)) / 9, 2)
+    stu_avg = round(sum(ans.get(i,0) for i in range(37, 48)) / 11, 2)
+    soc_avg = round(sum(ans.get(i,0) for i in range(48, 58)) / 10, 2)
 
-    # 1. 维度均分计算 (严格对应你给的 1-58 题)
-    # 索引 = 题号 - 1
-    sys_avg = round(sum(int(ans.get(i,0)) for i in range(0, 8)) / 8, 2)    # 1-8题
-    par_avg = round(sum(int(ans.get(i,0)) for i in range(8, 18)) / 10, 2)  # 9-18题
-    rel_avg = round(sum(int(ans.get(i,0)) for i in range(18, 28)) / 10, 2) # 19-28题
-    pow_avg = round(sum(int(ans.get(i,0)) for i in range(28, 37)) / 9, 2)  # 29-37题
-    stu_avg = round(sum(int(ans.get(i,0)) for i in range(37, 48)) / 11, 2) # 38-48题
-    soc_avg = round(sum(int(ans.get(i,0)) for i in range(48, 58)) / 10, 2) # 49-58题
-
-    # 2. 预警逻辑 (严格对应 59-78 题) 
-    # 情绪预警 (59-66题) -> 对应索引 58-65
-    emo_risk = "🚩 红色警报" if 如果 any(int(ans.get(i,0)) == 3 any（int（ans. get（i，0））==3 for i in 为 i range(58, 66)) else  "正常" 
-    # 注意预警 (67-72题) -> 对应索引 66-71
-    adhd_risk = "🟠 注意受损" if 如果 sum(int(ans.get(i,0)) for i in 计算所有索引对应答案的整数之和 range(66, 72)) / 6 > 1.5  else 否则 "正常" 
-    # 身体预警 (73-78题) -> 对应索引 72-77
-    body_risk = "🔵 生理负荷" if 如果 sum(int(ans.get(i,0)) for i in  range(72, 78)) / 6 > 1.5  else 否则 "正常"
+    # 2. 预警逻辑 (严格对应图片中的“情绪/注意/身体”预警)
+    emo_risk = "🚩 红色警报" if any(ans.get(i,0) == 3 for i in range(58, 66)) else "正常"
+    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(66, 72)) / 6 > 1.5 else "正常"
+    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(72, 78)) / 6 > 1.5 else "正常"
 
    # 3. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
     return {
@@ -405,17 +397,17 @@ elif st.session_state.step == 'report':
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
     
-    # 7. 情绪状态预警 (59-66题 -> 索引 58-65)
+    # 7. 情绪状态预警 (59-66题)
     emo_scores = [st.session_state.ans.get(i, 0) for i in range(58, 66)]
     if any(s == 3 for s in emo_scores) or (sum(emo_scores) >= 24 * 0.6) or any(st.session_state.ans.get(i, 0) >= 2 for i in [64, 65]): # 假设65/66为消极倾向题
         st.markdown("<div class='warn-banner bg-red'>⚠️ 【情绪状态预警】当前孩子情绪安全水位极低，沉默是他在呼救。首要任务不是抓学习，而是“稳情绪”，必须立刻切入心理安全干预。</div>", unsafe_allow_html=True)
     
-    # 8. 注意状态预警 (67-72题 -> 索引 66-71)
+    # 8. 注意状态预警 (67-72题)
     adhd_scores = [st.session_state.ans.get(i, 0) for i in range(66, 72)]
     if any(s == 3 for s in adhd_scores) or (sum(adhd_scores) >= 18 * 0.6):
         st.markdown("<div class='warn-banner bg-orange'>⚠️ 【注意状态预警】疑似 ADHD 特质。孩子大脑天生自带“降噪功能缺陷”，不要再骂他粗心了，他需要专业的脑功能整合训练。</div>", unsafe_allow_html=True)
 
-    # 9. 身体状态预警 (73-78题 -> 索引 72-77)
+    # 9. 身体状态预警 (73-78题)
     body_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
     if body_avg > 1.5:
         st.markdown("<div class='warn-banner bg-blue'>⚠️ 【身体状态预警】当前表现受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议从营养与节律层面修复。</div>", unsafe_allow_html=True)
