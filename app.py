@@ -620,7 +620,7 @@ elif st.session_state.step == 'report':
             <b style="color:#C62828; font-weight:bold;">✓</b> 10个维度<b style="color:#FF7043;"> 个性化 </b>改善方案
         </p>
         <p style="margin:6px 0; color:#455A64; font-size:16px;">
-            <b style="color:#C62828; font-weight:bold;">✓</b> 30分钟<b style="color:#FF7043;"> 1V1 </b>深度视频解析
+            <b style="color:#C62828; font-weight:bold;">✓</b> 30分钟<b style="color:#FF7043;"> 1V1 </b>深度解析
         </p>
         <p style="margin:6px 0; color:#455A64; font-size:16px;">
             <b style="color:#C62828;font-weight:bold;">✓</b> <b style="color:#FF7043;">特惠 198 元</b> <span style="text-decoration:line-through; font-size:16px; color:#90A4AE;">(原价 598)</span>
