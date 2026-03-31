@@ -502,39 +502,39 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (物理隔离版：解决源码外露) ---
+# --- D. 结果报告页逻辑 (终极兼容版：彻底杜绝源码泄露) ---
 elif st.session_state.step == 'report':
-    # 1. 准备变量
-    current_rid = str(st.session_state.rid)
+    # 1. 准备数据：确保编号是纯字符串
+    report_id_str = str(st.session_state.rid)
 
-    # 2. 定义 CSS (纯字符串，不带 f，防止大括号冲突)
-    header_css = """
-    <style>
-    .report-header-box {
-        background:#FFFFFF; border-radius:12px; 
-        box-shadow:0 4px 15px rgba(0,0,0,0.05); 
-        border:1px solid #ECEFF1; margin-top:-60px; 
-        margin-bottom:20px; overflow:hidden; width:100%;
-    }
-    .seal-box {
-        border: 2px solid #C62828 !important;
-        color: #C62828 !important;
-        padding: 4px 12px !important;
-        border-radius: 6px !important;
-        font-size: 14px !important;
-        font-weight: 900 !important;
-        transform: rotate(-8deg); 
-        display: inline-block !important;
-        margin-bottom: 15px !important;
-        background: rgba(198, 40, 40, 0.03) !important;
-        font-family: sans-serif;
-    }
-    </style>
-    """
-    st.markdown(header_css, unsafe_allow_html=True)
+    # 2. 渲染样式：使用纯字符串，绝对不要在前面加 f
+    # 这样 Python 就不会去解析里面的大括号 {}
+    st.markdown("""
+        <style>
+        .report-header-box {
+            background:#FFFFFF; border-radius:12px; 
+            box-shadow:0 4px 15px rgba(0,0,0,0.05); 
+            border:1px solid #ECEFF1; margin-top:-60px; 
+            margin-bottom:20px; overflow:hidden; width:100%;
+        }
+        .seal-box {
+            border: 2px solid #C62828 !important;
+            color: #C62828 !important;
+            padding: 4px 12px !important;
+            border-radius: 6px !important;
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            transform: rotate(-8deg); 
+            display: inline-block !important;
+            margin-bottom: 15px !important;
+            background: rgba(198, 40, 40, 0.03) !important;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-    # 3. 定义 HTML 模板 (使用自定义占位符 @@RID@@，不带 f-string)
-    html_template = """
+    # 3. 编写 HTML 模板：使用一个独特的占位符 [ID_HERE]
+    # 同样，这里前面绝对不要加 f
+    report_tpl = """
 <div class="report-header-box">
     <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
     
@@ -558,7 +558,7 @@ elif st.session_state.step == 'report':
                 <td style="width:40%; padding-right:15px; text-align:right; vertical-align:middle; border:none;">
                     <div style="line-height:1.2;">
                         <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">@@RID@@</p>
+                        <p style="color:#1A237E; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">[ID_HERE]</p>
                     </div>
                 </td>
             </tr>
@@ -566,9 +566,9 @@ elif st.session_state.step == 'report':
     </div>
 </div>
 """
-    # 4. 物理注入变量并渲染
-    # 这样 Python 就不会把 HTML 里的内容误认为代码了
-    st.markdown(html_template.replace("@@RID@@", current_rid), unsafe_allow_html=True)
+    # 4. 手动替换占位符并输出
+    # 这样规避了所有可能导致渲染失败的语法冲突
+    st.markdown(report_tpl.replace("[ID_HERE]", report_id_str), unsafe_allow_html=True)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
