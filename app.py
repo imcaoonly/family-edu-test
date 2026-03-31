@@ -640,9 +640,10 @@ elif st.session_state.step == 'report':
     </div>
     <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold; -webkit-tap-highlight-color: transparent;">
     👉 点击预约 · 开启家庭重塑
-    <p style="color:#90A4AE; font-size:11px;">* 若点击按钮无反应，请长按二维码识别或截屏扫码<br>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
     </a>
     """
+    <p style="color:#90A4AE; font-size:11px;">* 若点击按钮无反应，请长按二维码识别或截屏扫码<br>* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
+    
     
     # 构建二维码图片标签
     qr_img_tag = f'<img src="data:image/png;base64,{qr_b64}" style="width:180px; height:180px; display:block; margin:20px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
