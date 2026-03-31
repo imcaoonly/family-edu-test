@@ -631,8 +631,14 @@ elif st.session_state.step == 'report':
             {st.session_state.rid}
         </div>
     </div>
-    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" target="_blank" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold;">
+    <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" 
+       style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold; -webkit-tap-highlight-color: transparent;">
         👉 立即预约 · 开启家庭重塑
+    </a>
+    
+    <p style="color:#90A4AE; font-size:11px; margin-top:15px; line-height:1.4;">
+        * 点击无反应请截屏保存此页，微信扫码添加<br>
+        曹校长亲自解读，名额稀缺，添加后请发送编号
     </a>
     <p style="color:#90A4AE; font-size:11px; margin-top:15px;">* 曹校长亲自解读，名额稀缺，添加后请发送编号</p>
 </div>
