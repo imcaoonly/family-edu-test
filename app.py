@@ -504,43 +504,33 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    # --- 1. 视觉顶配版：增加质感、水印与精致印章 ---
+    # --- 1. 终极校准：强制重置对齐与间距 (解决代码外露) ---
     st.markdown(f"""
-<div style="position:relative; background:linear-gradient(135deg, #FFFFFF 0%, #F5F7FA 100%); border-radius:16px; box-shadow:0 10px 30px rgba(26,35,126,0.08); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:visible; width:100%;">
-    
-    <div style="height:6px; background:linear-gradient(90deg, #1A237E, #FF7043, #1A237E); width:100%; border-radius:16px 16px 0 0;"></div>
-
-    <div style="position: absolute; top: 25px; right: 20px; width: 80px; height: 80px; border: 4px double rgba(255, 82, 82, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: rotate(-18deg); z-index: 99; pointer-events: none; box-shadow: 0 0 10px rgba(255,82,82,0.1);">
-        <div style="width: 68px; height: 68px; border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.2);">
-            <span style="color: rgba(255, 82, 82, 0.7); font-size: 11px; font-weight: 900; letter-spacing:1px;">曹校长</span>
-            <span style="color: rgba(255, 82, 82, 0.7); font-size: 15px; font-weight: 900; margin-top: -2px;">已认证</span>
-        </div>
-    </div>
-
-    <div style="padding:30px 0 20px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background-image: radial-gradient(#1A237E 0.5px, transparent 0.5px); background-size: 20px 20px; opacity: 0.9;">
-        <div style="color:#90A4AE; font-size:11px; letter-spacing:4px; line-height:1; margin-bottom:12px; font-weight:700;">PROFESSIONAL ANALYSIS</div>
-        <div style="color:#1A237E; font-size:34px; font-weight:900; line-height:1.1; margin:0 auto; text-shadow: 1px 1px 0px #fff;">多维报告解析</div>
-        <div style="color:#FF7043; font-size:15px; font-weight:700; line-height:1; margin-top:12px; letter-spacing:1px;">脑科学导向 · 家庭教育深度探查</div>
-    </div>
-
-    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 12px 20px 12px; border-radius:10px; height:90px; display:flex; align-items:center; justify-content:center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-        <table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;">
-            <tr style="border:none; vertical-align:middle;">
-                <td style="padding-left:20px; text-align:left; vertical-align:middle; border:none;">
-                    <div style="line-height:1.5;">
-                        <p style="color:#E65100; font-size:17px; font-weight:900; margin:0;">📸 截图保存此页</p>
-                        <p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0; opacity:0.8;">1V1 咨询核心凭证</p>
-                    </div>
-                </td>
-                <td style="padding-right:20px; text-align:right; border-left:1px dashed #FFD54F; width:45%; vertical-align:middle; border:none;">
-                    <div style="line-height:1.2;">
-                        <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">REPORT NO.</p>
-                        <p style="color:#1A237E; font-family: 'Courier New', Courier, monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">#{st.session_state.rid}</p>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+<div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
+<div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
+<div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+<div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
+<div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div>
+<div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
+</div>
+<div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center; justify-content:center;">
+<table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;">
+<tr style="border:none; vertical-align:middle;">
+<td style="padding-left:15px; text-align:left; vertical-align:middle; border:none;">
+<div style="line-height:1.4;">
+<p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
+<p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
+</div>
+</td>
+<td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;">
+<div style="line-height:1.2;">
+<p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
+<p style="color:#1A237E; font-family:monospace; font-size:24px; font-weight:900; margin:2px 0 0 0;">{st.session_state.rid}</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
 </div>
 """, unsafe_allow_html=True)
     
