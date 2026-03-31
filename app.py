@@ -639,7 +639,7 @@ elif st.session_state.step == 'report':
         * 曹校长亲自解读，名额稀缺，添加后请发送编号<br>
         * 若点击按钮无反应，请长按二维码识别或截屏扫码
     </p>
-"""
+    """
 
     # 第三部分：二维码图片
     img_html = '<img src="data:image/png;base64,' + qr_b64 + '" style="width:160px; height:160px; display:block; margin:15px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
@@ -647,8 +647,8 @@ elif st.session_state.step == 'report':
     # 第四部分：页脚文字和闭合
     html_part3 = """
     <p style="color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:5px;">↑ 长按上方二维码识别 ↑</p>
-</div>
-"""
+    </div>
+    """
 
     # 最终渲染：用加号拼接，绝对不报语法错
     st.markdown(html_part1 + rid_val + html_part2 + img_html + html_part3, unsafe_allow_html=True)
