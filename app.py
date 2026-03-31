@@ -516,64 +516,60 @@ elif st.session_state.step == 'quiz':
             st.session_state.cur -= 1
             st.rerun()
 
-# --- D. 结果报告页逻辑 (变量拼接版，彻底杜绝代码外露) ---
+# --- D. 结果报告页逻辑 (组件隔离版，彻底解决源码外露) ---
 elif st.session_state.step == 'report':
-    # 1. 独立定义样式
-    seal_style = """
-    <style>
-    .seal-box {
-        border: 2px solid #C62828 !important;
-        color: #C62828 !important;
-        padding: 4px 12px !important;
-        border-radius: 6px !important;
-        font-size: 14px !important;
-        font-weight: 900 !important;
-        transform: rotate(-8deg); 
-        display: inline-block !important;
-        margin-bottom: 15px !important;
-        background: rgba(198, 40, 40, 0.03) !important;
-    }
-    </style>
-    """
-    st.markdown(seal_style, unsafe_allow_html=True)
+    import streamlit.components.v1 as components
 
-    # 2. 使用变量替换，不使用 f-string，确保大括号不被误解
+    # 1. 准备数据
     report_rid = str(st.session_state.rid)
-    
-    html_template = """
-<div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:hidden; width:100%;">
-    <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
-    
-    <div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-        <div class="seal-box">系统认证·唯一凭证</div>
-        <div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
-        <div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div>
-        <div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
-    </div>
 
-    <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center; justify-content:center;">
-        <table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;">
-            <tr style="border:none; vertical-align:middle;">
-                <td style="padding-left:15px; text-align:left; vertical-align:middle; border:none;">
-                    <div style="line-height:1.4;">
-                        <p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
-                        <p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
-                    </div>
-                </td>
-                <td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;">
-                    <div style="line-height:1.2;">
-                        <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
-                        <p style="color:#C62828; font-family:monospace; font-size:26px; font-weight:900; margin:2px 0 0 0;">REPLACE_ID</p>
-                    </div>
-                </td>
-            </tr>
-        </table>
+    # 2. 构建纯净的 HTML 字符串 (包含 CSS 和结构)
+    # 注意：这里不再使用 f-string，而是使用 %s 占位符，最稳固
+    html_content = """
+    <div style="font-family: 'PingFang SC', sans-serif; background:#F8F9FA; padding:10px;">
+        <style>
+            .seal-box {
+                border: 2px solid #C62828;
+                color: #C62828;
+                padding: 4px 12px;
+                border-radius: 6px;
+                font-size: 14px;
+                font-weight: 900;
+                transform: rotate(-8deg); 
+                display: inline-block;
+                margin-bottom: 15px;
+                background: rgba(198, 40, 40, 0.03);
+            }
+        </style>
+
+        <div style="background:#FFFFFF; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.05); border:1px solid #ECEFF1; overflow:hidden; width:100%;">
+            <div style="height:5px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%;"></div>
+            
+            <div style="padding:25px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                <div class="seal-box">系统认证·唯一凭证</div>
+                <div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div>
+                <div style="color:#1A237E; font-size:30px; font-weight:900; line-height:1; margin:0 auto; width:100%;">多维报告解析</div>
+                <div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div>
+            </div>
+
+            <div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center;">
+                <div style="width:55%; padding-left:15px;">
+                    <p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p>
+                    <p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p>
+                </div>
+                <div style="width:1px; height:50px; border-left:1px dashed #FFD54F;"></div>
+                <div style="width:44%; text-align:right; padding-right:15px;">
+                    <p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p>
+                    <p style="color:#C62828; font-family:monospace; font-size:24px; font-weight:900; margin:2px 0 0 0;">%s</p>
+                </div>
+            </div>
+            <div style="height:15px;"></div>
+        </div>
     </div>
-</div>
-"""
-    # 手动替换编号，绝对不会触发 f-string 的报错
-    final_html = html_template.replace("REPLACE_ID", report_rid)
-    st.markdown(final_html, unsafe_allow_html=True)
+    """ % report_rid
+
+    # 3. 使用组件渲染 (设置足够的高度以容纳卡片)
+    components.html(html_content, height=280)
     
     # 1. 风险预警模块（暖橙色卡片提示）
     st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
