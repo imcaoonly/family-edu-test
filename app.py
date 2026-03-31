@@ -5,27 +5,44 @@ import requests
 import json        
 from datetime import datetime  
 
-def send_to_feishu(payload):
-    # 你的 Webhook 地址
-    webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/e0c47a6f-4e26-405c-87ff-7fc955c8c279"
-    headers = {"Content-Type": "application/json"}
-    
-    # 构造飞书卡片格式，包含关键词“报告”
-    data = {
-        "msg_type": "post",
-        "content": {
-            "post": {
-                "zh_cn": {
-                    "title": "新的系统测评报告提交", # 必须含关键词：报告
-                    "content": [[{"tag": "text", "text": json.dumps(payload, ensure_ascii=False)}]]
-                }
-            }
-        }
-    }
+# --- 1. 飞书多维表格 API 模块 (替代原 Webhook) ---
+
+APP_ID = "cli_a941cc514b639bcd"          # 你的 App ID
+APP_SECRET = "7tjJzFqaSY0fyh2GDNCjPgD12NWYnw4b"  # 你的 App Secret
+APP_TOKEN = "UKsvb9YQEajaYTsEjHmcq1CEnqh"   # 多维表格的 Token
+TABLE_ID = "tblp77Ua52JtkEaX"            # 数据表的 ID
+
+def get_tenant_access_token():
+    """获取飞书 API 访问令牌"""
+    url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
+    payload = {"app_id": APP_ID, "app_secret": APP_SECRET}
     try:
-        requests.post(webhook_url, json=data, timeout=10)
+        r = requests.post(url, json=payload, timeout=5)
+        return r.json().get("tenant_access_token")
     except:
-        pass # 静默处理，不影响用户体验
+        return None
+
+def send_to_feishu_bitable(data_dict):
+    """将数据写入飞书多维表格"""
+    token = get_tenant_access_token()
+    if not token: 
+        st.error("系统连接故障，请联系曹校长。")
+        return
+    
+    url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    payload = {"fields": data_dict}
+    
+    try:
+        res = requests.post(url, headers=headers, json=payload, timeout=10)
+        # 调试用：如果写入失败，可以在后台看到原因
+        if res.status_code != 200:
+            print(f"写入失败原因: {res.text}")
+    except Exception as e:
+        print(f"网络异常: {e}")
 
 # --- 1. UI 深度定制：首页高度优化版 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
@@ -225,24 +242,26 @@ DIM_DATA = {
 def prepare_report_data():
     ans = st.session_state.ans
     
-    # 辅助：多选列表转文字
+  # 辅助：多选列表转文字（统一转为文本，飞书写入最稳）
     def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
 
-    # 1. 计算维度分 (1-78题)
-    sys_avg = round(sum(ans.get(i,0) for i in range(8))/8, 2)
-    par_avg = round(sum(ans.get(i,0) for i in range(8,21))/13, 2)
-    rel_avg = round(sum(ans.get(i,0) for i in range(21,31))/10, 2)
-    pow_avg = round(sum(ans.get(i,0) for i in range(31,40))/9, 2)
-    stu_avg = round(sum(ans.get(i,0) for i in range(40,51))/11, 2)
-    soc_avg = round(sum(ans.get(i,0) for i in range(51,60))/9, 2)
+    # 1. 维度均分计算 (严格对应 1-78 题)
+    sys_avg = round(sum(ans.get(i,0) for i in range(0, 8)) / 8, 2)
+    par_avg = round(sum(ans.get(i,0) for i in range(8, 18)) / 10, 2)
+    rel_avg = round(sum(ans.get(i,0) for i in range(18, 28)) / 10, 2)
+    pow_avg = round(sum(ans.get(i,0) for i in range(28, 37)) / 9, 2)
+    stu_avg = round(sum(ans.get(i,0) for i in range(37, 48)) / 11, 2)
+    soc_avg = round(sum(ans.get(i,0) for i in range(48, 58)) / 10, 2)
 
-    # 2. 预警逻辑
-    emo_risk = "🚩 红色警报" if any(ans.get(i,0)==3 for i in range(60,67)) else "正常"
-    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(71,77))/6 > 1.5 else "正常"
-    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(77,83))/6 > 1.5 else "正常"
+    # 2. 预警逻辑 (严格对应图片中的“情绪/注意/身体”预警)
+    emo_risk = "🚩 红色警报" if any(ans.get(i,0) == 3 for i in range(58, 66)) else "正常"
+    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(66, 72)) / 6 > 1.5 else "正常"
+    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(72, 78)) / 6 > 1.5 else "正常"
 
-    # 3. 封装 14 个字段
+   # 3. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
     return {
+        "提交日期": datetime.now().strftime("%Y-%m-%d"),
+        "提交时间": datetime.now().strftime("%H:%M:%S"),
         "编号": st.session_state.rid,
         "来源渠道": st.session_state.source,
         "年龄": f"{st.session_state.age}岁",
@@ -257,8 +276,7 @@ def prepare_report_data():
         "情绪预警": emo_risk,
         "注意预警": adhd_risk,
         "身体预警": body_risk,
-        "原始凭证": ",".join(str(ans.get(i,"")) for i in range(85)),
-        "提交时间": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "原始凭证": ",".join(str(ans.get(i, "")) for i in range(85))
     }
 
 # --- 5. 页面流程逻辑 ---
@@ -350,13 +368,13 @@ elif st.session_state.step == 'quiz':
                 st.warning("⚠️ 请至少选择一个选项后再继续。")
             else:
                 st.session_state.ans[cur] = user_input
-                if cur == 84:
-                    # 【核心插入：点击生成报告瞬间发送】
+                if cur == 84: # 第 85 题提交
                     try:
                         report_payload = prepare_report_data()
-                        send_to_feishu(report_payload)
-                    except:
-                        pass # 即使飞书挂了，也不影响用户看报告
+                        # 改用新的 API 写入函数
+                        send_to_feishu_bitable(report_payload)
+                    except Exception as e:
+                        print(f"写入失败: {e}") 
                     
                     st.session_state.step = 'report'
                 else:
