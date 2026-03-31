@@ -590,7 +590,7 @@ elif st.session_state.step == 'report':
             bgcolor="rgba(255,255,255,0)" # 背景透明
         ),
         showlegend=False, 
-        height=400, 
+        height=350, 
         margin=dict(t=40, b=40, l=50, r=50)
     )
 
