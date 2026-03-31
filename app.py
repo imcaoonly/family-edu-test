@@ -639,20 +639,19 @@ elif st.session_state.step == 'report':
         </div>
     </div>
     <a href="https://work.weixin.qq.com/ca/cawcde91ed29d8de9f" style="text-decoration:none; display:block; background:#1A237E; color:white; padding:16px; border-radius:15px; font-size:18px; font-weight:bold; -webkit-tap-highlight-color: transparent;">
-    👉 点击预约 · 开启家庭重塑
+        👉 点击预约 · 开启家庭重塑
     </a>
-
     <p style="color:#90A4AE; font-size:11px; margin-top:12px; line-height:1.5;">
         * 曹校长亲自解读，名额稀缺，添加后请发送编号<br>
         * 若点击按钮无反应，请长按二维码识别或截屏扫码
     </p>
 """
-    
-    # 2. 中间的二维码图片 (由于已经在 html_top 中包含了提示语，这里只放图)
-    qr_img_tag = f'<img src="data:image/png;base64,{qr_b64}" style="width:160px; height:160px; display:block; margin:15px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
 
-    # 3. 最后的二维码识别文字和卡片闭合 div
-    html_bottom = """
+# 2. 中间的图片标签 (保持原样)
+qr_img_tag = f'<img src="data:image/png;base64,{qr_b64}" style="width:160px; height:160px; display:block; margin:15px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
+
+# 3. 最后的长按引导和闭合 div
+html_bottom = """
     <p style="color:#FF7043; font-size:13px; font-weight:bold; margin-bottom:5px;">↑ 长按上方二维码识别 ↑</p>
 </div>
 """
