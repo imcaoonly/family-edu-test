@@ -7,7 +7,6 @@ from datetime import datetime
 
 def send_to_feishu(payload):
     # 你的 Webhook 地址
-    webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/e0c47a6f-4e26-405c-87ff-7fc955c8c279"
     headers = {"Content-Type": "application/json"}
     
     # 构造飞书卡片格式，包含关键词“报告”
@@ -240,18 +239,28 @@ def prepare_report_data():
     
     now = datetime.now()
 
-    # 1. 计算维度分 (1-78题)
-    sys_avg = round(sum(ans.get(i,0) for i in range(8))/8, 2)
-    par_avg = round(sum(ans.get(i,0) for i in range(8,21))/13, 2)
-    rel_avg = round(sum(ans.get(i,0) for i in range(21,31))/10, 2)
-    pow_avg = round(sum(ans.get(i,0) for i in range(31,40))/9, 2)
-    stu_avg = round(sum(ans.get(i,0) for i in range(40,51))/11, 2)
-    soc_avg = round(sum(ans.get(i,0) for i in range(51,60))/9, 2)
+    # --- 1. 计算维度分 (仅计算 1-78 题，即索引 0 到 77) ---
+    # 按照题库分段：
+    # 家庭系统 (1-8题): 0-7
+    sys_avg = round(sum(ans.get(i,0) for i in range(0, 8)) / 8, 2)
+    # 家长状态 (9-18题): 8-17
+    par_avg = round(sum(ans.get(i,0) for i in range(8, 18)) / 10, 2)
+    # 亲子关系 (19-28题): 18-27
+    rel_avg = round(sum(ans.get(i,0) for i in range(18, 28)) / 10, 2)
+    # 动力状态 (29-37题): 28-36
+    pow_avg = round(sum(ans.get(i,0) for i in range(28, 37)) / 9, 2)
+    # 学业管理 (38-48题): 37-47
+    stu_avg = round(sum(ans.get(i,0) for i in range(37, 48)) / 11, 2)
+    # 社会化适应 (49-58题): 48-57
+    soc_avg = round(sum(ans.get(i,0) for i in range(48, 58)) / 10, 2)
 
-    # 2. 预警逻辑
-    emo_risk = "🚩 红色警报" if any(ans.get(i,0)==3 for i in range(60,67)) else "正常"
-    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(71,77))/6 > 1.5 else "正常"
-    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(77,83))/6 > 1.5 else "正常"
+    # --- 2. 预警逻辑 (59-78 题，即索引 58 到 77) ---
+    # 情绪预警 (59-66题): 58-65
+    emo_risk = "🚩 红色警报" if any(ans.get(i,0) == 3 for i in range(58, 66)) else "正常"
+    # 注意预警 (67-72题): 66-71
+    adhd_risk = "🟠 注意受损" if sum(ans.get(i,0) for i in range(66, 72)) / 6 > 1.5 else "正常"
+    # 身体预警 (73-78题): 72-77
+    body_risk = "🔵 生理负荷" if sum(ans.get(i,0) for i in range(72, 78)) / 6 > 1.5 else "正常"
 
     # 3. 封装 14 个字段
 return {
