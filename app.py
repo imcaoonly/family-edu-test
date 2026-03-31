@@ -341,47 +341,51 @@ elif st.session_state.step == 'quiz':
 
    # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
     else:
-        # 定义题目及其选项（严格匹配题库内容）
+        # 使用动态 Key 确保每一题的状态是独立的
+        input_key = f"input_step_{cur}"
+        
         if cur == 78: # 79题
-            user_input = st.multiselect("可多选", ["ADHD", "抑郁/焦虑", "其他", "暂无"], key=f"ms_{cur}")
+            user_input = st.multiselect("可多选", ["ADHD", "抑郁/焦虑", "其他", "暂无"], key=input_key)
         elif cur == 79: # 80题
-            user_input = st.multiselect("可多选", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], key=f"ms_{cur}")
+            user_input = st.multiselect("可多选", ["心理咨询", "药物治疗", "增加严管", "上父母课", "其他"], key=input_key)
         elif cur == 80: # 81题
-            user_input = st.multiselect("可多选", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], key=f"ms_{cur}")
+            user_input = st.multiselect("可多选", ["不落地", "不系统", "没法坚持", "孩子不配合", "缺乏专业陪跑"], key=input_key)
         elif cur == 81: # 82题
-            user_input = st.multiselect("请勾选（建议不超过3个）", ["关系", "厌学", "专注力差", "情绪较大", "手机"], key=f"ms_{cur}")
+            user_input = st.multiselect("请勾选（建议不超过3个）", ["关系", "厌学", "专注力差", "情绪较大", "手机"], key=input_key)
         elif cur == 82: # 83题
-            user_input = st.radio("请选择", ["有", "有，但需指导", "比较纠结", "只想改孩子"], key=f"ms_{cur}")
+            user_input = st.radio("请选择", ["有", "有，但需指导", "比较纠结", "只想改孩子"], key=input_key)
         elif cur == 83: # 84题
-            user_input = st.radio("请选择", ["是", "否"], key=f"ms_{cur}")
+            user_input = st.radio("请选择", ["是", "否"], key=input_key)
         elif cur == 84: # 85题
-            user_input = st.radio("请选择", ["是", "否"], key=f"ms_{cur}")
+            user_input = st.radio("请选择", ["是", "否"], key=input_key)
 
-        # --- 1. 动态调整按钮文字 ---
         btn_label = "生成报告 📊" if cur == 84 else "确认，下一题 ➡️"
         
         st.write("")
         
-       # --- 2. 增加必选拦截逻辑 ---
+        # 修复触发逻辑：确保点击时能保存当前答案
         if st.button(btn_label, use_container_width=True):
             if not user_input:
-                st.warning("⚠️ 请至少选择一个选项后再继续。")
+                st.warning("⚠️ 请选择后再继续。")
             else:
+                # 显式保存到 session_state
                 st.session_state.ans[cur] = user_input
+                
                 if cur == 84: # 第 85 题提交 
                     # 这里增加转圈等待提示 
                     with st.spinner('正在为您生成解析报告，请稍候...'):
                         try:
                             report_payload = prepare_report_data()
                             send_to_feishu_bitable(report_payload)
-                        except Exception as e:
-                            # 失败提示
-                            st.error("数据同步略有延迟。")
-                            st.warning("💡 请截屏保存报告结果。")
+                        except:
+                            st.warning("💡数据同步略有延迟，请截屏保存结果。")
                         
-                        # 无论成功失败，都跳入报告页
                         st.session_state.step = 'report'
                         st.rerun()
+                else:
+                    # 正常跳转到下一题
+                    st.session_state.cur += 1
+                    st.rerun()
 
             
     # 底部导航
