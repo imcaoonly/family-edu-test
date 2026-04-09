@@ -243,17 +243,17 @@ QUESTIONS = [
 query_params = st.query_params
 
 # 情况 A：报告页（?page=report&rid=xxx）
-if query_params.get("page") == "report":
+if query_params.get("page") == "report" and st.session_state.get('step') != 'report':
     rid = query_params.get("rid", "")
     if rid:
-        # 添加一个 loading 提示，防止网络慢导致白屏
+        # 添加 loading 提示
         with st.spinner('正在调取报告数据...'):
             record_data = get_record_by_rid(rid)
             
         if record_data:
             raw_data = record_data.get("原始数据")
             
-            # 👇 处理飞书富文本格式
+            # --- 处理数据逻辑保持不变 ---
             if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
                 text_parts = []
                 for item in raw_data:
@@ -276,26 +276,24 @@ if query_params.get("page") == "report":
                     else:
                         st.session_state.ans[i] = val
                 
-                # --- 关键修改部分 ---
+                # --- 这里是关键修改点 ---
                 st.session_state.rid = rid
-                st.session_state.step = 'report'
+                st.session_state.step = 'report'  # 标记状态已变为 report
                 
-                # 1. 核心操作：清空 URL 参数，防止 rerun 后再次进入此 if 逻辑导致死循环
-                st.query_params.clear() 
+                # 不要用 st.query_params.clear()，否则刷新就没了
+                # 不要用 st.rerun()，否则容易导致死循环白屏
                 
-                # 2. 刷新页面，此时 URL 已空，程序会正常根据 st.session_state.step 显示报告页
-                st.rerun() 
-                # ------------------
+                # 提示一下加载成功（可选）
+                st.toast(f"已加载编号 {rid} 的报告")
+                
+                # 让程序自然往下走，它会自动匹配到你后面显示报告的 if st.session_state.step == 'report' 逻辑
                 
             else:
-                st.error(f"❌ 编号 {rid} 的原始数据为空或格式错误")
+                st.error(f"❌ 编号 {rid} 的原始数据为空")
                 st.stop()
         else:
-            st.error(f"❌ 未找到编号 {rid} 的报告数据")
+            st.error(f"❌ 未找到编号 {rid} 的数据")
             st.stop()
-    else:
-        st.error("❌ 缺少报告编号")
-        st.stop()
         
 # 情况 B：详情页（?page=detail&rid=xxx）
 elif query_params.get("page") == "detail":
