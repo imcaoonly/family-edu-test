@@ -745,8 +745,53 @@ elif st.session_state.step == 'report':
         body_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
         if body_avg > 1.5:
            st.markdown("<div class='warn-banner bg-blue'>⚠️ 【身体状态预警】当前表现受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议从营养与节律层面修复。</div>", unsafe_allow_html=True)
-        st.write("✅ 预警渲染完成")
+        
+        # --- 2. 雷达图绘制 (视觉专业化升级版) ---
+    scores, labels = [], list(DIM_DATA.keys())
+    for dim in labels:
+        r = DIM_DATA[dim]['range']
+        avg = sum(st.session_state.ans.get(i, 0) for i in r) / len(r)
+        # 转化为100分制展示，分值越高代表风险越高
+        scores.append(round(avg * 33.3, 1)) 
 
+    # 增加闭环点（让雷达图线条连起来，不留缺口）
+    radar_scores = scores + [scores[0]]
+    radar_labels = labels + [labels[0]]
+
+    fig = go.Figure(data=go.Scatterpolar(
+        r=radar_scores, 
+        theta=radar_labels, 
+        fill='toself', 
+        # 线条颜色改为更有质感的深蓝，填充色改为半透明橙，对比强烈
+        line=dict(color='#1A237E', width=3), 
+        fillcolor='rgba(255, 112, 67, 0.2)',
+        marker=dict(size=8, color='#FF7043')
+    ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True, 
+                range=[0, 100],
+                tickfont=dict(size=10, color="#90A4AE"),
+                gridcolor="#ECEFF1", # 浅灰色网格，更有高级感
+                angle=90 # 刻度线方向
+            ),
+            angularaxis=dict(
+                tickfont=dict(size=14, color="#1A237E", family="PingFang SC"),
+                gridcolor="#ECEFF1"
+            ),
+            bgcolor="rgba(255,255,255,0)" # 背景透明
+        ),
+        showlegend=False, 
+        height=350, 
+        margin=dict(t=40, b=40, l=50, r=50)
+    )
+
+    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    st.markdown("<p style='font-size:12px; color:#90A4AE; text-align:center;'>注：覆盖越大，代表该维度的\"负荷\"或\"风险\"越大。</p>", unsafe_allow_html=True)
+    st.write("✅ 预警渲染完成")
+    
     except Exception as e:
         st.error(f"❌ 报告页渲染失败: {e}")
         st.code(traceback.format_exc())
