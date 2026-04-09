@@ -94,7 +94,7 @@ def get_record_by_rid(rid):
                 record = res_json["data"]["items"][0]
                 fields = record.get("fields", {})
                 
-                # 👇 处理"原始数据"字段，兼容多种格式
+                # 👇 处理"原始数据"字段
                 raw_data_field = fields.get("原始数据")
                 
                 if raw_data_field is None:
@@ -102,30 +102,33 @@ def get_record_by_rid(rid):
                 
                 # 情况1：已经是字符串
                 if isinstance(raw_data_field, str):
-                    # 直接返回，不需要处理
-                    pass
+                    fields["原始数据"] = raw_data_field
                 
-                # 情况2：是数组（飞书多行文本可能返回数组）
+                # 情况2：是数组（飞书富文本字段会返回数组）
                 elif isinstance(raw_data_field, list):
-                    # 将数组拼接成字符串
-                    raw_data_field = ",".join(str(item) for item in raw_data_field)
-                    fields["原始数据"] = raw_data_field
+                    # 提取数组中的文本内容
+                    text_parts = []
+                    for item in raw_data_field:
+                        if isinstance(item, dict):
+                            # 富文本对象，提取 text 字段
+                            if "text" in item:
+                                text_parts.append(item["text"])
+                            else:
+                                text_parts.append(str(item))
+                        else:
+                            text_parts.append(str(item))
+                    fields["原始数据"] = "".join(text_parts)
                 
-                # 情况3：是富文本对象
+                # 情况3：是字典对象
                 elif isinstance(raw_data_field, dict):
-                    # 尝试提取 text 字段
                     if "text" in raw_data_field:
-                        raw_data_field = raw_data_field["text"]
-                        fields["原始数据"] = raw_data_field
+                        fields["原始数据"] = raw_data_field["text"]
                     else:
-                        # 转成字符串试试
-                        raw_data_field = str(raw_data_field)
-                        fields["原始数据"] = raw_data_field
+                        fields["原始数据"] = str(raw_data_field)
                 
-                # 情况4：其他类型，强制转字符串
+                # 情况4：其他类型
                 else:
-                    raw_data_field = str(raw_data_field)
-                    fields["原始数据"] = raw_data_field
+                    fields["原始数据"] = str(raw_data_field)
                 
                 return fields
         return None
@@ -265,65 +268,76 @@ QUESTIONS = [
 # --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
 query_params = st.query_params
 
-# 情况 A：报告页（?page=report&rid=xxx）
+# 情况 A：报告页（?page=report&rid=xxx）- 客户看到的精美报告
 if query_params.get("page") == "report":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
-        if record_data and record_data.get("原始数据"):
-            raw_data = record_data["原始数据"]
-            if raw_data:
-                # 👇 强制转字符串
-                raw_str = str(raw_data) if not isinstance(raw_data, str) else raw_data
-                ans_list = raw_str.split(",")
+        if record_data:
+            raw_data = record_data.get("原始数据")
+            if raw_data and isinstance(raw_data, str):
+                ans_list = raw_data.split(",")
+                
+                # 清空并重新填充答案
                 st.session_state.ans = {}
                 for i, val in enumerate(ans_list):
+                    if i >= 85:  # 只取前85题
+                        break
+                    val = val.strip()
+                    # 尝试转数字
                     if val.isdigit():
                         st.session_state.ans[i] = int(val)
                     else:
                         st.session_state.ans[i] = val
+                
                 st.session_state.rid = rid
                 st.session_state.step = 'report'
                 st.rerun()
             else:
-                st.error(f"❌ 编号 {rid} 的数据格式异常，请联系管理员")
+                st.error(f"❌ 编号 {rid} 的原始数据为空或格式错误")
                 st.stop()
         else:
-            st.error(f"❌ 未找到编号 {rid} 的报告数据，请确认链接是否正确。")
+            st.error(f"❌ 未找到编号 {rid} 的报告数据")
             st.stop()
     else:
         st.error("❌ 缺少报告编号")
         st.stop()
 
-# 情况 B：详情页（?page=detail&rid=xxx）
+# 情况 B：详情页（?page=detail&rid=xxx）- 后台查看原始答题
 elif query_params.get("page") == "detail":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
-        if record_data and record_data.get("原始数据"):
-            raw_data = record_data["原始数据"]
-            if raw_data:
-                # 👇 强制转字符串
-                raw_str = str(raw_data) if not isinstance(raw_data, str) else raw_data
-                ans_list = raw_str.split(",")
+        if record_data:
+            raw_data = record_data.get("原始数据")
+            if raw_data and isinstance(raw_data, str):
+                ans_list = raw_data.split(",")
                 
                 st.title(f"📋 原始答题详情回顾")
                 st.info(f"用户编号: {rid}")
+                st.markdown(f"**共 {min(len(ans_list), 85)} 道题**")
+                st.divider()
                 
                 for i, val in enumerate(ans_list):
+                    if i >= 85:
+                        break
+                    
+                    q_num = i + 1
+                    val = val.strip()
+                    
                     if i < 78:
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {i+1} 题"
+                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {q_num} 题"
                         score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
                         try:
                             score_val = int(val)
-                            display_val = f"{score_map.get(score_val, val)} ({val}分)"
+                            display_val = f"{score_map.get(score_val, val)} ({score_val}分)"
                         except:
                             display_val = val
                     else:
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {i+1}"
+                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {q_num}"
                         display_val = val
                     
-                    st.write(f"**{q_text}**")
+                    st.write(f"**第 {q_num} 题：{q_text}**")
                     st.write(f"回答：{display_val}")
                     st.divider()
                 
@@ -332,7 +346,7 @@ elif query_params.get("page") == "detail":
                     st.rerun()
                 st.stop()
             else:
-                st.error(f"❌ 编号 {rid} 的数据格式异常")
+                st.error(f"❌ 编号 {rid} 的原始数据为空")
                 st.stop()
         else:
             st.error(f"❌ 未找到编号 {rid} 的答题数据")
@@ -340,7 +354,46 @@ elif query_params.get("page") == "detail":
     else:
         st.error("❌ 缺少编号")
         st.stop()
+简化 get_record_by_rid 函数
+既然字段是普通文本，不需要复杂的格式判断：
 
+python
+def get_record_by_rid(rid):
+    """根据编号从飞书表格反查记录数据"""
+    token = get_tenant_access_token()
+    if not token:
+        print("❌ [反查失败] 无法获取 Token")
+        return None
+    
+    url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records/search"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    payload = {
+        "filter": {
+            "conjunction": "and",
+            "conditions": [{
+                "field_name": "编号",
+                "operator": "is",
+                "value": [rid]
+            }]
+        },
+        "page_size": 1
+    }
+    
+    try:
+        res = requests.post(url, headers=headers, json=payload, timeout=10)
+        if res.status_code == 200:
+            res_json = res.json()
+            if res_json.get("code") == 0 and res_json.get("data", {}).get("items"):
+                record = res_json["data"]["items"][0]
+                return record.get("fields", {})
+        return None
+    except Exception as e:
+        print(f"🔥 [反查异常] {str(e)}")
+        return None
+        
 # 情况 C：兼容旧链接（?data=...）- 如果有用户保存了旧链接
 elif "data" in query_params:
     if 'ans' not in st.session_state or not st.session_state.ans:
