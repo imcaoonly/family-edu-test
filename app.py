@@ -651,7 +651,7 @@ elif st.session_state.step == 'report':
     )
 
     st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-    st.markdown("<p style='font-size:12px; color:#90A4AE; text-align:center;'>注：覆盖越大，代表该维度的"负荷"或"风险"越大。</p>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size:12px; color:#90A4AE; text-align:center;'>注：覆盖越大，代表该维度的\"负荷\"或\"风险\"越大。</p>", unsafe_allow_html=True)
 
     # 3. 六大维度深度解析卡片 (匹配 0.8/1.8/3.0 分层逻辑)
     for dim, info in DIM_DATA.items():
