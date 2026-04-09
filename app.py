@@ -5,6 +5,7 @@ import requests
 import json        
 from datetime import datetime
 import pytz  
+import traceback
 
 # --- 1. 飞书多维表格 API 模块 (安全优化版) ---
 
@@ -881,5 +882,6 @@ elif st.session_state.step == 'report':
             st.rerun()
 
     except Exception as e:
-        st.error(f"❌ 报告页渲染失败: {e}")
-        st.code(traceback.format_exc())
+        st.error("❌ 报告页加载失败，请截图并联系客服。")
+        print(f"报告页错误: {e}")
+        print(traceback.format_exc())
