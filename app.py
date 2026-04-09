@@ -565,8 +565,8 @@ elif st.session_state.step == 'quiz':
                         except Exception as e:
                             st.warning("💡数据同步略有延迟，请截屏保存结果。")
                         
-                        st.session_state.step = 'report'
-                        st.rerun()
+                            st.session_state.step = 'report'
+                            st.rerun()
                 else:
                     # 正常跳转到下一题
                     st.session_state.cur += 1
