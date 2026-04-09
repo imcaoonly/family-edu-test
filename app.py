@@ -719,7 +719,13 @@ elif st.session_state.step == 'quiz':
 elif st.session_state.step == 'report':
     import traceback
     try:
-        # 防御性检查：如果 RID 丢失，重新生成一个
+        # 防御性检查：如果关键数据缺失，等待后重试
+        if 'ans' not in st.session_state or not st.session_state.ans:
+            import time
+            time.sleep(0.3)
+            st.rerun()
+        
+        # 如果 RID 丢失，重新生成一个
         if 'rid' not in st.session_state or not st.session_state.rid:
             st.session_state.rid = str(random.randint(100000, 999999))
         
