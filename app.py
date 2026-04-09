@@ -92,12 +92,23 @@ def get_record_by_rid(rid):
             res_json = res.json()
             if res_json.get("code") == 0 and res_json.get("data", {}).get("items"):
                 record = res_json["data"]["items"][0]
-                return record.get("fields", {})
+                fields = record.get("fields", {})
+                
+                # 👇 处理"原始数据"富文本字段
+                raw_data = fields.get("原始数据")
+                if raw_data and isinstance(raw_data, list):
+                    text_parts = []
+                    for item in raw_data:
+                        if isinstance(item, dict) and "text" in item:
+                            text_parts.append(item["text"])
+                    fields["原始数据"] = "".join(text_parts)
+                
+                return fields
         return None
     except Exception as e:
         print(f"🔥 [反查异常] {str(e)}")
         return None
-
+        
 # --- 1. UI 深度定制：首页高度优化版 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
 
@@ -230,29 +241,36 @@ QUESTIONS = [
 # --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
 query_params = st.query_params
 
-# 情况 A：报告页（?page=report&rid=xxx）- 客户看到的精美报告
+# 情况 A：报告页（?page=report&rid=xxx）
 if query_params.get("page") == "report":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
-        
-        # 👇 调试：显示所有字段名
-        if record_data:
-            st.write(f"🔍 飞书返回的字段: {list(record_data.keys())}")
-            st.write(f"🔍 原始数据的值: {record_data.get('原始数据')}")
-        
         if record_data:
             raw_data = record_data.get("原始数据")
-            if raw_data and isinstance(raw_data, str):
-                ans_list = raw_data.split(",")
+            
+            # 👇 处理飞书富文本格式
+            if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
+                # 提取富文本中的 text 字段
+                text_parts = []
+                for item in raw_data:
+                    if isinstance(item, dict) and "text" in item:
+                        text_parts.append(item["text"])
+                raw_str = "".join(text_parts)
+            elif isinstance(raw_data, str):
+                raw_str = raw_data
+            else:
+                raw_str = None
+            
+            if raw_str:
+                ans_list = raw_str.split(",")
                 
                 # 清空并重新填充答案
                 st.session_state.ans = {}
                 for i, val in enumerate(ans_list):
-                    if i >= 85:  # 只取前85题
+                    if i >= 85:
                         break
                     val = val.strip()
-                    # 尝试转数字
                     if val.isdigit():
                         st.session_state.ans[i] = int(val)
                     else:
@@ -271,15 +289,28 @@ if query_params.get("page") == "report":
         st.error("❌ 缺少报告编号")
         st.stop()
 
-# 情况 B：详情页（?page=detail&rid=xxx）- 后台查看原始答题
+# 情况 B：详情页（?page=detail&rid=xxx）
 elif query_params.get("page") == "detail":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
         if record_data:
             raw_data = record_data.get("原始数据")
-            if raw_data and isinstance(raw_data, str):
-                ans_list = raw_data.split(",")
+            
+            # 👇 处理飞书富文本格式
+            if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
+                text_parts = []
+                for item in raw_data:
+                    if isinstance(item, dict) and "text" in item:
+                        text_parts.append(item["text"])
+                raw_str = "".join(text_parts)
+            elif isinstance(raw_data, str):
+                raw_str = raw_data
+            else:
+                raw_str = None
+            
+            if raw_str:
+                ans_list = raw_str.split(",")
                 
                 st.title(f"📋 原始答题详情回顾")
                 st.info(f"用户编号: {rid}")
