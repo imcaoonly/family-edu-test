@@ -316,8 +316,6 @@ elif query_params.get("page") == "detail":
     else:
         st.error("❌ 缺少编号")
         st.stop()
-简化 get_record_by_rid 函数
-既然字段是普通文本，不需要复杂的格式判断：
 
 def get_record_by_rid(rid):
     """根据编号从飞书表格反查记录数据"""
