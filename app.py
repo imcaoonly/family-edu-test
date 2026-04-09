@@ -319,7 +319,6 @@ elif query_params.get("page") == "detail":
 简化 get_record_by_rid 函数
 既然字段是普通文本，不需要复杂的格式判断：
 
-python
 def get_record_by_rid(rid):
     """根据编号从飞书表格反查记录数据"""
     token = get_tenant_access_token()
