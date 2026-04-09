@@ -681,7 +681,7 @@ elif st.session_state.step == 'report':
             </p>
             <p style='color:#546E7A; font-size:15px; margin-top:12px; line-height:1.6;'>
                 每一个在深夜焦虑的父母，其实都在孤军奋战。<br>
-                改变不一定靠"用力吼叫"，而是靠<b>"精准调频"</b>。
+                改变不一定靠\"用力吼叫\"，而是靠<b>\"精准调频\"</b>。
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -698,7 +698,7 @@ elif st.session_state.step == 'report':
         🎯 深度干预建议 · 预约通道
     </div>
     <p style="color:#1A237E; font-size:20px; font-weight:900; line-height:1.4; margin-bottom:15px;">
-        既然已经找到了"病灶"，<br>
+        既然已经找到了\"病灶\"，<br>
         <span style="color:#FF7043;">让我们一起对症下药。</span>
     </p>
     <div style="text-align:left; margin:15px 0; background:#F8F9FA; padding:15px; border-radius:15px; border:1px solid #EEE;">
