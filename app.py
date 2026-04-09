@@ -284,14 +284,11 @@ def prepare_report_data():
     # 强制获取 Asia/Shanghai 时区，不受服务器系统时区设置影响
     tz = pytz.timezone('Asia/Shanghai')
     beijing_time = datetime.now(tz)
-    
-  # 辅助：多选列表转文字（统一转为文本，飞书写入最稳）
-    def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
 
     # 定义格式化函数（处理列表转字符串）
     def fmt(v):  return  "、".join(v) if  isinstance(v, list) else  str(v)
     
-    # 【新增逻辑】构建后台查看链接 
+    # 构建后台查看链接 
     # 注意：请将下面的域名换成你 Streamlit 部署后的实际网址
     base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app/" 
     raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
