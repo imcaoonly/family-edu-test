@@ -821,8 +821,7 @@ elif st.session_state.step == 'report':
             <div style='text-align:center; margin: 40px 0 30px 0; padding: 0 10px;'>
                 <div style='width: 30px; height: 3px; background: #FF7043; margin: 0 auto 20px; border-radius:2px;'></div>
                 <p style='color:#1A237E; font-size:18px; font-weight:600; line-height:1.8; font-style:italic;'>
-                    "这份报告揭示了孩子的求救，<br>
-                    也看见了您的委屈。"
+                    "这份报告揭示了孩子的求救，<br>也看见了您的委屈。"
                 </p>
                 <p style='color:#546E7A; font-size:15px; margin-top:12px; line-height:1.6;'>
                     每一个在深夜焦虑的父母，其实都在孤军奋战。<br>
