@@ -25,13 +25,13 @@ def get_tenant_access_token():
         return None
 
 def send_to_feishu_bitable(data_dict):
-    """将数据写入飞书多维表格 (后台日志增强版)"""
-    # 1. 记录开始动作 (在日志里留个脚印，证明程序运行到这了)
+    """将数据写入飞书多维表格 (纯净版：只在后台报错)"""
+    # 1. 后台记录日志（用户在网页上看不见这些）
     print(f"🚀 [飞书同步] 准备写入记录，用户编号: {data_dict.get('编号', '未知')}")
     
     token = get_tenant_access_token()
     if not token: 
-        print("❌ [错误] 无法获取 Tenant Access Token，请检查 App ID 和 Secret")
+        print("❌ [错误] 无法获取 Tenant Access Token")
         return False
     
     url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
@@ -42,22 +42,19 @@ def send_to_feishu_bitable(data_dict):
     payload = {"fields": data_dict}
     
     try:
-        # 设置超时，防止无限等待
         res = requests.post(url, headers=headers, json=payload, timeout=10)
         
-        # 2. 检查返回状态码
+        # 2. 检查返回结果
         if res.status_code == 200:
             print("✅ [成功] 数据已成功写入飞书多维表格")
             return True
         else:
-            # --- 关键改动：这里会将飞书返回的具体报错 JSON 打印到日志 ---
-            print(f"🔴 [同步失败] 状态码: {res.status_code}")
-            print(f"🔴 [详细原因] {res.text}")
-            return False
+            # 这里的 res.text 即使有乱码，也只打印到后台，不会干扰客户页面
+            print(f"🔴 [同步失败] 状态码: {res.status_code}, 原因: {res.text}")
+            return False 
             
     except Exception as e:
-        # 3. 记录物理网络异常 (如服务器断网、DNS解析失败)
-        print(f"🔥 [严重异常] 网络或代码崩溃: {str(e)}")
+        print(f"🔥 [严重异常] 网络故障: {str(e)}")
         return False
 
 # --- 1. UI 深度定制：首页高度优化版 ---
@@ -137,26 +134,50 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 在这里插入新代码 ---
+# --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
 query_params = st.query_params
-# 如果网址里有 data 这个词，说明是你从飞书点过来的
-if  "data"  in query_params:
-    if  'ans'  not  in st.session_state:
-        st.session_state.ans = {}
+
+# 情况 A：从飞书点击“答题链接” (?page=detail)
+if query_params.get("page") == "detail":
+    target_id = query_params.get("rid", "未知")
+    st.title(f"📋 原始答题详情回顾")
+    st.info(f"用户编号: {target_id}")
     
-    # 获取网址里的加密数据并还原
+    raw_data = query_params.get("data", "")
+    if raw_data:
+        ans_list = raw_data.split(",")
+        for i, val in enumerate(ans_list):
+            # 获取题目文本（这里会自动寻找你代码后方的 QUESTIONS 字典）
+            q_text = QUESTIONS.get(i, f"第 {i+1} 题") 
+            st.write(f"**{q_text}**")
+            st.write(f"回答：{val}")
+            st.divider()
+    
+    if st.button("返回主页"):
+        st.query_params.clear()
+        st.rerun()
+    st.stop() # 🛑 必须停止，否则会向下运行显示报告或首页
+
+# 情况 B：点开的是【报告链接】 (?data=...)
+elif "data" in query_params:
+    if 'ans' not in st.session_state:
+        st.session_state.ans = {}
+        
+    # 还原数据用于渲染精美报告
     raw_data = query_params["data"]
     ans_list = raw_data.split(",")
     for i, val in enumerate(ans_list):
-        # 还原每一题的答案
         if val.isdigit():
             st.session_state.ans[i] = int(val)
         else:
             st.session_state.ans[i] = val
             
+    # 设置报告状态
     st.session_state.rid = query_params.get("rid", "未知")
-    st.session_state.step = 'report' # 直接跳过首页和答题，进入报告 
-# --- 插入结束 ---
+    st.session_state.step = 'report'
+    st.rerun()  # 强制刷新以进入报告渲染模式  
+
+# --- 拦截逻辑结束 ---
 
 # --- 2. 状态管理 ---
 if 'step' not in st.session_state:
@@ -280,55 +301,59 @@ def prepare_report_data():
     ans = st.session_state.ans
     rid = st.session_state.rid
     
-    # --- 优化后的时间修正逻辑 ---
-    # 强制获取 Asia/Shanghai 时区，不受服务器系统时区设置影响
+    # --- 1. 时间修正逻辑 ---
     tz = pytz.timezone('Asia/Shanghai')
     beijing_time = datetime.now(tz)
 
     # 定义格式化函数（处理列表转字符串）
     def fmt(v):  return  "、".join(v) if  isinstance(v, list) else  str(v)
     
-    # 构建后台查看链接 
-    # 注意：请将下面的域名换成你 Streamlit 部署后的实际网址
-    base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app/" 
+    # --- 2. 构造两个纯链接 --- 
+    # 【注意】：请确保此域名是你 Streamlit 部署后的最新实际网址
+    base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app"
     raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
-    detail_link = f"{base_url}/?rid={rid}&data={raw_data_str}"
+    
+    # 将原本的 detail_link 改为 report_link，作为客户看到的报告页
+    report_link = f"{base_url}/?rid={rid}&data={raw_data_str}"
 
-    # 1. 维度均分计算 (严格对应 1-78 题)
-    sys_avg = round(sum(ans.get(i,0) for i in range(0, 8)) / 8, 2)
-    par_avg = round(sum(ans.get(i,0) for i in range(8, 18)) / 10, 2)
-    rel_avg = round(sum(ans.get(i,0) for i in range(18, 28)) / 10, 2)
-    pow_avg = round(sum(ans.get(i,0) for i in range(28, 37)) / 9, 2)
-    stu_avg = round(sum(ans.get(i,0) for i in range(37, 48)) / 11, 2)
-    soc_avg = round(sum(ans.get(i,0) for i in range(48, 58)) / 10, 2)
+    # 将原本多余的 detail_url 改名为 detail_link，作为后台详情页
+    detail_link = f"{base_url}/?page=detail&rid={rid}&data={raw_data_str}"
 
-    # --- 2. 预警逻辑重构 (针对红线题 61, 62 优化) ---
+    # 3. 维度均分计算 (严格对应 1-78 题)
+    sys_avg = round(sum(int(ans.get(i, 0) or 0) for i in 0) 用于 i in range(0, 8)) / 8, 2)
+    par_avg = round(sum(int(ans.get(i, 0) or 0) for i in 0) 用于 i in range(8, 18)) / 10, 2)
+    rel_avg = round(sum(int(ans.get(i, 0) or 0) for i in 0) 用于 i in range(18, 28)) / 10, 2)
+    pow_avg = round(sum(int(ans.get(i, 0) or 0) for i in 0) 用于 i in range(28, 37)) / 9, 2)
+    stu_avg = round(sum(int(ans.get(i, 0) or 0) for i in 0) 用于 i in range(37, 48)) / 11, 2)
+    soc_avg = round(sum(int(ans.get(i, 0) or 0) for i in 0) 用于 i in range(48, 58)) / 10, 2)
+
+    # --- 4. 预警逻辑重构 (针对红线题 61, 62 优化) ---
     
     # 【情绪状态预警】 (对应 59-66 题，索引 58-65)
     emo_range = range(58, 66)
-    emo_score = sum(ans.get(i, 0) for i in emo_range)
+    emo_score = sum(int(ans.get(i, 0) or 0) for i in emo_range)
     emo_max = len(emo_range) * 3  # 总分 24
     
     # --- 核心红线拦截 ---
     # 第 61 题索引为 60，第 62 题索引为 61
-    negative_worldview = ans.get(60, 0) >= 2  # 消极厌世
-    self_harm_intent = ans.get(61, 0) >= 2    # 自伤倾向
+    negative_worldview = int(ans.get(60, 0) or 0) >= 2 0）>=2  # 消极厌世
+    self_harm_intent = int(ans.get(61, 0) or 0) >= 2 0）>=2    # 自伤倾向
     
     # 触发条件：红线触发 OR 任意一题3分 OR 总分超过60%
     if negative_worldview or self_harm_intent:
         emo_risk = "🚨 极高风险 (敏感指标)"
-    elif any(ans.get(i, 0) == 3 for i in emo_range) or (emo_score / emo_max > 0.6):
+    elif any(int(ans.get(i, 0) or 任意(int(ans.get(i, 0) 或 0) == 3 0）==3 for i in emo_range) or (emo_score / emo_max > 0.6):
         emo_risk = "🚩 情绪预警"
     else:
         emo_risk = "正常"
 
     # 【注意状态预警】 (对应 67-72 题，索引 66-71)
     att_range = range(66, 72)
-    att_score = sum(ans.get(i, 0) for i in att_range)
+    att_score = sum(int(ans.get(i, 0) or 0) for i in att_range)
     att_max = len(att_range) * 3  # 总分 18
     
     # 触发条件：任意一题3分 OR 总分超过60%
-    if any(ans.get(i, 0) == 3 for i in att_range) or (att_score / att_max > 0.6):
+    if any(int(ans.get(i, 0) or 任意(int(ans.get(i, 0) 或 0) == 3 0）==3 for i in att_range) or (att_score / att_max > 0.6):
         adhd_risk = "🟠 注意受损"
     else:
         adhd_risk = "正常"
@@ -336,12 +361,12 @@ def prepare_report_data():
     # 【身体状态预警】 (对应 73-78 题，索引 72-77)
     # 触发条件：均分 > 1.5
     body_range = range(72, 78)
-    body_scores = [ans.get(i, 0) for i in body_range]
+    body_scores = [int(ans.get(i, 0) or 0) for i in body_range]
     body_avg = sum(body_scores) / len(body_scores) if body_scores else 0
     
     body_risk = "🔵 生理负荷" if body_avg > 1.5 else "正常"
 
-   # 3. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
+   # 5. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
     return {
         "提交日期": beijing_time.strftime("%Y-%m-%d"),
         "提交时间": beijing_time.strftime("%H:%M:%S"),
@@ -359,7 +384,8 @@ def prepare_report_data():
         "情绪预警": emo_risk,
         "注意预警": adhd_risk,
         "身体预警": body_risk,
-        "详情链接": detail_link
+        "报告链接": report_link,    # 👈 对应飞书“报告链接”列
+        "答题链接": detail_link     # 👈 对应飞书“答题链接”列
         
     }
 
@@ -511,9 +537,19 @@ elif st.session_state.step == 'quiz':
                     # 这里增加转圈等待提示 
                     with st.spinner('正在为您生成解析报告，请稍候...'):
                         try:
+                            # 1. 准备数据
                             report_payload = prepare_report_data()
-                            send_to_feishu_bitable(report_payload)
-                        except:
+                            # 2. 执行强制同步，获取返回结果
+                            success = send_to_feishu_bitable(report_payload)
+                            
+                            if success:
+                                # 只有同步成功，才切换状态并跳转
+                                st.session_state.step = 'report'
+                                st.rerun()
+                            else:
+                                # 同步失败，停在原地并报错
+                                st.error("数据保存失败，请再次点击提交按钮。")
+                        except Exception as e:
                             st.warning("💡数据同步略有延迟，请截屏保存结果。")
                         
                         st.session_state.step = 'report'
