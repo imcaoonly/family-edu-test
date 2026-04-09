@@ -154,7 +154,7 @@ div.stButton > button {
     background-color: #1A237E; 
     color: white; 
     border: none;
-    transition: all 0.2s;
+    transition: background-color 0.35s ease, box-shadow 0.2s ease;
 }
 
 /* 2. 悬停状态：颜色稍微变深 */
@@ -168,6 +168,7 @@ div.stButton > button:active {
     background-color: #FF7043 !important; 
     color: white !important;
     box-shadow: 0 0 0 0.2rem rgba(255, 112, 67, 0.5) !important;
+    transition: background-color 0.1s;  /* 按下瞬间变色要快 */
 }
 
 /* 4. 焦点状态：恢复为深蓝色（避免点完后一直橙色） */
@@ -175,6 +176,7 @@ div.stButton > button:focus {
     background-color: #1A237E !important; 
     color: white !important;
     outline: none !important;
+    transition: background-color 0.35s ease;  /* 松开后慢慢变回蓝色 */
 }
     
     /* 结果页与其他样式 */
