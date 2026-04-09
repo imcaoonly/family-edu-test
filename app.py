@@ -719,6 +719,11 @@ elif st.session_state.step == 'report':
     import traceback
     try:
         st.write("测试") 
+        
+         # 防御性检查
+        if 'rid' not in st.session_state or not st.session_state.rid:
+            st.session_state.rid = str(random.randint(100000, 999999))
+        st.write("✅ 防御性检查通过")
 
     except Exception as e:
         st.error(f"❌ 报告页渲染失败: {e}")
