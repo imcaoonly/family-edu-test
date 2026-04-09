@@ -649,7 +649,7 @@ elif st.session_state.step == 'quiz':
                    st.session_state.cur += 1
                    st.rerun()
 
-   # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
+    # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
     else:
         # 使用动态 Key 确保每一题的状态是独立的
         input_key = f"input_step_{cur}"
@@ -713,7 +713,7 @@ elif st.session_state.step == 'quiz':
         if st.button("⬅ 上一题", key="back"):
             st.session_state.cur -= 1
             st.rerun()
-
+            
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
     elif st.session_state.step == 'report':
