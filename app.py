@@ -596,12 +596,12 @@ elif st.session_state.step == 'report':
     # 7. 情绪状态预警 (59-66题)
     emo_scores = [st.session_state.ans.get(i, 0) for i in range(58, 66)]
     if any(s == 3 for s in emo_scores) or (sum(emo_scores) >= 24 * 0.6) or any(st.session_state.ans.get(i, 0) >= 2 for i in [64, 65]): # 假设65/66为消极倾向题
-        st.markdown("<div class='warn-banner bg-red'>⚠️ 【情绪状态预警】当前孩子情绪安全水位极低，沉默是他在呼救。首要任务不是抓学习，而是"稳情绪"，必须立刻切入心理安全干预。</div>", unsafe_allow_html=True)
+        st.markdown("<div class='warn-banner bg-red'>⚠️ 【情绪状态预警】当前孩子情绪安全水位极低，沉默是他在呼救。首要任务不是抓学习，而是\"稳情绪\"，必须立刻切入心理安全干预。</div>", unsafe_allow_html=True)
     
     # 8. 注意状态预警 (67-72题)
     adhd_scores = [st.session_state.ans.get(i, 0) for i in range(66, 72)]
     if any(s == 3 for s in adhd_scores) or (sum(adhd_scores) >= 18 * 0.6):
-        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【注意状态预警】疑似 ADHD 特质。孩子大脑天生自带"降噪功能缺陷"，不要再骂他粗心了，他需要专业的脑功能整合训练。</div>", unsafe_allow_html=True)
+        st.markdown("<div class='warn-banner bg-orange'>⚠️ 【注意状态预警】疑似 ADHD 特质。孩子大脑天生自带\"降噪功能缺陷\"，不要再骂他粗心了，他需要专业的脑功能整合训练。</div>", unsafe_allow_html=True)
 
     # 9. 身体状态预警 (73-78题)
     body_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
