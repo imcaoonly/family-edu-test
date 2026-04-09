@@ -92,7 +92,42 @@ def get_record_by_rid(rid):
             res_json = res.json()
             if res_json.get("code") == 0 and res_json.get("data", {}).get("items"):
                 record = res_json["data"]["items"][0]
-                return record.get("fields", {})
+                fields = record.get("fields", {})
+                
+                # 👇 处理"原始数据"字段，兼容多种格式
+                raw_data_field = fields.get("原始数据")
+                
+                if raw_data_field is None:
+                    return fields
+                
+                # 情况1：已经是字符串
+                if isinstance(raw_data_field, str):
+                    # 直接返回，不需要处理
+                    pass
+                
+                # 情况2：是数组（飞书多行文本可能返回数组）
+                elif isinstance(raw_data_field, list):
+                    # 将数组拼接成字符串
+                    raw_data_field = ",".join(str(item) for item in raw_data_field)
+                    fields["原始数据"] = raw_data_field
+                
+                # 情况3：是富文本对象
+                elif isinstance(raw_data_field, dict):
+                    # 尝试提取 text 字段
+                    if "text" in raw_data_field:
+                        raw_data_field = raw_data_field["text"]
+                        fields["原始数据"] = raw_data_field
+                    else:
+                        # 转成字符串试试
+                        raw_data_field = str(raw_data_field)
+                        fields["原始数据"] = raw_data_field
+                
+                # 情况4：其他类型，强制转字符串
+                else:
+                    raw_data_field = str(raw_data_field)
+                    fields["原始数据"] = raw_data_field
+                
+                return fields
         return None
     except Exception as e:
         print(f"🔥 [反查异常] {str(e)}")
@@ -230,15 +265,17 @@ QUESTIONS = [
 # --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
 query_params = st.query_params
 
-# 情况 A：报告页（?page=report&rid=xxx）- 客户看到的精美报告
+# 情况 A：报告页（?page=report&rid=xxx）
 if query_params.get("page") == "report":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
         if record_data and record_data.get("原始数据"):
             raw_data = record_data["原始数据"]
-            if raw_data and isinstance(raw_data, str):
-                ans_list = raw_data.split(",")
+            if raw_data:
+                # 👇 强制转字符串
+                raw_str = str(raw_data) if not isinstance(raw_data, str) else raw_data
+                ans_list = raw_str.split(",")
                 st.session_state.ans = {}
                 for i, val in enumerate(ans_list):
                     if val.isdigit():
@@ -258,15 +295,17 @@ if query_params.get("page") == "report":
         st.error("❌ 缺少报告编号")
         st.stop()
 
-# 情况 B：详情页（?page=detail&rid=xxx）- 后台查看原始答题
+# 情况 B：详情页（?page=detail&rid=xxx）
 elif query_params.get("page") == "detail":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
         if record_data and record_data.get("原始数据"):
             raw_data = record_data["原始数据"]
-            if raw_data and isinstance(raw_data, str):
-                ans_list = raw_data.split(",")
+            if raw_data:
+                # 👇 强制转字符串
+                raw_str = str(raw_data) if not isinstance(raw_data, str) else raw_data
+                ans_list = raw_str.split(",")
                 
                 st.title(f"📋 原始答题详情回顾")
                 st.info(f"用户编号: {rid}")
