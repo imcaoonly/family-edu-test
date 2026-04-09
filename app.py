@@ -731,65 +731,67 @@ elif st.session_state.step == 'report':
         
         # --- 1. 紧凑修复版：集成印章、水印感与动态质感 ---
         st.markdown(f"""<div style="position:relative; background:linear-gradient(135deg, #FFFFFF 0%, #F8F9FB 100%); border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:visible; width:100%;"><div style="height:6px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%; border-radius:12px 12px 0 0;"></div><div style="position: absolute; top: 15px; right: 15px; width: 85px; height: 85px; border: 3px double rgba(255, 82, 82, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); z-index: 99; pointer-events: none;"><div style="width: 70px; height: 70px; border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;"><span style="color: rgba(255, 82, 82, 0.7); font-size: 11px; font-weight: 900; line-height:1;">曹校长</span><span style="color: rgba(255, 82, 82, 0.7); font-size: 16px; font-weight: 900; line-height:1.2;">已认证</span></div></div><div style="padding:30px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;"><div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div><div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div><div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div></div><div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center; justify-content:center;"><table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;"><tr style="border:none; vertical-align:middle;"><td style="padding-left:15px; text-align:left; vertical-align:middle; border:none;"><div style="line-height:1.4;"><p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p><p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p></div></td><td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;"><div style="line-height:1.2;"><p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p><p style="color:#1A237E; font-family:monospace; font-size:24px; font-weight:900; margin:2px 0 0 0;">{st.session_state.rid}</p></div></td></tr></table></div></div>""", unsafe_allow_html=True)
+        st.write("✅ 印章渲染完成")
+        st.stop()
         
         # 1.1风险预警模块（暖橙色卡片提示）
-        st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
+        # st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
         
         # 1.2. 情绪状态预警 (59-66题)
-        emo_scores = [st.session_state.ans.get(i, 0) for i in range(58, 66)]
-        if any(s == 3 for s in emo_scores) or (sum(emo_scores) >= 24 * 0.6) or any(st.session_state.ans.get(i, 0) >= 2 for i in [64, 65]):
-            st.markdown("<div class='warn-banner bg-red'>⚠️ 【情绪状态预警】当前孩子情绪安全水位极低，沉默是他在呼救。首要任务不是抓学习，而是\"稳情绪\"，必须立刻切入心理安全干预。</div>", unsafe_allow_html=True)
+        # emo_scores = [st.session_state.ans.get(i, 0) for i in range(58, 66)]
+        # if any(s == 3 for s in emo_scores) or (sum(emo_scores) >= 24 * 0.6) or any(st.session_state.ans.get(i, 0) >= 2 for i in [64, 65]):
+        #    st.markdown("<div class='warn-banner bg-red'>⚠️ 【情绪状态预警】当前孩子情绪安全水位极低，沉默是他在呼救。首要任务不是抓学习，而是\"稳情绪\"，必须立刻切入心理安全干预。</div>", unsafe_allow_html=True)
         
         # 1.3. 注意状态预警 (67-72题)
-        adhd_scores = [st.session_state.ans.get(i, 0) for i in range(66, 72)]
-        if any(s == 3 for s in adhd_scores) or (sum(adhd_scores) >= 18 * 0.6):
-            st.markdown("<div class='warn-banner bg-orange'>⚠️ 【注意状态预警】疑似 ADHD 特质。孩子大脑天生自带\"降噪功能缺陷\"，不要再骂他粗心了，他需要专业的脑功能整合训练。</div>", unsafe_allow_html=True)
+        # adhd_scores = [st.session_state.ans.get(i, 0) for i in range(66, 72)]
+        # if any(s == 3 for s in adhd_scores) or (sum(adhd_scores) >= 18 * 0.6):
+        #    st.markdown("<div class='warn-banner bg-orange'>⚠️ 【注意状态预警】疑似 ADHD 特质。孩子大脑天生自带\"降噪功能缺陷\"，不要再骂他粗心了，他需要专业的脑功能整合训练。</div>", unsafe_allow_html=True)
 
         # 1.4. 身体状态预警 (73-78题)
-        body_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
-        if body_avg > 1.5:
-            st.markdown("<div class='warn-banner bg-blue'>⚠️ 【身体状态预警】当前表现受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议从营养与节律层面修复。</div>", unsafe_allow_html=True)
+        # body_avg = sum(st.session_state.ans.get(i, 0) for i in range(72, 78)) / 6
+        # if body_avg > 1.5:
+        #    st.markdown("<div class='warn-banner bg-blue'>⚠️ 【身体状态预警】当前表现受生理代谢（如营养、过敏）影响。生理基础不稳，心智无法成长，建议从营养与节律层面修复。</div>", unsafe_allow_html=True)
 
         # --- 2. 雷达图绘制 (视觉专业化升级版) ---
-        scores, labels = [], list(DIM_DATA.keys())
-        for dim in labels:
-            r = DIM_DATA[dim]['range']
-            avg = sum(st.session_state.ans.get(i, 0) for i in r) / len(r)
+        # scores, labels = [], list(DIM_DATA.keys())
+        # for dim in labels:
+        #    r = DIM_DATA[dim]['range']
+        #    avg = sum(st.session_state.ans.get(i, 0) for i in r) / len(r)
             # 转化为100分制展示，分值越高代表风险越高
-            scores.append(round(avg * 33.3, 1)) 
+        #    scores.append(round(avg * 33.3, 1)) 
 
         # 增加闭环点（让雷达图线条连起来，不留缺口）
-        radar_scores = scores + [scores[0]]
-        radar_labels = labels + [labels[0]]
+        # radar_scores = scores + [scores[0]]
+        # radar_labels = labels + [labels[0]]
 
-        fig = go.Figure(data=go.Scatterpolar(
-            r=radar_scores, 
-            theta=radar_labels, 
-            fill='toself', 
+        # fig = go.Figure(data=go.Scatterpolar(
+        #    r=radar_scores, 
+        #    theta=radar_labels, 
+        #    fill='toself', 
             # 线条颜色改为更有质感的深蓝，填充色改为半透明橙，对比强烈
-            line=dict(color='#1A237E', width=3), 
-            fillcolor='rgba(255, 112, 67, 0.2)',
-            marker=dict(size=8, color='#FF7043')
+        #    line=dict(color='#1A237E', width=3), 
+        #    fillcolor='rgba(255, 112, 67, 0.2)',
+        #    marker=dict(size=8, color='#FF7043')
         ))
 
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True, 
-                    range=[0, 100],
-                    tickfont=dict(size=10, color="#90A4AE"),
-                    gridcolor="#ECEFF1", # 浅灰色网格，更有高级感
-                    angle=90 # 刻度线方向
+        # fig.update_layout(
+        #    polar=dict(
+        #        radialaxis=dict(
+        #            visible=True, 
+        #            range=[0, 100],
+        #            tickfont=dict(size=10, color="#90A4AE"),
+        #            gridcolor="#ECEFF1", # 浅灰色网格，更有高级感
+        #            angle=90 # 刻度线方向
                 ),
-                angularaxis=dict(
-                    tickfont=dict(size=14, color="#1A237E", family="PingFang SC"),
-                    gridcolor="#ECEFF1"
+        #        angularaxis=dict(
+        #            tickfont=dict(size=14, color="#1A237E", family="PingFang SC"),
+        #           gridcolor="#ECEFF1"
                 ),
-                bgcolor="rgba(255,255,255,0)" # 背景透明
+        #       bgcolor="rgba(255,255,255,0)" # 背景透明
             ),
-            showlegend=False, 
-            height=350, 
-            margin=dict(t=40, b=40, l=50, r=50)
+        #   showlegend=False, 
+        #    height=350, 
+        #    margin=dict(t=40, b=40, l=50, r=50)
         )
 
         st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
