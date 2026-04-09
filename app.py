@@ -512,7 +512,7 @@ elif st.session_state.step == 'quiz':
                 if st.button(txt, key=f"q_{cur}_{i}", use_container_width=True):
                    st.session_state.ans[cur] = val
                    st.session_state.cur += 1
-                       st.rerun()
+                   st.rerun()
 
    # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
     else:
