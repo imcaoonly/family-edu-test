@@ -137,6 +137,27 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# --- 在这里插入新代码 ---
+query_params = st.query_params
+# 如果网址里有 data 这个词，说明是你从飞书点过来的
+if  "data"  in query_params:
+    if  'ans'  not  in st.session_state:
+        st.session_state.ans = {}
+    
+    # 获取网址里的加密数据并还原
+    raw_data = query_params["data"]
+    ans_list = raw_data.split(",")
+    for i, val in enumerate(ans_list):
+        # 还原每一题的答案
+        if val.isdigit():
+            st.session_state.ans[i] = int(val)
+        else:
+            st.session_state.ans[i] = val
+            
+    st.session_state.rid = query_params.get("rid", "未知")
+    st.session_state.step = 'report' # 直接跳过首页和答题，进入报告 
+# --- 插入结束 ---
+
 # --- 2. 状态管理 ---
 if 'step' not in st.session_state:
    # 抓取 URL 参数 (?from=xhs 或 ?from=dy)
@@ -257,7 +278,8 @@ DIM_DATA = {
 
 def prepare_report_data():
     ans = st.session_state.ans
-
+    rid = st.session_state.rid
+    
     # --- 优化后的时间修正逻辑 ---
     # 强制获取 Asia/Shanghai 时区，不受服务器系统时区设置影响
     tz = pytz.timezone('Asia/Shanghai')
@@ -265,6 +287,15 @@ def prepare_report_data():
     
   # 辅助：多选列表转文字（统一转为文本，飞书写入最稳）
     def fmt(v): return "、".join(v) if isinstance(v, list) else str(v)
+
+    # 定义格式化函数（处理列表转字符串）
+    def fmt(v):  return  "、".join(v) if  isinstance(v, list) else  str(v)
+    
+    # 【新增逻辑】构建后台查看链接 
+    # 注意：请将下面的域名换成你 Streamlit 部署后的实际网址
+    base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app/" 
+    raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
+    detail_link = f"{base_url}/?rid={rid}&data={raw_data_str}"
 
     # 1. 维度均分计算 (严格对应 1-78 题)
     sys_avg = round(sum(ans.get(i,0) for i in range(0, 8)) / 8, 2)
@@ -331,7 +362,8 @@ def prepare_report_data():
         "情绪预警": emo_risk,
         "注意预警": adhd_risk,
         "身体预警": body_risk,
-        "原始凭证": ",".join(str(ans.get(i, "")) for i in range(85))
+        "详情链接": detail_link
+        
     }
 
 # --- 5. 页面流程逻辑 ---
@@ -644,7 +676,36 @@ elif st.session_state.step == 'report':
         * 若点击按钮无反应，请长按二维码识别或截屏扫码
     </p>
     """
-
+    # --- 在这里开始插入你的“曹校后台专用”代码 ---
+    st.write("") 
+    st.divider() # 画一条分割线，区分用户内容和管理内容
+    
+    with st.expander("🔍 曹校后台专用：查看原始答题明细", expanded=False):
+        # 遍历 85 道题
+        for i in  range(85):
+            # 获取题目文本，如果没有（比如80题以后）则显示“背景/意愿”
+            q_text = QUESTIONS.get(i, f"附加信息题 {i+1}")
+            u_ans = st.session_state.ans.get(i, "未填")
+            
+            # 显示题号和题目
+            st.markdown(f"**{i+1}. {q_text}**")
+            
+            # 针对前78题的分值做个简单翻译
+            if i < 78:
+                score_desc = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
+                display_text = f"{score_desc.get(u_ans, u_ans)} ({u_ans}分)"
+                # 如果是2分或3分，用醒目的红色显示 
+                if  isinstance(u_ans, int) and u_ans >= 2:
+                    st.error(f"👉 选项：{display_text}")
+                else:
+                    st.info(f"👉 选项：{display_text}")
+            else:
+                # 79-85题是文本描述
+                st.success(f"👉 回答：{u_ans}")
+            
+            st.write("---") # 题目之间的细分割线
+    # --- 插入结束 ---
+    
     # 第三部分：二维码图片
     img_html = '<img src="data:image/png;base64,' + qr_b64 + '" style="width:160px; height:160px; display:block; margin:15px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
 
