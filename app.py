@@ -61,7 +61,7 @@ def send_to_feishu_bitable(data_dict):
     except Exception as e:
         print(f"🔥 [严重异常] 网络故障: {str(e)}")
         return False
-
+        
 def get_record_by_rid(rid):
     """根据编号从飞书表格反查记录数据"""
     token = get_tenant_access_token()
@@ -316,42 +316,6 @@ elif query_params.get("page") == "detail":
     else:
         st.error("❌ 缺少编号")
         st.stop()
-
-def get_record_by_rid(rid):
-    """根据编号从飞书表格反查记录数据"""
-    token = get_tenant_access_token()
-    if not token:
-        print("❌ [反查失败] 无法获取 Token")
-        return None
-    
-    url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records/search"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json; charset=utf-8"
-    }
-    payload = {
-        "filter": {
-            "conjunction": "and",
-            "conditions": [{
-                "field_name": "编号",
-                "operator": "is",
-                "value": [rid]
-            }]
-        },
-        "page_size": 1
-    }
-    
-    try:
-        res = requests.post(url, headers=headers, json=payload, timeout=10)
-        if res.status_code == 200:
-            res_json = res.json()
-            if res_json.get("code") == 0 and res_json.get("data", {}).get("items"):
-                record = res_json["data"]["items"][0]
-                return record.get("fields", {})
-        return None
-    except Exception as e:
-        print(f"🔥 [反查异常] {str(e)}")
-        return None
         
 # 情况 C：兼容旧链接（?data=...）- 如果有用户保存了旧链接
 elif "data" in query_params:
