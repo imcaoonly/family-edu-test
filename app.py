@@ -734,7 +734,6 @@ elif st.session_state.step == 'report':
         st.write("✅ 印章渲染完成")
         st.stop()
 
-        """
         # 1.1 风险预警模块（暖橙色卡片提示）
         st.markdown("<p style='color:#E65100; font-weight:bold; margin-bottom:10px;'>核心风险筛查：</p>", unsafe_allow_html=True)
         
@@ -888,7 +887,6 @@ elif st.session_state.step == 'report':
         if st.button("🔄 重新开始测评", use_container_width=True):
             st.session_state.clear()
             st.rerun()
-        """
 
     except Exception as e:
         st.error("❌ 报告页加载失败，请截图并联系客服。")
