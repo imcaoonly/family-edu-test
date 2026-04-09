@@ -45,12 +45,12 @@ def send_to_feishu_bitable(data_dict):
         res = requests.post(url, headers=headers, json=payload, timeout=10)
         
         # 2. 检查返回结果
-        if res.status_code == 200:
+        if res.status_code == 200 and res_json.get("code") == 0:
             print("✅ [成功] 数据已成功写入飞书多维表格")
             return True
+            
         else:
-            # 这里的 res.text 即使有乱码，也只打印到后台，不会干扰客户页面
-            print(f"🔴 [同步失败] 状态码: {res.status_code}, 原因: {res.text}")
+            print(f"🔴 [同步失败] HTTP状态: {res.status_code}, 飞书Code: {res_json.get('code')}, 原因: {res_json.get('msg')}")
             return False 
             
     except Exception as e:
@@ -97,32 +97,36 @@ st.markdown("""
     }
     
 /* 1. 基础按钮样式：默认深蓝色 */
-    div.stButton > button {
-        border-radius: 12px; 
-        height: 55px; 
-        font-size: 18px !important; 
-        font-weight: 700;
-        background-color: #1A237E; 
-        color: white; 
-        border: none;
-        transition: all 0.2s;
-    }
+div.stButton > button {
+    border-radius: 12px; 
+    height: 55px; 
+    font-size: 18px !important; 
+    font-weight: 700;
+    background-color: #1A237E; 
+    color: white; 
+    border: none;
+    transition: all 0.2s;
+}
 
-    /* 2. 悬停状态：颜色稍微变深 */
-    div.stButton > button:hover {
-        background-color: #0D47A1;
-        color: white;
-    }
-    
-    /* 3. 关键修改：点击后及获得焦点时的状态 */
-    /* 这里的 #FF7043 是你品牌色中的橙色，按下后会变成橙色且不再跳回蓝色 */
-    div.stButton > button:focus, 
-    div.stButton > button:active {
-        background-color: #FF7043 !important; 
-        color: white !important;
-        box-shadow: 0 0 0 0.2rem rgba(255, 112, 67, 0.5) !important;
-        outline: none !important;
-    }
+/* 2. 悬停状态：颜色稍微变深 */
+div.stButton > button:hover {
+    background-color: #0D47A1;
+    color: white;
+}
+
+/* 3. 关键修改：只在鼠标/手指按住（激活）的瞬间变橙色 */
+div.stButton > button:active {
+    background-color: #FF7043 !important; 
+    color: white !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 112, 67, 0.5) !important;
+}
+
+/* 4. 焦点状态：恢复为深蓝色（避免点完后一直橙色） */
+div.stButton > button:focus {
+    background-color: #1A237E !important; 
+    color: white !important;
+    outline: none !important;
+}
     
     /* 结果页与其他样式 */
     .q-text { font-size: 20px; font-weight: 600; color: #263238; margin: 25px 0; }
@@ -133,70 +137,6 @@ st.markdown("""
     .rid-box { font-size: 36px; font-weight: 900; color: #C62828; border: 2px dashed #C62828; padding: 5px 20px; margin: 15px 0; display: inline-block; }
     </style>
     """, unsafe_allow_html=True)
-
-# --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
-query_params = st.query_params
-
-# 情况 A：从飞书点击"答题链接" (?page=detail)
-if query_params.get("page") == "detail":
-    target_id = query_params.get("rid", "未知")
-    st.title(f"📋 原始答题详情回顾")
-    st.info(f"用户编号: {target_id}")
-    
-    raw_data = query_params.get("data", "")
-    if raw_data:
-        ans_list = raw_data.split(",")
-        for i, val in enumerate(ans_list):
-            # 获取题目文本（这里会自动寻找你代码后方的 QUESTIONS 字典）
-            q_text = QUESTIONS.get(i, f"第 {i+1} 题") 
-            st.write(f"**{q_text}**")
-            st.write(f"回答：{val}")
-            st.divider()
-    
-    if st.button("返回主页"):
-        st.query_params.clear()
-        st.rerun()
-    st.stop() # 🛑 必须停止，否则会向下运行显示报告或首页
-
-# 情况 B：点开的是【报告链接】 (?data=...)
-elif "data" in query_params:
-    if 'ans' not in st.session_state:
-        st.session_state.ans = {}
-        
-    # 还原数据用于渲染精美报告
-    raw_data = query_params["data"]
-    ans_list = raw_data.split(",")
-    for i, val in enumerate(ans_list):
-        if val.isdigit():
-            st.session_state.ans[i] = int(val)
-        else:
-            st.session_state.ans[i] = val
-            
-    # 设置报告状态
-    st.session_state.rid = query_params.get("rid", "未知")
-    st.session_state.step = 'report'
-    st.rerun()  # 强制刷新以进入报告渲染模式  
-
-# --- 拦截逻辑结束 ---
-
-# --- 2. 状态管理 ---
-if 'step' not in st.session_state:
-   # 抓取 URL 参数 (?from=xhs 或 ?from=dy)
-    query_params = st.query_params
-    url_source = query_params.get("from", "直接打开")
-    
-    # 建立映射表
-    source_map = {"xhs": "小红书", "dy": "抖音"}
-    final_source = source_map.get(url_source, url_source)
-    
-    st.session_state.update({
-        'step': 'home', 
-        'cur': 0, 
-        'ans': {},
-        'age': 7,  
-        'source': final_source,
-        'rid': str(random.randint(100000, 999999))
-    })
 
 # --- 3. 全量题库 (1-85题) ---
 QUESTIONS = [
@@ -245,6 +185,77 @@ QUESTIONS = [
     "填完后，您是否愿预约一次专业"全面分析解读"？（单选）", 
     "如果需投入时间扭转局面，您是否有兴趣了解？（单选）"
 ]
+
+# --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
+query_params = st.query_params
+
+# 情况 A：从飞书点击"答题链接" (?page=detail)
+if query_params.get("page") == "detail":
+    target_id = query_params.get("rid", "未知")
+    st.title(f"📋 原始答题详情回顾")
+    st.info(f"用户编号: {target_id}")
+    
+    raw_data = query_params.get("data", "")
+    if raw_data:
+        ans_list = raw_data.split(",")
+        for i, val in enumerate(ans_list):
+            if i < 78:
+                q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {i+1} 题"
+                st.write(f"**{q_text}**")
+                score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
+                try:
+                    score_val = int(val)
+                    st.write(f"回答：{score_map.get(score_val, val)} ({val}分)")
+                except:
+                    st.write(f"回答：{val}")
+            else:
+                # 背景信息题
+                q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {i+1}"
+                st.write(f"**{q_text}**")
+                st.write(f"回答：{val}")
+            st.divider()
+
+# 情况 B：点开的是【报告链接】 (?data=...)
+elif "data" in query_params:
+    # 只有当 session_state 中没有 ans 或者 ans 为空时才解析
+    if 'ans' not in st.session_state or not st.session_state.ans:
+        st.session_state.ans = {}
+        
+    # 还原数据用于渲染精美报告
+    raw_data = query_params["data"]
+    ans_list = raw_data.split(",")
+    for i, val in enumerate(ans_list):
+        if val.isdigit():
+            st.session_state.ans[i] = int(val)
+        else:
+            st.session_state.ans[i] = val
+            
+    # 设置报告状态
+    st.session_state.rid = query_params.get("rid", "未知")
+    st.session_state.step = 'report'
+    st.rerun()
+
+# --- 拦截逻辑结束 ---
+
+# --- 2. 状态管理 ---
+if 'step' not in st.session_state:
+   # 抓取 URL 参数 (?from=xhs 或 ?from=dy)
+    query_params = st.query_params
+    url_source = query_params.get("from", "直接打开")
+    
+    # 建立映射表
+    source_map = {"xhs": "小红书", "dy": "抖音"}
+    final_source = source_map.get(url_source, url_source)
+    
+    st.session_state.update({
+        'step': 'home', 
+        'cur': 0, 
+        'ans': {},
+        'age': 7,  
+        'source': final_source,
+        'rid': str(random.randint(100000, 999999))
+    })
+
 
 # --- 4. 维度话术数据库 (严格匹配文档文案) ---
 DIM_DATA = {
@@ -432,7 +443,10 @@ elif st.session_state.step == 'info':
     
     # 实时显示选中的年龄，确保用户能看到变化
     st.markdown(f"<div style='text-align:center; font-size:24px; font-weight:bold; color:#FF7043; margin:20px 0;'>{age_picked} 周岁</div>", unsafe_allow_html=True)
-    
+
+    if age_picked == st.session_state.age:
+        st.caption("💡 当前显示默认年龄，请拖动滑块确认孩子周岁")
+
     st.info("💡 提示：年龄信息将帮助系统自动匹配相应发育阶段的脑科学解析模型。")
     
     st.write("")
@@ -496,12 +510,9 @@ elif st.session_state.step == 'quiz':
         for i, (txt, val) in enumerate(opts):
             with (cols[0] if i % 2 == 0 else cols[1]):
                 if st.button(txt, key=f"q_{cur}_{i}", use_container_width=True):
-                    st.session_state.ans[cur] = val
-                    if cur not in st.session_state.ans:
-                        st.error("⚠️ 上一题未记录，请点击"上一题"重新作答。")
-                    else:
-                        st.session_state.cur += 1
-                        st.rerun()
+                   st.session_state.ans[cur] = val
+                   st.session_state.cur += 1
+                       st.rerun()
 
    # --- 逻辑分水岭：79-85题 为背景/意愿题 ---
     else:
@@ -571,6 +582,11 @@ elif st.session_state.step == 'quiz':
 
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
+    # 防御性检查：如果 RID 丢失，重新生成一个（虽然理论上不会发生）
+    if 'rid' not in st.session_state or not st.session_state.rid:
+        st.session_state.rid = str(random.randint(100000, 999999))
+        # 可选：记录一条日志
+        print("警告：进入报告页时 RID 丢失，已自动生成临时编号。")
     
     # --- 1. 紧凑修复版：集成印章、水印感与动态质感 ---
     st.markdown(f"""<div style="position:relative; background:linear-gradient(135deg, #FFFFFF 0%, #F8F9FB 100%); border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.08); border:1px solid #ECEFF1; margin-top:-60px; margin-bottom:20px; overflow:visible; width:100%;"><div style="height:6px; background:linear-gradient(90deg, #1A237E, #FF7043); width:100%; border-radius:12px 12px 0 0;"></div><div style="position: absolute; top: 15px; right: 15px; width: 85px; height: 85px; border: 3px double rgba(255, 82, 82, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); z-index: 99; pointer-events: none;"><div style="width: 70px; height: 70px; border: 1px solid rgba(255, 82, 82, 0.3); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;"><span style="color: rgba(255, 82, 82, 0.7); font-size: 11px; font-weight: 900; line-height:1;">曹校长</span><span style="color: rgba(255, 82, 82, 0.7); font-size: 16px; font-weight: 900; line-height:1.2;">已认证</span></div></div><div style="padding:30px 0 15px 0; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;"><div style="color:#90A4AE; font-size:10px; letter-spacing:3px; line-height:1; margin-bottom:12px; width:100%;">REPORT ANALYSIS</div><div style="color:#1A237E; font-size:32px; font-weight:900; line-height:1; margin:0 auto; width:100%; display:block; text-align:center;">多维报告解析</div><div style="color:#546E7A; font-size:14px; font-weight:500; line-height:1; margin-top:12px; width:100%;">家庭教育十维深度探查</div></div><div style="background:#FFFDE7; border-top:1px dashed #FFD54F; border-bottom:1px dashed #FFD54F; margin:0 10px 15px 10px; border-radius:8px; height:85px; display:flex; align-items:center; justify-content:center;"><table style="width:100%; border-collapse:collapse; table-layout:fixed; border:none; margin:0;"><tr style="border:none; vertical-align:middle;"><td style="padding-left:15px; text-align:left; vertical-align:middle; border:none;"><div style="line-height:1.4;"><p style="color:#E65100; font-size:16px; font-weight:900; margin:0;">📸 截图保存此页</p><p style="color:#F57C00; font-size:13px; font-weight:800; margin:2px 0 0 0;">1V1 咨询核心凭证</p></div></td><td style="padding-right:15px; text-align:right; border-left:1px dashed #FFD54F; width:42%; vertical-align:middle; border:none;"><div style="line-height:1.2;"><p style="color:#90A4AE; font-size:11px; font-weight:800; margin:0;">报告编号</p><p style="color:#1A237E; font-family:monospace; font-size:24px; font-weight:900; margin:2px 0 0 0;">{st.session_state.rid}</p></div></td></tr></table></div></div>""", unsafe_allow_html=True)
