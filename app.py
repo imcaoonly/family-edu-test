@@ -45,17 +45,58 @@ def send_to_feishu_bitable(data_dict):
         res = requests.post(url, headers=headers, json=payload, timeout=10)
         
         # 2. 检查返回结果
-        if res.status_code == 200 and res_json.get("code") == 0:
-            print("✅ [成功] 数据已成功写入飞书多维表格")
-            return True
-            
+        if res.status_code == 200:
+            res_json = res.json()
+            # 👇 关键修改：检查飞书返回的 code 字段
+            if res_json.get("code") == 0:
+                print("✅ [成功] 数据已成功写入飞书多维表格")
+                return True
+            else:
+                print(f"🔴 [同步失败] 飞书Code: {res_json.get('code')}, 原因: {res_json.get('msg')}")
+                return False
         else:
-            print(f"🔴 [同步失败] HTTP状态: {res.status_code}, 飞书Code: {res_json.get('code')}, 原因: {res_json.get('msg')}")
+            print(f"🔴 [同步失败] HTTP状态: {res.status_code}")
             return False 
             
     except Exception as e:
         print(f"🔥 [严重异常] 网络故障: {str(e)}")
         return False
+
+def get_record_by_rid(rid):
+    """根据编号从飞书表格反查记录数据"""
+    token = get_tenant_access_token()
+    if not token:
+        print("❌ [反查失败] 无法获取 Token")
+        return None
+    
+    url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records/search"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json; charset=utf-8"
+    }
+    payload = {
+        "filter": {
+            "conjunction": "and",
+            "conditions": [{
+                "field_name": "编号",
+                "operator": "is",
+                "value": [rid]
+            }]
+        },
+        "page_size": 1
+    }
+    
+    try:
+        res = requests.post(url, headers=headers, json=payload, timeout=10)
+        if res.status_code == 200:
+            res_json = res.json()
+            if res_json.get("code") == 0 and res_json.get("data", {}).get("items"):
+                record = res_json["data"]["items"][0]
+                return record.get("fields", {})
+        return None
+    except Exception as e:
+        print(f"🔥 [反查异常] {str(e)}")
+        return None
 
 # --- 1. UI 深度定制：首页高度优化版 ---
 st.set_page_config(page_title="家庭教育十维深度探查", layout="centered")
@@ -189,51 +230,84 @@ QUESTIONS = [
 # --- 1.2 拦截与参数处理逻辑 (解决乱码与双链接实现) ---
 query_params = st.query_params
 
-# 情况 A：从飞书点击"答题链接" (?page=detail)
-if query_params.get("page") == "detail":
-    target_id = query_params.get("rid", "未知")
-    st.title(f"📋 原始答题详情回顾")
-    st.info(f"用户编号: {target_id}")
-    
-    raw_data = query_params.get("data", "")
-    if raw_data:
-        ans_list = raw_data.split(",")
-        for i, val in enumerate(ans_list):
-            if i < 78:
-                q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {i+1} 题"
-                st.write(f"**{q_text}**")
-                score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
-                try:
-                    score_val = int(val)
-                    st.write(f"回答：{score_map.get(score_val, val)} ({val}分)")
-                except:
-                    st.write(f"回答：{val}")
-            else:
-                # 背景信息题
-                q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {i+1}"
-                st.write(f"**{q_text}**")
-                st.write(f"回答：{val}")
-            st.divider()
+# 情况 A：报告页（?page=report&rid=xxx）- 客户看到的精美报告
+if query_params.get("page") == "report":
+    rid = query_params.get("rid", "")
+    if rid:
+        record_data = get_record_by_rid(rid)
+        if record_data and record_data.get("原始数据"):
+            raw_data = record_data["原始数据"]
+            ans_list = raw_data.split(",")
+            st.session_state.ans = {}
+            for i, val in enumerate(ans_list):
+                if val.isdigit():
+                    st.session_state.ans[i] = int(val)
+                else:
+                    st.session_state.ans[i] = val
+            st.session_state.rid = rid
+            st.session_state.step = 'report'
+            st.rerun()
+        else:
+            st.error(f"❌ 未找到编号 {rid} 的报告数据，请确认链接是否正确。")
+            st.stop()
+    else:
+        st.error("❌ 缺少报告编号")
+        st.stop()
 
-# 情况 B：点开的是【报告链接】 (?data=...)
+# 情况 B：详情页（?page=detail&rid=xxx）- 后台查看原始答题
+elif query_params.get("page") == "detail":
+    rid = query_params.get("rid", "")
+    if rid:
+        record_data = get_record_by_rid(rid)
+        if record_data and record_data.get("原始数据"):
+            raw_data = record_data["原始数据"]
+            ans_list = raw_data.split(",")
+            
+            st.title(f"📋 原始答题详情回顾")
+            st.info(f"用户编号: {rid}")
+            
+            for i, val in enumerate(ans_list):
+                if i < 78:
+                    q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {i+1} 题"
+                    score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
+                    try:
+                        score_val = int(val)
+                        display_val = f"{score_map.get(score_val, val)} ({val}分)"
+                    except:
+                        display_val = val
+                else:
+                    q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {i+1}"
+                    display_val = val
+                
+                st.write(f"**{q_text}**")
+                st.write(f"回答：{display_val}")
+                st.divider()
+            
+            if st.button("返回主页"):
+                st.query_params.clear()
+                st.rerun()
+            st.stop()
+        else:
+            st.error(f"❌ 未找到编号 {rid} 的答题数据")
+            st.stop()
+    else:
+        st.error("❌ 缺少编号")
+        st.stop()
+
+# 情况 C：兼容旧链接（?data=...）- 如果有用户保存了旧链接
 elif "data" in query_params:
-    # 只有当 session_state 中没有 ans 或者 ans 为空时才解析
     if 'ans' not in st.session_state or not st.session_state.ans:
         st.session_state.ans = {}
-        
-    # 还原数据用于渲染精美报告
-    raw_data = query_params["data"]
-    ans_list = raw_data.split(",")
-    for i, val in enumerate(ans_list):
-        if val.isdigit():
-            st.session_state.ans[i] = int(val)
-        else:
-            st.session_state.ans[i] = val
-            
-    # 设置报告状态
-    st.session_state.rid = query_params.get("rid", "未知")
-    st.session_state.step = 'report'
-    st.rerun()
+        raw_data = query_params["data"]
+        ans_list = raw_data.split(",")
+        for i, val in enumerate(ans_list):
+            if val.isdigit():
+                st.session_state.ans[i] = int(val)
+            else:
+                st.session_state.ans[i] = val
+        st.session_state.rid = query_params.get("rid", "未知")
+        st.session_state.step = 'report'
+        st.rerun()
 
 # --- 拦截逻辑结束 ---
 
@@ -318,18 +392,19 @@ def prepare_report_data():
     beijing_time = datetime.now(tz)
 
     # 定义格式化函数（处理列表转字符串）
-    def fmt(v):  return  "、".join(v) if  isinstance(v, list) else  str(v)
+    def fmt(v):  
+        return "、".join(v) if isinstance(v, list) else str(v)
     
     # --- 2. 构造两个纯链接 --- 
-    # 【注意】：请确保此域名是你 Streamlit 部署后的最新实际网址
+    # 👇 确认这是你的正确域名
     base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app"
+    
+    # 生成原始答案字符串（存到飞书"原始数据"列）
     raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
     
-    # 将原本的 detail_link 改为 report_link，作为客户看到的报告页
-    report_link = f"{base_url}/?rid={rid}&data={raw_data_str}"
-
-    # 将原本多余的 detail_url 改名为 detail_link，作为后台详情页
-    detail_link = f"{base_url}/?page=detail&rid={rid}&data={raw_data_str}"
+    # 👇 干净的链接，只带 rid
+    report_link = f"{base_url}/?page=report&rid={rid}"
+    detail_link = f"{base_url}/?page=detail&rid={rid}"
 
     # 3. 维度均分计算 (严格对应 1-78 题)
     sys_avg = round(sum(int(ans.get(i, 0) or 0) for i in range(0, 8)) / 8, 2)
@@ -378,7 +453,7 @@ def prepare_report_data():
     
     body_risk = "🔵 生理负荷" if body_avg > 1.5 else "正常"
 
-   # 5. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
+    # 5. 构造飞书表格字段 (Key 必须与图片表头完全一字不差)
     return {
         "提交日期": beijing_time.strftime("%Y-%m-%d"),
         "提交时间": beijing_time.strftime("%H:%M:%S"),
@@ -396,9 +471,9 @@ def prepare_report_data():
         "情绪预警": emo_risk,
         "注意预警": adhd_risk,
         "身体预警": body_risk,
-        "报告链接": report_link,    # 👈 对应飞书"报告链接"列
-        "答题链接": detail_link     # 👈 对应飞书"答题链接"列
-        
+        "原始数据": raw_data_str,  # 👈 新增：存原始答案
+        "报告链接": report_link,    # 👈 干净链接
+        "答题链接": detail_link     # 👈 干净链接
     }
 
 # --- 5. 页面流程逻辑 ---
