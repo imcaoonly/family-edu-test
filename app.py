@@ -235,6 +235,12 @@ if query_params.get("page") == "report":
     rid = query_params.get("rid", "")
     if rid:
         record_data = get_record_by_rid(rid)
+        
+        # 👇 调试：显示所有字段名
+        if record_data:
+            st.write(f"🔍 飞书返回的字段: {list(record_data.keys())}")
+            st.write(f"🔍 原始数据的值: {record_data.get('原始数据')}")
+        
         if record_data:
             raw_data = record_data.get("原始数据")
             if raw_data and isinstance(raw_data, str):
