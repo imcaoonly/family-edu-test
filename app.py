@@ -16,7 +16,6 @@ APP_TOKEN = st.secrets["APP_TOKEN"]
 TABLE_ID = st.secrets["TABLE_ID"]
 
 def get_tenant_access_token():
-    """获取飞书 API 访问令牌"""
     url = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal"
     payload = {"app_id": APP_ID, "app_secret": APP_SECRET}
     try:
@@ -64,11 +63,8 @@ def send_to_feishu_bitable(data_dict):
         return False
         
 def get_record_by_rid(rid):
-    """根据编号从飞书表格反查记录数据"""
-    token = get_tenant_access_token()
-    if not token:
-        print("❌ [反查失败] 无法获取 Token")
-        return None
+    token = get_tenant_access_token() # 这里会走缓存，速度很快
+    if not token: return None
     
     url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records/search"
     headers = {
