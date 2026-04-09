@@ -810,10 +810,10 @@ elif st.session_state.step == 'report':
                 color, idx = "#C62828", 2 # 高分危险
                 
             st.markdown(f"""
-                <div style='padding:18px; border-radius:12px; background:white; border-left:6px solid {color}; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
-                    <b style='color:{color};'>{dim}</b><br>
-                    <span style='color:#455A64; font-size:15px;'>{info['levels'][idx]}</span>
-                </div>
+<div style='padding:18px; border-radius:12px; background:white; border-left:6px solid {color}; margin-bottom:12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);'>
+    <b style='color:{color};'>{dim}</b><br>
+    <span style='color:#455A64; font-size:15px;'>{info['levels'][idx]}</span>
+</div>
             """, unsafe_allow_html=True)
 
         # --- 4. 情感升华：校长的结语 (新增：建立心理链接) ---
