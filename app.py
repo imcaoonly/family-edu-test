@@ -540,7 +540,7 @@ elif st.session_state.step == 'quiz':
         
         # 修复触发逻辑：确保点击时能保存当前答案
         if st.button(btn_label, use_container_width=True):
-    if not user_input:
+        if not user_input:
         st.warning("⚠️ 请选择后再继续。")
     else:
         # 显式保存到 session_state
