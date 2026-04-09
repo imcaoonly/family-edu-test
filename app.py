@@ -92,45 +92,7 @@ def get_record_by_rid(rid):
             res_json = res.json()
             if res_json.get("code") == 0 and res_json.get("data", {}).get("items"):
                 record = res_json["data"]["items"][0]
-                fields = record.get("fields", {})
-                
-                # 👇 处理"原始数据"字段
-                raw_data_field = fields.get("原始数据")
-                
-                if raw_data_field is None:
-                    return fields
-                
-                # 情况1：已经是字符串
-                if isinstance(raw_data_field, str):
-                    fields["原始数据"] = raw_data_field
-                
-                # 情况2：是数组（飞书富文本字段会返回数组）
-                elif isinstance(raw_data_field, list):
-                    # 提取数组中的文本内容
-                    text_parts = []
-                    for item in raw_data_field:
-                        if isinstance(item, dict):
-                            # 富文本对象，提取 text 字段
-                            if "text" in item:
-                                text_parts.append(item["text"])
-                            else:
-                                text_parts.append(str(item))
-                        else:
-                            text_parts.append(str(item))
-                    fields["原始数据"] = "".join(text_parts)
-                
-                # 情况3：是字典对象
-                elif isinstance(raw_data_field, dict):
-                    if "text" in raw_data_field:
-                        fields["原始数据"] = raw_data_field["text"]
-                    else:
-                        fields["原始数据"] = str(raw_data_field)
-                
-                # 情况4：其他类型
-                else:
-                    fields["原始数据"] = str(raw_data_field)
-                
-                return fields
+                return record.get("fields", {})
         return None
     except Exception as e:
         print(f"🔥 [反查异常] {str(e)}")
