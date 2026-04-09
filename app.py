@@ -246,13 +246,15 @@ query_params = st.query_params
 if query_params.get("page") == "report":
     rid = query_params.get("rid", "")
     if rid:
-        record_data = get_record_by_rid(rid)
+        # 添加一个 loading 提示，防止网络慢导致白屏
+        with st.spinner('正在调取报告数据...'):
+            record_data = get_record_by_rid(rid)
+            
         if record_data:
             raw_data = record_data.get("原始数据")
             
             # 👇 处理飞书富文本格式
             if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
-                # 提取富文本中的 text 字段
                 text_parts = []
                 for item in raw_data:
                     if isinstance(item, dict) and "text" in item:
@@ -265,21 +267,26 @@ if query_params.get("page") == "report":
             
             if raw_str:
                 ans_list = raw_str.split(",")
-                
-                # 清空并重新填充答案
                 st.session_state.ans = {}
                 for i, val in enumerate(ans_list):
-                    if i >= 85:
-                        break
+                    if i >= 85: break
                     val = val.strip()
                     if val.isdigit():
                         st.session_state.ans[i] = int(val)
                     else:
                         st.session_state.ans[i] = val
                 
+                # --- 关键修改部分 ---
                 st.session_state.rid = rid
                 st.session_state.step = 'report'
-                st.rerun()
+                
+                # 1. 核心操作：清空 URL 参数，防止 rerun 后再次进入此 if 逻辑导致死循环
+                st.query_params.clear() 
+                
+                # 2. 刷新页面，此时 URL 已空，程序会正常根据 st.session_state.step 显示报告页
+                st.rerun() 
+                # ------------------
+                
             else:
                 st.error(f"❌ 编号 {rid} 的原始数据为空或格式错误")
                 st.stop()
@@ -289,7 +296,7 @@ if query_params.get("page") == "report":
     else:
         st.error("❌ 缺少报告编号")
         st.stop()
-
+        
 # 情况 B：详情页（?page=detail&rid=xxx）
 elif query_params.get("page") == "detail":
     rid = query_params.get("rid", "")
