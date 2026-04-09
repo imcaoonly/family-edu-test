@@ -540,37 +540,36 @@ elif st.session_state.step == 'quiz':
         
         # 修复触发逻辑：确保点击时能保存当前答案
         if st.button(btn_label, use_container_width=True):
-            if not user_input:
-                st.warning("⚠️ 请选择后再继续。")
-            else:
-                # 显式保存到 session_state
-                st.session_state.ans[cur] = user_input
-                
-                if cur == 84: # 第 85 题提交 
-                    # 这里增加转圈等待提示 
-                    with st.spinner('正在为您生成解析报告，请稍候...'):
-                        try:
-                            # 1. 准备数据
-                            report_payload = prepare_report_data()
-                            # 2. 执行强制同步，获取返回结果
-                            success = send_to_feishu_bitable(report_payload)
-                            
-                            if success:
-                                # 只有同步成功，才切换状态并跳转
-                                st.session_state.step = 'report'
-                                st.rerun()
-                            else:
-                                # 同步失败，停在原地并报错
-                                st.error("数据保存失败，请再次点击提交按钮。")
-                        except Exception as e:
-                            st.warning("💡数据同步略有延迟，请截屏保存结果。")
-                        
-                            st.session_state.step = 'report'
-                            st.rerun()
-                else:
-                    # 正常跳转到下一题
-                    st.session_state.cur += 1
+    if not user_input:
+        st.warning("⚠️ 请选择后再继续。")
+    else:
+        # 显式保存到 session_state
+        st.session_state.ans[cur] = user_input
+        
+        if cur == 84: # 第 85 题提交 
+            # 这里增加转圈等待提示 
+            with st.spinner('正在为您生成解析报告，请稍候...'):
+                try:
+                    # 1. 准备数据
+                    report_payload = prepare_report_data()
+                    # 2. 执行强制同步，获取返回结果
+                    success = send_to_feishu_bitable(report_payload)
+                    
+                    if success:
+                        # 只有同步成功，才切换状态并跳转
+                        st.session_state.step = 'report'
+                        st.rerun()
+                    else:
+                        # 同步失败，停在原地并报错
+                        st.error("数据保存失败，请再次点击提交按钮。")
+                except Exception as e:
+                    st.warning("💡数据同步略有延迟，请截屏保存结果。")
+                    st.session_state.step = 'report'
                     st.rerun()
+        else:
+            # 正常跳转到下一题
+            st.session_state.cur += 1
+            st.rerun()
 
             
     # 底部导航
