@@ -881,3 +881,7 @@ elif st.session_state.step == 'report':
     if st.button("🔄 重新开始测评", use_container_width=True):
         st.session_state.clear()
         st.rerun()
+
+except Exception as e:
+        st.error(f"❌ 报告页渲染失败: {e}")
+        st.code(traceback.format_exc())
