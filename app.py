@@ -716,7 +716,6 @@ elif st.session_state.step == 'quiz':
             
 # D. 结果报告页逻辑
 elif st.session_state.step == 'report':
-    elif st.session_state.step == 'report':
     # 👇 调试信息
     st.write(f"🔍 调试：RID = {st.session_state.rid}")
     st.write(f"🔍 调试：ans 长度 = {len(st.session_state.ans)}")
