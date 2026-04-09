@@ -237,16 +237,20 @@ if query_params.get("page") == "report":
         record_data = get_record_by_rid(rid)
         if record_data and record_data.get("原始数据"):
             raw_data = record_data["原始数据"]
-            ans_list = raw_data.split(",")
-            st.session_state.ans = {}
-            for i, val in enumerate(ans_list):
-                if val.isdigit():
-                    st.session_state.ans[i] = int(val)
-                else:
-                    st.session_state.ans[i] = val
-            st.session_state.rid = rid
-            st.session_state.step = 'report'
-            st.rerun()
+            if raw_data and isinstance(raw_data, str):
+                ans_list = raw_data.split(",")
+                st.session_state.ans = {}
+                for i, val in enumerate(ans_list):
+                    if val.isdigit():
+                        st.session_state.ans[i] = int(val)
+                    else:
+                        st.session_state.ans[i] = val
+                st.session_state.rid = rid
+                st.session_state.step = 'report'
+                st.rerun()
+            else:
+                st.error(f"❌ 编号 {rid} 的数据格式异常，请联系管理员")
+                st.stop()
         else:
             st.error(f"❌ 未找到编号 {rid} 的报告数据，请确认链接是否正确。")
             st.stop()
@@ -261,32 +265,36 @@ elif query_params.get("page") == "detail":
         record_data = get_record_by_rid(rid)
         if record_data and record_data.get("原始数据"):
             raw_data = record_data["原始数据"]
-            ans_list = raw_data.split(",")
-            
-            st.title(f"📋 原始答题详情回顾")
-            st.info(f"用户编号: {rid}")
-            
-            for i, val in enumerate(ans_list):
-                if i < 78:
-                    q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {i+1} 题"
-                    score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
-                    try:
-                        score_val = int(val)
-                        display_val = f"{score_map.get(score_val, val)} ({val}分)"
-                    except:
-                        display_val = val
-                else:
-                    q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {i+1}"
-                    display_val = val
+            if raw_data and isinstance(raw_data, str):
+                ans_list = raw_data.split(",")
                 
-                st.write(f"**{q_text}**")
-                st.write(f"回答：{display_val}")
-                st.divider()
-            
-            if st.button("返回主页"):
-                st.query_params.clear()
-                st.rerun()
-            st.stop()
+                st.title(f"📋 原始答题详情回顾")
+                st.info(f"用户编号: {rid}")
+                
+                for i, val in enumerate(ans_list):
+                    if i < 78:
+                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {i+1} 题"
+                        score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
+                        try:
+                            score_val = int(val)
+                            display_val = f"{score_map.get(score_val, val)} ({val}分)"
+                        except:
+                            display_val = val
+                    else:
+                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {i+1}"
+                        display_val = val
+                    
+                    st.write(f"**{q_text}**")
+                    st.write(f"回答：{display_val}")
+                    st.divider()
+                
+                if st.button("返回主页"):
+                    st.query_params.clear()
+                    st.rerun()
+                st.stop()
+            else:
+                st.error(f"❌ 编号 {rid} 的数据格式异常")
+                st.stop()
         else:
             st.error(f"❌ 未找到编号 {rid} 的答题数据")
             st.stop()
@@ -801,35 +809,6 @@ elif st.session_state.step == 'report':
         * 若点击按钮无反应，请长按二维码识别或截屏扫码
     </p>
     """
-    # --- 在这里开始插入你的"曹校后台专用"代码 ---
-    st.write("") 
-    st.divider() # 画一条分割线，区分用户内容和管理内容
-    
-    with st.expander("🔍 曹校后台专用：查看原始答题明细", expanded=False):
-        # 遍历 85 道题
-        for i in range(85):
-            # 获取题目文本，如果没有（比如80题以后）则显示"背景/意愿"
-            q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息题 {i+1}"
-            u_ans = st.session_state.ans.get(i, "未填")
-            
-            # 显示题号和题目
-            st.markdown(f"**{i+1}. {q_text}**")
-            
-            # 针对前78题的分值做个简单翻译
-            if i < 78:
-                score_desc = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
-                display_text = f"{score_desc.get(u_ans, u_ans)} ({u_ans}分)"
-                # 如果是2分或3分，用醒目的红色显示 
-                if isinstance(u_ans, int) and u_ans >= 2:
-                    st.error(f"👉 选项：{display_text}")
-                else:
-                    st.info(f"👉 选项：{display_text}")
-            else:
-                # 79-85题是文本描述
-                st.success(f"👉 回答：{u_ans}")
-            
-            st.write("---") # 题目之间的细分割线
-    # --- 插入结束 ---
     
     # 第三部分：二维码图片
     img_html = '<img src="data:image/png;base64,' + qr_b64 + '" style="width:160px; height:160px; display:block; margin:15px auto 10px auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);">'
