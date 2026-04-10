@@ -52,12 +52,11 @@ def get_tenant_access_token():
         return None
 
 def send_to_feishu_bitable(data_dict):
-    st.write("🔍 进入飞书发送函数")  # 新增：确认函数被调用
+    """将数据写入飞书多维表格（带前端错误提示）"""
     try:
         token = get_tenant_access_token()
-        st.write(f"🔑 Token 获取结果: {'成功' if token else '失败'}")  # 新增
         if not token:
-            st.error("❌ 无法获取飞书 Tenant Access Token，请检查 APP_ID / APP_SECRET")
+            st.error("❌ 无法获取飞书 Tenant Access Token，请检查配置")
             return False
 
         url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
@@ -66,27 +65,23 @@ def send_to_feishu_bitable(data_dict):
             "Content-Type": "application/json; charset=utf-8"
         }
         payload = {"fields": data_dict}
-        st.write("📤 准备发送的 payload:", payload)  # 新增：查看具体字段
 
         res = requests.post(url, headers=headers, json=payload, timeout=10)
-        st.write(f"📡 HTTP 状态码: {res.status_code}")  # 新增
 
         if res.status_code == 200:
             res_json = res.json()
-            st.write(f"📦 飞书返回 JSON: {res_json}")  # 新增
             if res_json.get("code") == 0:
                 st.success("✅ 报告已同步至飞书表格")
                 return True
             else:
-                st.error(f"飞书 API 错误：code={res_json.get('code')}, msg={res_json.get('msg')}")
+                st.error(f"飞书API返回错误：{res_json.get('msg')} (code={res_json.get('code')})")
                 return False
         else:
-            st.error(f"飞书 API HTTP 错误：{res.status_code}")
+            st.error(f"飞书API HTTP错误：{res.status_code}")
             return False
 
     except Exception as e:
         st.error(f"🔥 网络或未知异常：{str(e)}")
-        st.exception(e)  # 新增：显示完整异常
         return False
     
     url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
@@ -742,29 +737,22 @@ elif st.session_state.step == 'quiz':
                 if cur == 84:  # 第 85 题提交 
                     # 这里增加转圈等待提示 
                     with st.spinner('正在为您生成解析报告，请稍候...'):
-                        st.write("🚧 调试：即将准备报告数据...")  # 新增
                         try:
                             # 1. 准备数据
                             report_payload = prepare_report_data()
-                            st.write("🚧 调试：报告数据准备完成，内容如下：")  # 新增
-                            st.json(report_payload)  # 新增：直接在前端显示发送的数据
                             # 2. 执行强制同步，获取返回结果
-                            st.write("🚧 调试：正在调用 send_to_feishu_bitable ...")  # 新增
                             success = send_to_feishu_bitable(report_payload)
-                            
                             if success:
                                 # 只有同步成功，才切换状态并跳转
-                                st.write("✅ 调试：同步成功，跳转报告页")  # 新增
                                 st.session_state.step = 'report'
                                 st.rerun()
                             else:
                                 # 同步失败，停在原地并报错
                                 st.error("数据保存失败，请再次点击提交按钮。")
-                                st.stop()  # 新增：阻止页面跳转，让你看清错误
                         except Exception as e:
                             st.warning("💡数据同步略有延迟，请截屏保存结果。")
-                            st.exception(e)  # 新增：显示完整异常堆栈
-                            st.stop()  # 新增：阻止跳转
+                            st.session_state.step = 'report'
+                            st.rerun()  
                 else:
                     # 正常跳转到下一题
                     st.session_state.cur += 1
