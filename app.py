@@ -265,6 +265,10 @@ if query_params.get("page") == "report" and st.session_state.get('step') != 'rep
             
             if raw_str:
                 ans_list = raw_str.split(",")
+                # 👇 新增校验：题目数量不对就提示并停止
+                if len(ans_list) != 85:
+                    st.error("❌ 数据格式异常，可能由旧版测评产生，请重新测评以获取准确报告。")
+                    st.stop()
                 st.session_state.ans = {}
                 for i, val in enumerate(ans_list):
                     if i >= 85: break
@@ -301,20 +305,12 @@ elif query_params.get("page") == "detail":
         if record_data:
             raw_data = record_data.get("原始数据")
             
-            # 👇 处理飞书富文本格式
-            if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
-                text_parts = []
-                for item in raw_data:
-                    if isinstance(item, dict) and "text" in item:
-                        text_parts.append(item["text"])
-                raw_str = "".join(text_parts)
-            elif isinstance(raw_data, str):
-                raw_str = raw_data
-            else:
-                raw_str = None
-            
+            # 处理富文本...
             if raw_str:
                 ans_list = raw_str.split(",")
+                if len(ans_list) != 85:
+                    st.error("❌ 数据格式异常，可能由旧版测评产生，请重新测评以获取准确报告。")
+                    st.stop()
                 
                 st.title("📋 测评详情回顾")
                 # 遍历展示
@@ -463,11 +459,12 @@ def prepare_report_data():
     beijing_time = datetime.now(tz)
 
     # 定义格式化函数（处理列表转字符串，防止逗号冲突）
-    def fmt_internal(v):  
+    def fmt_internal(v):
         if isinstance(v, list):
-            # 这里的 join 很重要，确保多选题内部没有英文逗号
-            return "、".join(str(x) for x in v)
-        # 如果单选题答案里不小心有逗号，也要处理掉（安全起见）
+            # 对列表中每一项都替换英文逗号为中文逗号，再用顿号连接
+            cleaned = [str(x).replace(",", "，") for x in v]
+            return "、".join(cleaned)
+        # 单选题或字符串也做同样替换
         return str(v).replace(",", "，")
     
     # --- 2. 构造两个纯链接 --- 
