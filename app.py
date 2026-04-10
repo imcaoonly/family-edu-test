@@ -304,8 +304,17 @@ elif query_params.get("page") == "detail":
         record_data = get_record_by_rid(rid)
         if record_data:
             raw_data = record_data.get("原始数据")
+            raw_str = None
             
-            # 处理富文本...
+            if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
+                text_parts = []
+                for item in raw_data:
+                    if isinstance(item, dict) and "text" in item:
+                        text_parts.append(item["text"])
+                raw_str = "".join(text_parts)
+            elif isinstance(raw_data, str):
+                raw_str = raw_data
+            
             if raw_str:
                 ans_list = raw_str.split(",")
                 if len(ans_list) != 85:
@@ -313,38 +322,11 @@ elif query_params.get("page") == "detail":
                     st.stop()
                 
                 st.title("📋 测评详情回顾")
-                # 遍历展示
                 for i in range(85):
-                    # 获取题目文本
                     q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第{i+1}题"
-                    # 这里的 ans_list[i] 现在能精准对应到每一题了
                     answer = ans_list[i] if i < len(ans_list) else "未填"
-            
                     st.markdown(f"**{i+1}. {q_text}**")
                     st.write(f"答案：{answer}")
-                    st.divider()
-                
-                for i, val in enumerate(ans_list):
-                    if i >= 85:
-                        break
-                    
-                    q_num = i + 1
-                    val = val.strip()
-                    
-                    if i < 78:
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {q_num} 题"
-                        score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
-                        try:
-                            score_val = int(val)
-                            display_val = f"{score_map.get(score_val, val)} ({score_val}分)"
-                        except:
-                            display_val = val
-                    else:
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {q_num}"
-                        display_val = val
-                    
-                    st.write(f"**第 {q_num} 题：{q_text}**")
-                    st.write(f"回答：{display_val}")
                     st.divider()
                 
                 if st.button("返回主页"):
