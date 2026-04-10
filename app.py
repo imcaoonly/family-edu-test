@@ -306,7 +306,7 @@ elif query_params.get("page") == "detail":
             raw_data = record_data.get("原始数据")
             raw_str = None
 
-            # 处理飞书富文本格式
+            # 处理富文本格式
             if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
                 text_parts = []
                 for item in raw_data:
@@ -318,41 +318,30 @@ elif query_params.get("page") == "detail":
 
             if raw_str:
                 ans_list = raw_str.split(",")
-                
-                # ✅ 校验长度，但只警告，不阻止展示
+
                 if len(ans_list) != 85:
                     st.warning("⚠️ 检测到旧版数据格式，部分答案可能与题目不对应，建议重新测评获取准确报告。")
 
                 st.title("📋 测评详情回顾")
 
-                # 第一遍：按索引展示，防止越界
+                # ✅ 只保留一段展示，每题独立处理分数映射
                 for i in range(85):
                     q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第{i+1}题"
-                    answer = ans_list[i] if i < len(ans_list) else "未填"
-                    st.markdown(f"**{i+1}. {q_text}**")
-                    st.write(f"答案：{answer}")
-                    st.divider()
+                    answer_raw = ans_list[i] if i < len(ans_list) else "未填"
 
-                # 第二遍：如果数据量足够，继续展示分数映射（旧代码重复了，可以删除，或保留但加保护）
-                # 这里建议保留原有第二遍展示，但同样加上索引保护
-                for i, val in enumerate(ans_list):
-                    if i >= 85:
-                        break
-                    q_num = i + 1
-                    val = val.strip()
+                    # 处理单选题的分数映射（第1-78题）
                     if i < 78:
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第 {q_num} 题"
                         score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
                         try:
-                            score_val = int(val)
-                            display_val = f"{score_map.get(score_val, val)} ({score_val}分)"
+                            score_val = int(answer_raw.strip())
+                            display_val = f"{score_map.get(score_val, answer_raw)} ({score_val}分)"
                         except:
-                            display_val = val
+                            display_val = answer_raw
                     else:
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {q_num}"
-                        display_val = val
-                    st.write(f"**第 {q_num} 题：{q_text}**")
-                    st.write(f"回答：{display_val}")
+                        display_val = answer_raw
+
+                    st.markdown(f"**{i+1}. {q_text}**")
+                    st.write(f"答案：{display_val}")
                     st.divider()
 
                 if st.button("返回主页"):
