@@ -316,10 +316,17 @@ elif query_params.get("page") == "detail":
             if raw_str:
                 ans_list = raw_str.split(",")
                 
-                st.title(f"📋 原始答题详情回顾")
-                st.info(f"用户编号: {rid}")
-                st.markdown(f"**共 {min(len(ans_list), 85)} 道题**")
-                st.divider()
+                st.title("📋 测评详情回顾")
+                # 遍历展示
+                for i in range(85):
+                    # 获取题目文本
+                    q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第{i+1}题"
+                    # 这里的 ans_list[i] 现在能精准对应到每一题了
+                    answer = ans_list[i] if i < len(ans_list) else "未填"
+            
+                    st.markdown(f"**{i+1}. {q_text}**")
+                    st.write(f"答案：{answer}")
+                    st.divider()
                 
                 for i, val in enumerate(ans_list):
                     if i >= 85:
@@ -458,16 +465,17 @@ def prepare_report_data():
     # 定义格式化函数（处理列表转字符串，防止逗号冲突）
     def fmt_internal(v):  
         if isinstance(v, list):
-            # 将多选题列表内部的逗号替换为中文顿号
+            # 这里的 join 很重要，确保多选题内部没有英文逗号
             return "、".join(str(x) for x in v)
-        return str(v)
+        # 如果单选题答案里不小心有逗号，也要处理掉（安全起见）
+        return str(v).replace(",", "，")
     
     # --- 2. 构造两个纯链接 --- 
     # 👇 确认这是你的正确域名
     base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app"
     
     # 生成原始答案字符串（存到飞书"原始数据"列）
-    raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
+    raw_data_str = ",".join(fmt_internal(ans.get(i, "")) for i in range(85))
 
     # 【关键修改】：使用 fmt_internal 处理每一道题，再用英文逗号合并
     # 这样可以确保 raw_data_str 中只有 84 个英文逗号，对应 85 道题
