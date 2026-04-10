@@ -455,9 +455,12 @@ def prepare_report_data():
     tz = pytz.timezone('Asia/Shanghai')
     beijing_time = datetime.now(tz)
 
-    # 定义格式化函数（处理列表转字符串）
-    def fmt(v):  
-        return "、".join(v) if isinstance(v, list) else str(v)
+    # 定义格式化函数（处理列表转字符串，防止逗号冲突）
+    def fmt_internal(v):  
+        if isinstance(v, list):
+            # 将多选题列表内部的逗号替换为中文顿号
+            return "、".join(str(x) for x in v)
+        return str(v)
     
     # --- 2. 构造两个纯链接 --- 
     # 👇 确认这是你的正确域名
@@ -465,6 +468,10 @@ def prepare_report_data():
     
     # 生成原始答案字符串（存到飞书"原始数据"列）
     raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
+
+    # 【关键修改】：使用 fmt_internal 处理每一道题，再用英文逗号合并
+    # 这样可以确保 raw_data_str 中只有 84 个英文逗号，对应 85 道题
+    raw_data_str = ",".join(fmt_internal(ans.get(i, "")) for i in range(85))
     
     # 👇 干净的链接，只带 rid
     report_link = f"{base_url}/?page=report&rid={rid}"
