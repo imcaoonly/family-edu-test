@@ -6,7 +6,34 @@ import json
 from datetime import datetime
 import pytz  
 import traceback
+import re
+import ast
 
+def parse_legacy_raw_str(raw_str):
+    """
+    兼容旧版含列表格式的答案字符串，返回长度为85的答案列表。
+    """
+    pattern = r'\[[^\]]*\]|[^,]+'
+    parts = re.findall(pattern, raw_str)
+    parts = [p.strip() for p in parts if p.strip()]
+    if len(parts) < 85:
+        parts += [''] * (85 - len(parts))
+    elif len(parts) > 85:
+        parts = parts[:85]
+    return parts
+
+def format_answer(val):
+    """美化显示：将列表字符串转为顿号连接的中文文本"""
+    val = val.strip()
+    if val.startswith('[') and val.endswith(']'):
+        try:
+            items = ast.literal_eval(val)
+            if isinstance(items, list):
+                return "、".join(str(x) for x in items)
+        except:
+            pass
+    return val
+    
 # --- 1. 飞书多维表格 API 模块 (安全优化版) ---
 
 # 从 Streamlit 的"保险柜"(Secrets) 中直接读取，不再把明文写在代码里
@@ -264,19 +291,16 @@ if query_params.get("page") == "report" and st.session_state.get('step') != 'rep
                 raw_str = None
             
             if raw_str:
-                ans_list = raw_str.split(",")
-                # 👇 新增校验：题目数量不对就提示并停止
-                if len(ans_list) != 85:
-                    st.error("❌ 数据格式异常，可能由旧版测评产生，请重新测评以获取准确报告。")
-                    st.stop()
+                ans_list = parse_legacy_raw_str(raw_str)   # 使用新解析函数
                 st.session_state.ans = {}
                 for i, val in enumerate(ans_list):
                     if i >= 85: break
                     val = val.strip()
-                    if val.isdigit():
-                        st.session_state.ans[i] = int(val)
+                    # 对于前78题，尝试转整数；后7题保留字符串（含列表格式）
+                    if i < 78 and val.isdigit():
+                       st.session_state.ans[i] = int(val)
                     else:
-                        st.session_state.ans[i] = val
+                       st.session_state.ans[i] = val
                 
                 # --- 这里是关键修改点 ---
                 st.session_state.rid = rid
@@ -306,7 +330,6 @@ elif query_params.get("page") == "detail":
             raw_data = record_data.get("原始数据")
             raw_str = None
 
-            # 处理富文本格式
             if raw_data and isinstance(raw_data, list) and len(raw_data) > 0:
                 text_parts = []
                 for item in raw_data:
@@ -317,39 +340,28 @@ elif query_params.get("page") == "detail":
                 raw_str = raw_data
 
             if raw_str:
-                ans_list = raw_str.split(",")
+                ans_list = parse_legacy_raw_str(raw_str)   # 使用新解析函数
+
+                # 校验长度，但不再因长度不对而报错停止
+                if len(ans_list) != 85:
+                    st.warning("⚠️ 数据长度异常，部分题目可能错位，建议重新测评。")
 
                 st.title("📋 测评详情回顾")
 
-                # 判断数据完整性
-                if len(ans_list) != 85:
-                    st.warning("⚠️ 数据长度异常（可能为旧版格式），答案与题号可能存在错位。建议重新测评。")
-                    # 对于错位数据，仍尝试按现有长度展示，但加提示
-                    for i, val in enumerate(ans_list):
-                        q_num = i + 1
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第{q_num}题（附加）"
-                        st.markdown(f"**第 {q_num} 题：{q_text}**")
-                        st.write(f"回答：{val}")
-                        st.divider()
-                else:
-                    # 正常数据：精确对应
-                    for i in range(85):
-                        q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第{i+1}题"
-                        answer_raw = ans_list[i] if i < len(ans_list) else "未填"
+                for i in range(85):
+                    q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"第{i+1}题"
+                    answer_raw = ans_list[i] if i < len(ans_list) else "未填"
+                    display_val = format_answer(answer_raw)   # 美化显示
 
-                        if i < 78:
-                            score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
-                            try:
-                                score_val = int(answer_raw.strip())
-                                display_val = f"{score_map.get(score_val, answer_raw)} ({score_val}分)"
-                            except:
-                                display_val = answer_raw
-                        else:
-                            display_val = answer_raw
+                    # 前78题可附加分数映射（若为数字）
+                    if i < 78 and answer_raw.strip().isdigit():
+                        score_map = {0: "从不", 1: "偶尔", 2: "经常", 3: "总是"}
+                        score_val = int(answer_raw.strip())
+                        display_val = f"{score_map.get(score_val, answer_raw)} ({score_val}分)"
 
-                        st.markdown(f"**{i+1}. {q_text}**")
-                        st.write(f"答案：{display_val}")
-                        st.divider()
+                    st.markdown(f"**{i+1}. {q_text}**")
+                    st.write(f"答案：{display_val}")
+                    st.divider()
 
                 if st.button("返回主页"):
                     st.query_params.clear()
@@ -465,10 +477,8 @@ def prepare_report_data():
     # 定义格式化函数（处理列表转字符串，防止逗号冲突）
     def fmt_internal(v):
         if isinstance(v, list):
-            # 对列表中每一项都替换英文逗号为中文逗号，再用顿号连接
-            cleaned = [str(x).replace(",", "，") for x in v]
-            return "、".join(cleaned)
-        # 单选题或字符串也做同样替换
+           cleaned = [str(x).replace(",", "，") for x in v]
+           return "、".join(cleaned)
         return str(v).replace(",", "，")
     
     # --- 2. 构造两个纯链接 --- 
