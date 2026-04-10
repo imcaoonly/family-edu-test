@@ -269,12 +269,15 @@ if query_params.get("page") == "report" and st.session_state.get('step') != 'rep
                 for i, val in enumerate(ans_list):
                     if i >= 85: break
                     val = val.strip()
-                    if val.isdigit():
-                        st.session_state.ans[i] = int(val)
+                    # 👇 新增：处理多选题的竖线分隔符
+                    if "|" in val and i >= 78:
+                        st.session_state.ans[i] = val.split("|")
+                    elif val.isdigit():
+                         st.session_state.ans[i] = int(val)
                     else:
-                        st.session_state.ans[i] = val
+                         st.session_state.ans[i] = val
                 
-                # --- 这里是关键修改点 ---
+                # --- 这里是关键修改点 --- 
                 st.session_state.rid = rid
                 st.session_state.step = 'report'  # 标记状态已变为 report
                 
@@ -338,7 +341,11 @@ elif query_params.get("page") == "detail":
                             display_val = val
                     else:
                         q_text = QUESTIONS[i] if i < len(QUESTIONS) else f"附加信息 {q_num}"
-                        display_val = val
+                        # 👇 如果是从飞书读回来的带竖线的字符串，还原展示
+                        if "|" in val:
+                            display_val = "、".join(val.split("|"))
+                        else:
+                            display_val = val
                     
                     st.write(f"**第 {q_num} 题：{q_text}**")
                     st.write(f"回答：{display_val}")
@@ -464,7 +471,13 @@ def prepare_report_data():
     base_url = "https://family-edu-test-sqjqmdetjfhtbvpsh44xng.streamlit.app"
     
     # 生成原始答案字符串（存到飞书"原始数据"列）
-    raw_data_str = ",".join(str(ans.get(i, "")) for i in range(85))
+    def format_answer_for_storage(val):
+    """将答案格式化为可存储的字符串"""
+    if isinstance(val, list):
+        return "|".join(str(v) for v in val)  # 用竖线分隔多选值
+    return str(val) if val is not None else ""
+
+    raw_data_str = ",".join(format_answer_for_storage(st.session_state.ans.get(i, "")) for i in range(85))
     
     # 👇 干净的链接，只带 rid
     report_link = f"{base_url}/?page=report&rid={rid}"
