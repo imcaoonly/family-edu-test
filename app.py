@@ -585,8 +585,8 @@ def prepare_report_data():
         "注意预警": adhd_risk,
         "身体预警": body_risk,
         "原始数据": raw_data_str,  # 👈 新增：存原始答案
-        "报告链接": report_link,    # 👈 干净链接
-        "答题链接": detail_link     # 👈 干净链接
+        "报告链接": {"link": report_link, "text": "查看报告"},  # text可自定义
+        "答题链接": {"link": detail_link, "text": "答题详情"}
     }
 
 # --- 5. 页面流程逻辑 ---
