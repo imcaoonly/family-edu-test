@@ -478,10 +478,10 @@ def prepare_report_data():
     
     # 生成原始答案字符串（存到飞书"原始数据"列）
     def format_answer_for_storage(val):
-    """将答案格式化为可存储的字符串"""
-    if isinstance(val, list):
-        return "|".join(str(v) for v in val)  # 用竖线分隔多选值
-    return str(val) if val is not None else ""
+        """将答案格式化为可存储的字符串"""
+        if isinstance(val, list):
+            return "|".join(str(v) for v in val)  # 用竖线分隔多选值
+        return str(val) if val is not None else ""
 
     # 生成原始答案字符串（存到飞书"原始数据"列）
     raw_data_str = ",".join(format_answer_for_storage(ans.get(i, "")) for i in range(85))
