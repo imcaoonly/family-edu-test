@@ -52,13 +52,37 @@ def get_tenant_access_token():
         return None
 
 def send_to_feishu_bitable(data_dict):
-    """将数据写入飞书多维表格 (纯净版：只在后台报错)"""
-    # 1. 后台记录日志（用户在网页上看不见这些）
-    print(f"🚀 [飞书同步] 准备写入记录，用户编号: {data_dict.get('编号', '未知')}")
-    
-    token = get_tenant_access_token()
-    if not token: 
-        print("❌ [错误] 无法获取 Tenant Access Token")
+    """将数据写入飞书多维表格 (带前端错误提示)"""
+    try:
+        token = get_tenant_access_token()
+        if not token:
+            st.error("❌ 无法获取飞书 Tenant Access Token，请检查 APP_ID / APP_SECRET")
+            return False
+
+        url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json; charset=utf-8"
+        }
+        payload = {"fields": data_dict}
+
+        res = requests.post(url, headers=headers, json=payload, timeout=10)
+
+        if res.status_code == 200:
+            res_json = res.json()
+            if res_json.get("code") == 0:
+                st.success("✅ 报告已同步至飞书表格")
+                return True
+            else:
+                error_msg = f"飞书API返回错误：code={res_json.get('code')}, msg={res_json.get('msg')}"
+                st.error(error_msg)
+                return False
+        else:
+            st.error(f"飞书API HTTP错误：{res.status_code}")
+            return False
+
+    except Exception as e:
+        st.error(f"🔥 网络或未知异常：{str(e)}")
         return False
     
     url = f"https://open.feishu.cn/open-apis/bitable/v1/apps/{APP_TOKEN}/tables/{TABLE_ID}/records"
